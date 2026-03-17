@@ -1,3 +1,5 @@
+import LGContainer from '../../src/components/LGContainer';
+
 import React from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
