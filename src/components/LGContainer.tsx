@@ -13,7 +13,7 @@ interface LGContainerProps {
 }
 
 // O 'children' aqui representa tudo o que você colocar dentro da tag <LGContainer>
-export default function LGContainer({ children, liquidColor = '#E74C3C', fillLevel = 0.45 }): LGContainerProps{
+export default function LGContainer({ children, liquidColor = '#E74C3C', fillLevel = 0.45 }: LGContainerProps) {
   const waveAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -56,7 +56,7 @@ export default function LGContainer({ children, liquidColor = '#E74C3C', fillLev
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#121212' },
+  container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: 'transparent' },
   glassCard: { width: '100%', maxWidth: 400, minHeight: 550, borderRadius: 40, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.15)', backgroundColor: 'rgba(255, 255, 255, 0.05)' },
   liquidContainer: { position: 'absolute', bottom: 0, left: 0, right: 0, overflow: 'hidden' },
   waveWrapper: { position: 'absolute', top: -30, width: width * 2 },
