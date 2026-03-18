@@ -4,7 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function DishDetailScreen() {
-  const { id, name, chef, price } = useLocalSearchParams();
+  const { id, name, chef } = useLocalSearchParams();
   const router = useRouter();
 
   return (
@@ -67,15 +67,13 @@ const styles = StyleSheet.create({
   headerInfo: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
   title: { fontSize: 26, fontWeight: 'bold', color: '#FFF', flex: 1 },
   chef: { fontSize: 16, color: '#AAA', marginTop: 5 },
-  price: { fontSize: 22, fontWeight: 'bold', color: '#E74C3C' },
   ratingContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 25 },
   ratingText: { color: '#F8D775', marginLeft: 5, fontSize: 14 },
   sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#FFF', marginBottom: 10, marginTop: 10 },
   description: { fontSize: 15, color: '#BBB', lineHeight: 22, marginBottom: 20 },
-  ingredientsList: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 100 },
+  ingredientsList: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 50 },
   ingredientTag: { backgroundColor: '#1E1E1E', paddingHorizontal: 15, paddingVertical: 8, borderRadius: 20, marginRight: 10, marginBottom: 10, borderWidth: 1, borderColor: '#333' },
   ingredientText: { color: '#DDD', fontSize: 13 },
-  footer: { position: 'absolute', bottom: 0, width: '100%', padding: 20, backgroundColor: '#121212', borderTopWidth: 1, borderTopColor: '#222' },
   orderButton: { backgroundColor: '#E74C3C', height: 55, borderRadius: 15, justifyContent: 'center', alignItems: 'center' },
   orderButtonText: { color: '#FFF', fontSize: 18, fontWeight: 'bold' },
 });

@@ -1,7 +1,6 @@
-import { styles } from '@/components/LGContainer';
 import { default as BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
-import { default as React, default as React, useEffect, useRef, useState } from 'react';
+import { default as React, useEffect, useRef, useState } from 'react';
 import { Animated, Easing, FlatList, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Svg, { default as Path } from 'react-native-svg';
 
@@ -107,46 +106,4 @@ const styles = StyleSheet.create({
   buttonDisabled: { backgroundColor: '#ccc' },
   buttonText: { color: '#FFF', fontSize: 18, fontWeight: 'bold' },
 });
-// O 'children' aqui representa tudo o que você colocar dentro da tag <LGContainer>
 
-export default function LGContainer({ children, liquidColor = '#E74C3C', fillLevel = 0.45 }) {
-    const waveAnim = useRef(new Animated.Value(0)).current;
-
-    useEffect(() => {
-        Animated.loop(
-            Animated.timing(waveAnim, {
-                toValue: 1,
-                duration: 3000,
-                easing: Easing.linear,
-                useNativeDriver: true,
-            })
-        ).start();
-    }, [waveAnim]);
-
-    const translateX = waveAnim.interpolate({
-        inputRange: [0, 1],
-        outputRange: [-width, 0],
-    });
-
-    return (
-        <View style={styles.container}>
-            <BlurView intensity={60} tint="dark" style={styles.glassCard}>
-                <View style={[styles.liquidContainer, { height: `${fillLevel * 100}%` }]}>
-                    <Animated.View style={[styles.waveWrapper, { transform: [{ translateX }] }]}>
-                        <Svg height="60" width={width * 2} viewBox={`0 0 ${width * 2} 60`}>
-                            <Path d={`M 0 30 Q ${width / 2} 0 ${width} 30 T ${width * 2} 30 V 60 H 0 Z`} fill={liquidColor} opacity={0.4} />
-                        </Svg>
-                    </Animated.View>
-                    <View style={[styles.liquidBase, { backgroundColor: liquidColor, opacity: 0.4 }]} />
-                </View>
-
-                {/* AQUI É ONDE O CHILDREN APARECE */}
-                <View style={styles.content}>
-                    {children}
-                </View>
-
-                <View style={styles.glassBorder} />
-            </BlurView>
-        </View>
-    );
-}

@@ -1,5 +1,4 @@
-import LGContainer from '../(onboarding)/preferences';
-
+import LGContainer from '../../src/components/LGContainer';
 import { useRouter } from 'expo-router';
 import { Image, StyleSheet, Text, TextInput, TouchableOpacity } from 'react-native';
 

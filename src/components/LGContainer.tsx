@@ -13,7 +13,7 @@ interface LGContainerProps {
 }
 
 // O 'children' aqui representa tudo o que você colocar dentro da tag <LGContainer>
-export default function LGContainer({ children, liquidColor = '#E74C3C', fillLevel = 0.45 }) {
+export default function LGContainer({ children, liquidColor = '#E74C3C', fillLevel = 0.45 }): LGContainerProps{
   const waveAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {

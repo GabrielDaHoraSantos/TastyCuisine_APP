@@ -1,5 +1,4 @@
-import LGContainer from '../(onboarding)/preferences';
-
+import LGContainer from '../../src/components/LGContainer'; 
 import { useRouter } from 'expo-router';
 import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
@@ -9,7 +8,7 @@ export default function RegisterScreen() {
   const handleRegister = () => {
     // Aqui entraria a lógica de salvar no banco de dados futuramente
     // Por enquanto, apenas navegamos para a próxima etapa:
-    router.replace('../(onboarding)/preferences');
+    router.replace('/preferences');
   };
 
   return (
@@ -29,7 +28,7 @@ export default function RegisterScreen() {
         <TextInput style={styles.input} placeholder="Confirmar Senha" secureTextEntry placeholderTextColor="#666" />
       </View>
 
-      <TouchableOpacity style={styles.button} onPress={() => router.replace('/preferences' as any)}>
+      <TouchableOpacity style={styles.button} onPress={() => router.replace('/preferences')}>
         <Text style={styles.buttonText}>Cadastrar</Text>
       </TouchableOpacity>
 
