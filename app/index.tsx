@@ -13,7 +13,7 @@ export default function SplashScreen() {
 
   return (
     <View style={styles.container}>
-      <Image source={require('../assets/images/logo-glow.png')} style={styles.logo} />
+      <Image source={require('../assets/images/TastiLogo.png')} style={styles.logo} />
     </View>
   );
 }

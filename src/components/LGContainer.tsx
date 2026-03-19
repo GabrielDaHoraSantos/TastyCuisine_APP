@@ -7,12 +7,11 @@ const { width } = Dimensions.get('window');
 
 // Definindo os tipos para o TypeScript
 interface LGContainerProps {
-  children: React.ReactNode; // Isso resolve o erro do 'any'
+  children: React.ReactNode;
   liquidColor?: string;
   fillLevel?: number;
 }
 
-// O 'children' aqui representa tudo o que você colocar dentro da tag <LGContainer>
 export default function LGContainer({ children, liquidColor = '#E74C3C', fillLevel = 0.45 }: LGContainerProps) {
   const waveAnim = useRef(new Animated.Value(0)).current;
 
@@ -56,11 +55,11 @@ export default function LGContainer({ children, liquidColor = '#E74C3C', fillLev
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: 'transparent' },
-  glassCard: { width: '100%', maxWidth: 400, minHeight: 550, borderRadius: 40, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.15)', backgroundColor: 'rgba(255, 255, 255, 0.05)' },
+  container: { flex: 1, backgroundColor: 'transparent' },
+  glassCard: { flex: 1, width: '100%', height: '100%', borderRadius: 0, overflow: 'hidden', borderWidth: 0, backgroundColor: 'rgba(217, 251, 255, 0.73)' },
   liquidContainer: { position: 'absolute', bottom: 0, left: 0, right: 0, overflow: 'hidden' },
   waveWrapper: { position: 'absolute', top: -30, width: width * 2 },
   liquidBase: { flex: 1, marginTop: 25 },
-  content: { flex: 1, padding: 30, justifyContent: 'center', zIndex: 10 },
-  glassBorder: { ...StyleSheet.absoluteFillObject, borderRadius: 40, borderWidth: 1.5, borderColor: 'rgba(255, 255, 255, 0.1)', pointerEvents: 'none' },
+  content: { flex: 1, padding: 30, justifyContent: 'center', alignItems: 'center', zIndex: 10 },
+  glassBorder: { ...StyleSheet.absoluteFillObject, borderRadius: 0, borderWidth: 0, pointerEvents: 'none' },
 });
