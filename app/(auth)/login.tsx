@@ -36,10 +36,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 20,
     color: '#FFF',
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4
-  },
+    },
 
   input: {
     width: '80%',
@@ -52,7 +49,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.3)',
-    
+   
   },
   button: {
     width: '80%',
@@ -74,4 +71,5 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
     fontSize: 16
   },
+  
 });

@@ -1,1 +1,1 @@
-npx tsc --noEmit
+npx tsc --noEmit //ver erros do codigo pelo terminal
