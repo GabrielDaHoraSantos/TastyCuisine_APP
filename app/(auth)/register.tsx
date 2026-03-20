@@ -1,4 +1,4 @@
-import LGContainer from '../../src/components/LGContainer'; 
+import LGContainer from '../../src/components/LGContainer';
 import { useRouter } from 'expo-router';
 import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
@@ -13,20 +13,20 @@ export default function RegisterScreen() {
 
   return (
     <LGContainer liquidColor="#FF6347" fillLevel={0.4}>
-      <Image 
-        source={require('../../assets/images/profile.png')} 
-        style={styles.logo} 
+      <Image
+        source={require('../../assets/images/profile.png')}
+        style={styles.logo}
       />
-      
+
       <Text style={styles.title}>Criar Conta</Text>
       <Text style={styles.subtitle}>Junte-se à TastyCuisine e descubra novos sabores!</Text>
 
       <View style={styles.inputContainer}>
         <TextInput style={styles.input} placeholder="Nome Completo" placeholderTextColor="#DDD" />
-        <TextInput style={styles.input} placeholder="Email" keyboardType="email-address" placeholderTextColor="#DDD"/>
-        <TextInput style={styles.input} placeholder="Senha" secureTextEntry placeholderTextColor="#DDD"/>
+        <TextInput style={styles.input} placeholder="Email" keyboardType="email-address" placeholderTextColor="#DDD" />
+        <TextInput style={styles.input} placeholder="Senha" secureTextEntry placeholderTextColor="#DDD" />
         <TextInput style={styles.input} placeholder="Confirmar Senha" secureTextEntry placeholderTextColor="#DDD" />
-        
+
 
       </View>
 
@@ -42,17 +42,18 @@ export default function RegisterScreen() {
 }
 
 const styles = StyleSheet.create({
-  logo: { 
-    width: 100, 
-    height: 100, 
+  logo: {
+    width: 100,
+    height: 100,
     marginBottom: 20,
-    resizeMode: 'contain'
+    resizeMode: 'contain',
+    borderRadius: 77,
   },
-  title: { 
-    fontSize: 32, 
-    fontWeight: 'bold', 
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
     color: '#FFF',
-    marginBottom: 5 
+    marginBottom: 5
   },
   subtitle: {
     fontSize: 14,
@@ -63,11 +64,11 @@ const styles = StyleSheet.create({
   inputContainer: {
     width: '85%',
   },
-  input: { 
-    width: '100%', 
+  input: {
+    width: '100%',
     height: 50,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 12, 
+    borderRadius: 12,
     paddingHorizontal: 20,
     color: '#FFF',
     marginBottom: 15,
@@ -75,23 +76,25 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.3)',
   },
-  button: { 
-    width: '85%', 
-    height: 55, 
-    backgroundColor: '#FF6347',
-    borderRadius: 12, 
-    alignItems: 'center', 
+  button: {
+    borderBlockColor: 'rgba(255, 255, 255, 1)',
+    width: '85%',
+    height: 55,
+    backgroundColor: '#38110aff',
+    borderRadius: 12,
+    alignItems: 'center',
     justifyContent: 'center',
     marginTop: 10,
-    elevation: 3
+    elevation: 3,
+
   },
-  buttonText: { 
-    color: '#FFF', 
-    fontWeight: 'bold', 
-    fontSize: 18 
+  buttonText: {
+    color: '#FFF',
+    fontWeight: 'bold',
+    fontSize: 18
   },
-  link: { 
-    marginTop: 20, 
+  link: {
+    marginTop: 20,
     color: '#FFF',
     fontSize: 15
   },
