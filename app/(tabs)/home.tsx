@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList, Image, ScrollView, TextInput, TouchableOpacity } from 'react-native';
 import { Link } from 'expo-router';
+import { useTheme } from '../themeContext';     
 
 const FEATURED_DISHES = [
   {
@@ -27,7 +28,7 @@ const FEATURED_DISHES = [
 
   {
     id: '3',
-    name: 'Bolo de Cenoura com calda de chocolate',
+    nae: 'Bolo de Cenoura com calda de chocolate',
     chef: 'Chef Lucas',
     image: 'https://th.bing.com/th/id/OIP.ykvAWmcHAKz3ytqFziDn-gHaE8?w=249&h=180&c=7&r=0&o=7&pid=1.7&rm=3',
     description: '',
@@ -63,6 +64,7 @@ const FEATURED_DISHES = [
 
 
 export default function HomeScreen() {
+  const { theme, toggleMode } = useTheme();
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -122,36 +124,69 @@ export default function HomeScreen() {
     </View>
   );
 }
+ 
+
+  const { theme, toggleMode } = useTheme();
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#121212', padding: 20, paddingTop: 50 },
-  header: { marginBottom: 20 },
-  greeting: { fontSize: 24, fontWeight: 'bold', color: '#F8D775' },
-  subtitle: { fontSize: 16, color: '#AAA' },
-  searchBar: {
-    backgroundColor: '#1E1E1E',
-    borderRadius: 12,
-    paddingHorizontal: 15,
-    height: 50,
-    justifyContent: 'center',
-    marginBottom: 25,
-    borderWidth: 1,
-    borderColor: '#333'
-  },
-  searchInput: { color: '#FFF', fontSize: 16 },
-  sectionTitle: { fontSize: 20, fontWeight: 'bold', color: '#FFF', marginBottom: 15 },
-  dishCard: {
-    width: 200,
-    backgroundColor: '#1E1E1E',
-    borderRadius: 15,
-    marginRight: 15,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#333'
-  },
-  dishImage: { width: '100%', height: 120 },
-  dishInfo: { padding: 12 },
-  dishName: { fontSize: 16, fontWeight: 'bold', color: '#FFF' },
-  dishChef: { fontSize: 12, color: '#AAA', marginVertical: 4 },
-  dishPrice: { fontSize: 14, fontWeight: 'bold', color: '#E74C3C' },
-});
+  container: { 
+      flex: 1, 
+      backgroundColor: theme.background.primary, // <-- Usando cor do tema
+      padding: 20, 
+      paddingTop: 50 
+    },
+    header: {
+      marginBottom: 20
+    },
+    greeting: { 
+      fontSize: 24, 
+      fontWeight: 'bold', 
+      color: theme.primary // <-- Usando cor do tema (ex: F8D775 ou roxo/azul)
+    },
+    subtitle: { 
+      fontSize: 16, 
+      color: theme.text.secondary // <-- Usando cor do tema
+    },
+    searchBar: { 
+      backgroundColor: theme.background.secondary, // <-- Usando cor do tema
+      borderRadius: 12, 
+      paddingHorizontal: 15, 
+      height: 50, 
+      justifyContent: 'center',
+      marginBottom: 25,
+      borderWidth: 1,
+      borderColor: theme.text.secondary // <-- Usando cor do tema
+    },
+    searchInput: { 
+      color: theme.text.primary, // <-- Usando cor do tema
+      fontSize: 16 
+    },
+    sectionTitle: { 
+      fontSize: 20, 
+      fontWeight: 'bold', 
+      color: theme.text.primary, // <-- Usando cor do tema
+      marginBottom: 15 
+    },
+    dishCard: { 
+      width: 200, 
+      backgroundColor: theme.background.secondary, // <-- Usando cor do tema
+      borderRadius: 15, 
+      marginRight: 15,
+      overflow: 'hidden',
+      borderWidth: 1,
+      borderColor: theme.text.secondary // <-- Usando cor do tema
+    },
+    dishImage: { width: '100%', height: 120 },
+    dishInfo: { padding: 12 },
+    dishName: { 
+      fontSize: 16, 
+      fontWeight: 'bold', 
+      color: theme.text.primary // <-- Usando cor do tema
+    },
+    dishChef: { 
+      fontSize: 12, 
+      color: theme.text.secondary, // <-- Usando cor do tema
+      marginVertical: 4 
+    },
+
+    });

@@ -17,5 +17,5 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
-, "src/components/LGContainer.tsx"  ]
+, "src/components/LGContainer.tsx", "app/_layout.jsx"  ]
 }
