@@ -1,46 +1,88 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, SafeAreaView, StatusBar } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Video, ResizeMode } from 'expo-av';
-import { useTheme } from '../themeContext'; // Importação do useTheme
+import { useTheme } from '../themeContext';
+import { FEATURED_DISHES } from '../../src/data/recipes';
+
+// Proteção contra erro de módulo não encontrado (ExponentAV)
+let Video: any;
+let ResizeMode: any;
+try {
+  const ExpoAV = require('expo-av');
+  Video = ExpoAV.Video;
+  ResizeMode = ExpoAV.ResizeMode;
+} catch (e) {
+  console.warn("Módulo expo-av não encontrado. O vídeo não será exibido.");
+}
 
 export default function DishDetailScreen() {
-  const { id, name, chef, image, description, ingredients, steps, videoUrl } = useLocalSearchParams();
+  const { id } = useLocalSearchParams();
   const router = useRouter();
-  const { theme } = useTheme(); // Usando o hook para acessar o tema
+  const { theme, isDarkMode } = useTheme();
 
-  const parsedIngredients = ingredients ? JSON.parse(ingredients as string) : [];
-  const parsedSteps = steps ? JSON.parse(steps as string) : [];
+  // Busca a receita pelo ID nos dados centralizados
+  const recipe = FEATURED_DISHES.find(d => d.id === id);
 
-  // Definindo os estilos DENTRO do componente para que eles reajam ao tema
   const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: theme.background.primary },
-    imageContainer: { width: '100%', height: 300, position: 'relative' },
+    imageContainer: { width: '100%', height: 350, position: 'relative' },
     image: { width: '100%', height: '100%' },
+    overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.2)' },
     backButton: { position: 'absolute', top: 50, left: 20, backgroundColor: 'rgba(0,0,0,0.5)', padding: 10, borderRadius: 25 },
     favButton: { position: 'absolute', top: 50, right: 20, backgroundColor: 'rgba(0,0,0,0.5)', padding: 10, borderRadius: 25 },
-    content: { padding: 20, borderTopLeftRadius: 30, borderTopRightRadius: 30, backgroundColor: theme.background.primary, marginTop: -30 },
-    headerInfo: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
-    title: { fontSize: 26, fontWeight: 'bold', color: theme.text.primary, flex: 1 },
-    chef: { fontSize: 16, color: theme.text.secondary, marginTop: 5 },
-    ratingContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 25 },
-    ratingText: { color: '#F8D775', marginLeft: 5, fontSize: 14 }, // Cor fixa para estrela, pode ser ajustada para theme.accent
-    sectionTitle: { fontSize: 18, fontWeight: 'bold', color: theme.text.primary, marginBottom: 10, marginTop: 10 },
-    description: { fontSize: 15, color: theme.text.secondary, lineHeight: 22, marginBottom: 20 },
-    ingredientsList: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 50 },
-    ingredientTag: { backgroundColor: theme.background.secondary, paddingHorizontal: 15, paddingVertical: 8, borderRadius: 20, marginRight: 10, marginBottom: 10, borderWidth: 1, borderColor: theme.background.secondary === '#FFFFFF' ? '#EEE' : '#333' },
-    ingredientText: { color: theme.text.primary, fontSize: 13 },
-    stepsList: { marginBottom: 20 },
-    stepText: { fontSize: 15, color: theme.text.secondary, lineHeight: 22, marginBottom: 10 },
-    videoPlayer: { width: '100%', height: 200, backgroundColor: '#000', borderRadius: 10, marginTop: 10 },
+    content: { 
+      padding: 25, borderTopLeftRadius: 35, borderTopRightRadius: 35, 
+      backgroundColor: theme.background.primary, marginTop: -40, elevation: 5
+    },
+    title: { fontSize: 28, fontWeight: 'bold', color: theme.text.primary, marginBottom: 5 },
+    chef: { fontSize: 16, color: theme.text.secondary, marginBottom: 15 },
+    ratingContainer: { 
+      flexDirection: 'row', alignItems: 'center', marginBottom: 25, 
+      backgroundColor: theme.background.secondary, alignSelf: 'flex-start', 
+      paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 
+    },
+    ratingText: { color: theme.text.primary, marginLeft: 5, fontSize: 14, fontWeight: '600' },
+    sectionTitle: { fontSize: 20, fontWeight: 'bold', color: theme.text.primary, marginBottom: 15, marginTop: 10 },
+    description: { fontSize: 16, color: theme.text.secondary, lineHeight: 24, marginBottom: 25 },
+    ingredientsList: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 20 },
+    ingredientTag: { 
+      backgroundColor: theme.background.secondary, paddingHorizontal: 16, paddingVertical: 10, 
+      borderRadius: 25, marginRight: 10, marginBottom: 10, borderWidth: 1, borderColor: isDarkMode ? '#333' : '#EEE' 
+    },
+    ingredientText: { color: theme.text.primary, fontSize: 14, fontWeight: '500' },
+    stepsList: { marginBottom: 30 },
+    stepItem: { flexDirection: 'row', marginBottom: 15 },
+    stepNumber: { 
+      width: 28, height: 28, borderRadius: 14, backgroundColor: theme.primary, 
+      justifyContent: 'center', alignItems: 'center', marginRight: 15, marginTop: 2 
+    },
+    stepNumberText: { color: '#FFF', fontSize: 14, fontWeight: 'bold' },
+    stepText: { flex: 1, fontSize: 16, color: theme.text.secondary, lineHeight: 24 },
+    videoPlayer: { width: '100%', height: 220, backgroundColor: '#000', borderRadius: 15, marginTop: 10 },
+    errorContainer: { flex: 1, backgroundColor: theme.background.primary, justifyContent: 'center', alignItems: 'center' },
+    errorText: { color: theme.text.primary, fontSize: 18 },
+    backLink: { marginTop: 20, padding: 10, backgroundColor: theme.primary, borderRadius: 8 }
   });
 
+  if (!recipe) {
+    return (
+      <SafeAreaView style={styles.errorContainer}>
+        <Text style={styles.errorText}>Receita não encontrada</Text>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backLink}>
+          <Text style={{ color: '#FFF' }}>Voltar</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
+
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" />
+      <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
         <View style={styles.imageContainer}>
-          <Image source={{ uri: image as string }} style={styles.image} />
+          <Image source={{ uri: recipe.image }} style={styles.image} resizeMode="cover" />
+          <View style={styles.overlay} />
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={24} color="#FFF" />
           </TouchableOpacity>
@@ -50,28 +92,22 @@ export default function DishDetailScreen() {
         </View>
 
         <View style={styles.content}>
-          <View style={styles.headerInfo}>
-            <View>
-              <Text style={styles.title}>{name || 'Prato Especial'}</Text>
-              <Text style={styles.chef}>Por {chef || 'Chef Tasty'}</Text>
-            </View>
-          </View>
+          <Text style={styles.title}>{recipe.name}</Text>
+          <Text style={styles.chef}>Por {recipe.chef}</Text>
 
           <View style={styles.ratingContainer}>
-            <Ionicons name="star" size={18} color="#F8D775" />
+            <Ionicons name="star" size={18} color="#FFD700" />
             <Text style={styles.ratingText}>4.8 (120 avaliações)</Text>
           </View>
 
-          <Text style={styles.sectionTitle}>Descrição</Text>
-          <Text style={styles.description}>
-            {description || 'Nenhuma descrição disponível para este prato.'}
-          </Text>
+          <Text style={styles.sectionTitle}>Sobre a Receita</Text>
+          <Text style={styles.description}>{recipe.description}</Text>
 
-          {parsedIngredients.length > 0 && (
+          {recipe.ingredients.length > 0 && (
             <>
-              <Text style={styles.sectionTitle}>Ingredientes Principais</Text>
+              <Text style={styles.sectionTitle}>Ingredientes</Text>
               <View style={styles.ingredientsList}>
-                {parsedIngredients.map((item: string, index: number) => (
+                {recipe.ingredients.map((item, index) => (
                   <View key={index} style={styles.ingredientTag}>
                     <Text style={styles.ingredientText}>{item}</Text>
                   </View>
@@ -80,35 +116,37 @@ export default function DishDetailScreen() {
             </>
           )}
 
-          {parsedSteps.length > 0 && (
+          {recipe.steps.length > 0 && (
             <>
               <Text style={styles.sectionTitle}>Modo de Preparo</Text>
               <View style={styles.stepsList}>
-                {parsedSteps.map((step: string, index: number) => (
-                  <Text key={index} style={styles.stepText}>{`Passo ${index + 1}: ${step}`}</Text>
+                {recipe.steps.map((step, index) => (
+                  <View key={index} style={styles.stepItem}>
+                    <View style={styles.stepNumber}><Text style={styles.stepNumberText}>{index + 1}</Text></View>
+                    <Text style={styles.stepText}>{step}</Text>
+                  </View>
                 ))}
               </View>
             </>
           )}
 
-          {videoUrl && (videoUrl as string).length > 0 && (
-            <>
-              <Text style={styles.sectionTitle}>Vídeo da Receita</Text>
+          {/* O vídeo só aparece se o módulo carregar corretamente */}
+          {recipe.videoUrl.length > 0 && Video && (
+            <View style={{ marginBottom: 40 }}>
+              <Text style={styles.sectionTitle}>Vídeo Tutorial</Text>
               <Video 
-                source={{ uri: videoUrl as string }}
-                rate={1.0}
-                volume={1.0}
-                isMuted={false}
-                resizeMode={ResizeMode.CONTAIN}
-                shouldPlay
-                isLooping
-                useNativeControls
-                style={styles.videoPlayer}
+                source={{ uri: recipe.videoUrl }} 
+                rate={1.0} 
+                volume={1.0} 
+                isMuted={false} 
+                resizeMode={ResizeMode?.CONTAIN || 'contain'} 
+                useNativeControls 
+                style={styles.videoPlayer} 
               />
-            </>
+            </View>
           )}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
