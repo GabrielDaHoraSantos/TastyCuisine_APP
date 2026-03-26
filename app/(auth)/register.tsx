@@ -24,7 +24,8 @@ export default function RegisterScreen() {
       <Text style={styles.subtitle}>Junte-se à TastyCuisine e descubra novos sabores!</Text>
 
       <View style={styles.inputContainer}>
-        <TextInput style={styles.input} placeholder="Nome Completo" placeholderTextColor="#DDD" />
+        <TextInput style={styles.input} placeholder="Primeiro Nome" placeholderTextColor="#DDD" />
+        <TextInput style={styles.input} placeholder="Sobrenome" placeholderTextColor="#DDD" />
         <TextInput style={styles.input} placeholder="Email" keyboardType="email-address" placeholderTextColor="#DDD" />
         <TextInput style={styles.input} placeholder="Senha" secureTextEntry placeholderTextColor="#DDD" />
         <TextInput style={styles.input} placeholder="Confirmar Senha" secureTextEntry placeholderTextColor="#DDD" />
