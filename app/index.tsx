@@ -13,7 +13,7 @@ export default function SplashScreen() {
 
   return (
     <View style={styles.container}>
-      <Image source={require('../assets/images/TastiLogo.png')} style={styles.logo} />
+      <Image source={require('../assets/images/T.png')} style={styles.logo} />
     </View>
   );
 }
@@ -21,7 +21,7 @@ export default function SplashScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ac3e3e52',
+    backgroundColor: '#0fcbe4ff',
     justifyContent: 'center',
     alignItems: 'center'
   },

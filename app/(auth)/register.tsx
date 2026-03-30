@@ -14,7 +14,7 @@ export default function RegisterScreen() {
   };
 
   return (
-    <LGContainer liquidColor="#FF6347" fillLevel={0.4}>
+    <LGContainer liquidColor="#f5913fff" fillLevel={0.6}>
       <Image
         source={require('../../assets/images/profile.png')}
         style={styles.logo}
@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     borderBlockColor: 'rgba(255, 255, 255, 1)',
     width: '85%',
     height: 55,
-    backgroundColor: '#38110aff',
+    backgroundColor: '#f7b773ff',
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
   },
   linkBold: {
     fontWeight: 'bold',
-    color: '#FFD700',
+    color: '#86dfe5ff',
     textDecorationLine: 'underline'
   }
 });

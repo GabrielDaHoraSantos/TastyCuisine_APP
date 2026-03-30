@@ -84,6 +84,13 @@ export default function HomeScreen() {
           )}
         />
         <Text style={[styles.sectionTitle, { marginTop: 20 }]}>Categorias Populares</Text>
+        <FlatList
+        data={FEATURED_DISHES}
+        
+        
+        
+        
+        />
       </ScrollView>
     </View>
   );

@@ -11,9 +11,9 @@ interface LGContainerProps {
   fillLevel?: number;
 }
 
-export default function LGContainer({ children, liquidColor = '#E74C3C', fillLevel = 0.45 }: LGContainerProps) {
-  const waveAnim1 = useRef(new Animated.Value(0)).current;
-  const waveAnim2 = useRef(new Animated.Value(0)).current;
+export default function LGContainer({ children, liquidColor = '#f5913fff', fillLevel = 0.6 }: LGContainerProps) {
+  const waveAnim1 = useRef(new Animated.Value(7)).current;
+  const waveAnim2 = useRef(new Animated.Value(10)).current;
 
   useEffect(() => {
     Animated.loop(
@@ -30,7 +30,6 @@ export default function LGContainer({ children, liquidColor = '#E74C3C', fillLev
         toValue: 1,
         duration: 4500, // Velocidade da segunda onda (mais lenta)
         easing: Easing.inOut(Easing.quad), // Movimento mais suave
-        delay: 1500, // Começa com um pequeno atraso
         useNativeDriver: true,
       })
     ).start();
@@ -93,7 +92,7 @@ export default function LGContainer({ children, liquidColor = '#E74C3C', fillLev
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'transparent'
+    backgroundColor: 'hsla(178, 28%, 80%, 0.61)'
   },
   glassCard: {
     flex: 1,
@@ -102,7 +101,7 @@ const styles = StyleSheet.create({
     borderRadius: 0,
     overflow: 'hidden',
     borderWidth: 0,
-    backgroundColor: 'hsl(178, 100%, 95%)'
+    backgroundColor: 'hsla(178, 84%, 51%, 1.00)'
   },
   liquidContainer: {
     position: 'absolute',

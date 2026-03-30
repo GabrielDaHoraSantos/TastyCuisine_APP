@@ -8,8 +8,8 @@ export default function LoginScreen() {
   const router = useRouter();
 
   return (
-    <LGContainer liquidColor="#FF6347" fillLevel={0.4}>
-      <Image source={require('../../assets/images/TastiLogo.png')} style={styles.logo} />
+    <LGContainer liquidColor="#f5913fff" fillLevel={0.6}>
+      <Image source={require('../../assets/images/T.png')} style={styles.logo} />
       <Text style={styles.title}>Login</Text>
       <TextInput style={styles.input} placeholder="Email" />
       <TextInput style={styles.input} placeholder="Senha" secureTextEntry />
@@ -17,7 +17,7 @@ export default function LoginScreen() {
         <Text style={styles.buttonText}>Entrar</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={() => router.push('/register')}>
-        <Text style={styles.link}>Não tem conta? Cadastre-se</Text>
+        <Text style={styles.link}>Não tem conta? <Text style={styles.linkBold}>Cadastre-se</Text></Text>
       </TouchableOpacity>
     </LGContainer>
   );
@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
     width: '80%',
     height: 55,
     marginTop: 10,
-    backgroundColor: '#38110aff',
+    backgroundColor: '#f7b773ff',
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center'
@@ -68,8 +68,12 @@ const styles = StyleSheet.create({
   link: {
     marginTop: 20,
     color: '#FFF',
-    textDecorationLine: 'underline',
     fontSize: 16
   },
+  linkBold: {
+    fontWeight: 'bold',
+    color: '#86dfe5ff',
+    textDecorationLine: 'underline'
+  }
   
 });
