@@ -86,8 +86,8 @@ export default function LoginScreen() {
         secureTextEntry 
       />
 
-      <TouchableOpacity 
-        onPress={handleSubmit} 
+       <TouchableOpacity 
+        onPress={() => router.push('/home')}
         style={[styles.button, loading && styles.buttonDisabled]}
         disabled={loading}
       >
