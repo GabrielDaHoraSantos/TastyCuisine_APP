@@ -1,1 +1,2 @@
 npx tsc --noEmit //ver erros do codigo pelo terminal
+ipconfig

@@ -1,10 +1,10 @@
 /**
- * API Configuration
+ * API Configuration-----------------------------
  * Centralized API endpoints and utilities for communicating with the Tasty Cuisine backend
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8080';
+const API_BASE_URL = 'http://192.168.3.62:8080'; // Substitua pelo IP do seu backend
 
 // Endpoints
 export const API_ENDPOINTS = {
@@ -105,7 +105,12 @@ export const authAPI = {
       body: JSON.stringify(userData),
     }),
   logout: async () => {
-    await AsyncStorage.multiRemove(['userToken', 'isLogged', 'userId', 'userName']);
+    await Promise.all([
+      AsyncStorage.removeItem('userToken'), 
+      AsyncStorage.removeItem('isLogged'),
+        AsyncStorage.removeItem('userId'),
+        AsyncStorage.removeItem('userName'),
+    ]);
   }
 }
 

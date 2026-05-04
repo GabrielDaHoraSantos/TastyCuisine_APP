@@ -87,7 +87,8 @@ export default function LoginScreen() {
       />
 
       <TouchableOpacity 
-        onPress={handleSubmit} 
+      onPress={() => router.push('/home')}
+       // onPress={handleSubmit} 
         style={[styles.button, loading && styles.buttonDisabled]}
         disabled={loading}
       >
