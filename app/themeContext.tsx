@@ -3,16 +3,16 @@ import React, { createContext, useState, useContext, ReactNode } from 'react';
 // Tema "Sabor Azul"
 const lightBlueTheme = {
   background: {
-    primary: '#e7d2bfff',
-    secondary: '#f7b77359',
+    primary: '#ffffffff',
+    secondary: '#ffffffff',
   },
   text: {
-    primary: '#6d4005',
-    secondary: '#7F8C8D',
+    primary: '#7c7c7cff',
+    secondary: '#000000ff',
   },
-  primary: '#ff7e00',
-  accent: '#bc701a',
-  button: '#d66f1b',
+  primary: '#030303ff',
+  accent: '#cc2929ff',
+  button: '#d41818ff',
   error: '#E74C3C',
 };
 

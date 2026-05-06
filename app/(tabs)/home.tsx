@@ -85,12 +85,24 @@ export default function HomeScreen() {
         />
         <Text style={[styles.sectionTitle, { marginTop: 20 }]}>Categorias Populares</Text>
         <FlatList
-        data={FEATURED_DISHES}
-        
-        
-        
-        
+          data={FEATURED_DISHES}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <TouchableOpacity 
+              style={styles.dishCard} 
+              onPress={() => handlePressDish(item.id)}
+            >
+              <Image source={{ uri: item.image }} style={styles.dishImage} />
+              <View style={styles.dishInfo}>
+                <Text style={styles.dishName}>{item.name}</Text>
+                <Text style={styles.dishChef}>{item.chef}</Text>
+              </View>
+            </TouchableOpacity>
+          )}
         />
+  
       </ScrollView>
     </View>
   );

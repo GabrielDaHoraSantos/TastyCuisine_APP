@@ -19,8 +19,8 @@ export default function TabsLayout() {
           paddingTop: 5
         },
         tabBarActiveTintColor: theme.primary, 
-        tabBarInactiveTintColor: theme.text.primary, // Branco para melhor contraste no vermelho
-      }}
+        tabBarInactiveTintColor: theme.text.primary,
+      }} 
     >
       <Tabs.Screen 
         name="home" 
@@ -37,10 +37,10 @@ export default function TabsLayout() {
         }} 
       />
       <Tabs.Screen 
-        name="post" 
+        name="search" 
         options={{ 
-          title: 'Postar',
-          tabBarIcon: ({ color }) => <Ionicons name="add-circle" size={32} color={color} />
+          title: 'Pesquisar',
+          tabBarIcon: ({ color }) => <Ionicons name="search-outline" size={24} color={color} />
         }} 
       />
       <Tabs.Screen 

@@ -1,1 +1,3 @@
 npx tsc --noEmit //ver erros do codigo pelo terminal
+Invoke-WebRequest -Uri https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe -OutFile cloudflared.exe//Instalar o clouFlared
+./cloudfared tunnel --url http://localhost:8080
