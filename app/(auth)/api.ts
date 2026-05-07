@@ -105,7 +105,10 @@ export const authAPI = {
       body: JSON.stringify(userData),
     }),
   logout: async () => {
-    await AsyncStorage.multiRemove(['userToken', 'isLogged', 'userId', 'userName']);
+    await AsyncStorage.removeItem('userToken');
+    await AsyncStorage.removeItem('isLogged');
+    await AsyncStorage.removeItem('userId');
+    await AsyncStorage.removeItem('userName');
   }
 }
 

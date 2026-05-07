@@ -130,7 +130,7 @@ export default function ProfileScreen() {
               styles.themeOption, 
               currentThemeName === t.id && styles.themeOptionSelected
             ]}
-            onPress={() => setTheme(t.id)}
+            onPress={() => setTheme(t.id as 'blue')}
           >
             <View style={[styles.themeCircle, { backgroundColor: t.color }]} />
             <Text style={styles.themeLabel}>{t.label}</Text>

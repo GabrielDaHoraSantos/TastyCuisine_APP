@@ -18,7 +18,7 @@ export default function HomeScreen() {
   };
 
   const featuredRecipes = FEATURED_DISHES.slice(0, 6);
-  const quickRecipes = FEATURED_DISHES.filter(dish => parseInt(dish.prepareTime) <= 30);
+  const quickRecipes = FEATURED_DISHES.filter(dish => parseInt(dish.prepareTime ?? '0') <= 30);
   const desserts = FEATURED_DISHES.filter(dish => 
     dish.name.toLowerCase().includes('bolo') || 
     dish.name.toLowerCase().includes('brigadeiro') ||
