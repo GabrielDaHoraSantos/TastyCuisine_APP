@@ -197,14 +197,13 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   button: {
-    width: '85%',
+   width: 150,
     height: 55,
-    backgroundColor: '#f7b773ff',
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
     marginTop: 10,
-    elevation: 3,
+    backgroundColor: '#f7b773ff',
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   buttonDisabled: {
     opacity: 0.7,
