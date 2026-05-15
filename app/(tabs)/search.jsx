@@ -4,6 +4,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../themeContext';
 import { FEATURED_DISHES } from '../../src/data/recipes';
+import SideMenu from '../../components/SideMenu';
+import MenuButton from '../../components/MenuButton';
 
 export default function SearchScreen() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -13,6 +15,7 @@ export default function SearchScreen() {
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [tempChef, setTempChef] = useState('Todos');
   const [tempTime, setTempTime] = useState('Todos');
+  const [drawerVisible, setDrawerVisible] = useState(false);
   const router = useRouter();
   const { theme, isDarkMode } = useTheme();
 
@@ -166,6 +169,7 @@ export default function SearchScreen() {
 
   return (
     <View style={styles.container}>
+      <MenuButton onPress={() => setDrawerVisible(true)} />
       <View style={styles.header}>
         <Text style={styles.title}>Pesquisar Receitas</Text>
         <View style={styles.searchContainer}>
@@ -290,6 +294,8 @@ export default function SearchScreen() {
           />
         </View>
       </ScrollView>
+
+      <SideMenu visible={drawerVisible} onClose={() => setDrawerVisible(false)} />
     </View>
   );
 };

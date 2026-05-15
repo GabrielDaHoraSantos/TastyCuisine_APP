@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../themeContext';
+import SideMenu from '../../components/SideMenu';
+import MenuButton from '../../components/MenuButton';
 
 const FAVORITES = [
   { id: '1', name: 'Panqueca de banana', chef: 'Chef Carlos', image: 'https://th.bing.com/th/id/OIP.lxtrvfRDySFiXtqY5m7EYgHaFD?w=233&h=180&c=7&r=0&o=7&pid=1.7&rm=3' },
@@ -10,6 +12,7 @@ const FAVORITES = [
 
 export default function FavoritesScreen( ) {
   const { theme, isDarkMode } = useTheme();
+  const [drawerVisible, setDrawerVisible] = useState(false);
 
   const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: theme.background.primary, padding: 20, paddingTop: 60 },
@@ -33,6 +36,7 @@ export default function FavoritesScreen( ) {
 
   return (
     <View style={styles.container}>
+      <MenuButton onPress={() => setDrawerVisible(true)} />
       <Text style={styles.title}>Meus Favoritos</Text>
       <FlatList
         data={FAVORITES}
@@ -51,6 +55,7 @@ export default function FavoritesScreen( ) {
         )}
         ListEmptyComponent={<Text style={styles.empty}>Você ainda não salvou nenhum prato.</Text>}
       />
+      <SideMenu visible={drawerVisible} onClose={() => setDrawerVisible(false)} />
     </View>
   );
 }

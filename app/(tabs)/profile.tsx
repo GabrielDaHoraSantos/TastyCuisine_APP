@@ -1,12 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../themeContext';
+import SideMenu from '../../components/SideMenu';
+import MenuButton from '../../components/MenuButton';
 
 export default function ProfileScreen() {
   const router = useRouter();
   const { theme, toggleDarkMode, isDarkMode, setTheme, currentThemeName } = useTheme();
+  const [drawerVisible, setDrawerVisible] = useState(false);
 
   const MENU_ITEMS = [
     { icon: 'person-outline', label: 'Editar Perfil' },
@@ -100,6 +103,7 @@ export default function ProfileScreen() {
 
   return (
     <ScrollView style={styles.container}>
+      <MenuButton onPress={() => setDrawerVisible(true)} />
       <View style={styles.header}>
         <View style={styles.avatarContainer}>
           <Ionicons name="person-circle" size={100} color={theme.accent} />
@@ -156,6 +160,8 @@ export default function ProfileScreen() {
       >
         <Text style={styles.logoutText}>Sair da Conta</Text>
       </TouchableOpacity>
+
+      <SideMenu visible={drawerVisible} onClose={() => setDrawerVisible(false)} />
     </ScrollView>
   );
 }

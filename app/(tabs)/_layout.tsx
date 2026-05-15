@@ -12,11 +12,7 @@ export default function TabsLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: { 
-          backgroundColor: theme.background.secondary,
-          borderTopColor: theme.text.primary,
-          height: 65,
-          paddingBottom: 10,
-          paddingTop: 5
+          display: 'none'
         },
         tabBarActiveTintColor: theme.primary, 
         tabBarInactiveTintColor: theme.text.primary,
