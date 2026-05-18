@@ -1,12 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../themeContext';
+import SideMenu from '../../components/SideMenu';
+import MenuButton from '../../components/MenuButton';
 
 export default function ProfileScreen() {
   const router = useRouter();
   const { theme, toggleDarkMode, isDarkMode, setTheme, currentThemeName } = useTheme();
+  const [drawerVisible, setDrawerVisible] = useState(false);
 
   const MENU_ITEMS = [
     { icon: 'person-outline', label: 'Editar Perfil' },
@@ -22,7 +25,8 @@ export default function ProfileScreen() {
 
   const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: theme.background.primary },
-    header: { alignItems: 'center', paddingVertical: 50, backgroundColor: theme.background.secondary },
+    header: { alignItems: 'center', paddingVertical: 50, backgroundColor: theme.background.secondary, position: 'relative' },
+    themeToggleIcon: { position: 'absolute', top: 15, right: 15, padding: 8 },
     avatarContainer: { marginBottom: 15 },
     userName: { fontSize: 22, fontWeight: 'bold', color: theme.text.primary },
     userEmail: { fontSize: 14, color: theme.text.secondary, marginTop: 5 },
@@ -72,18 +76,6 @@ export default function ProfileScreen() {
       marginBottom: 5,
     },
     themeLabel: { fontSize: 12, fontWeight: '600', color: theme.text.primary },
-
-    themeToggle: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      padding: 20,
-      marginHorizontal: 20,
-      backgroundColor: theme.background.secondary,
-      borderRadius: 15,
-      marginBottom: 20,
-    },
-    themeToggleText: { fontSize: 16, fontWeight: '600', color: theme.text.primary },
     
     logoutButton: { 
       margin: 20, 
@@ -100,7 +92,15 @@ export default function ProfileScreen() {
 
   return (
     <ScrollView style={styles.container}>
+      <MenuButton onPress={() => setDrawerVisible(true)} />
       <View style={styles.header}>
+        <TouchableOpacity style={styles.themeToggleIcon} onPress={toggleDarkMode}>
+          <Ionicons 
+            name={isDarkMode ? 'sunny' : 'moon'} 
+            size={24} 
+            color={theme.primary} 
+          />
+        </TouchableOpacity>
         <View style={styles.avatarContainer}>
           <Ionicons name="person-circle" size={100} color={theme.accent} />
         </View>
@@ -119,43 +119,14 @@ export default function ProfileScreen() {
         ))}
       </View>
 
-      <Text style={styles.sectionTitle}>Personalização</Text>
-      
-      {/* Seletor de Cores do Tema */}
-      <View style={styles.themeSelector}>
-        {THEMES.map((t) => (
-          <TouchableOpacity 
-            key={t.id} 
-            style={[
-              styles.themeOption, 
-              currentThemeName === t.id && styles.themeOptionSelected
-            ]}
-            onPress={() => setTheme(t.id)}
-          >
-            <View style={[styles.themeCircle, { backgroundColor: t.color }]} />
-            <Text style={styles.themeLabel}>{t.label}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {/* Botão para alternar entre Modo Claro e Escuro */}
-      <TouchableOpacity style={styles.themeToggle} onPress={toggleDarkMode}>
-        <Text style={styles.themeToggleText}>
-          Modo {isDarkMode ? 'Claro' : 'Escuro'}
-        </Text>
-        <Ionicons 
-          name={isDarkMode ? 'sunny-outline' : 'moon-outline'} 
-          size={24} 
-          color={theme.primary} 
-        />
-      </TouchableOpacity>
-
       <TouchableOpacity 
         style={styles.logoutButton}
         onPress={() => router.replace('/login')}
       >
         <Text style={styles.logoutText}>Sair da Conta</Text>
       </TouchableOpacity>
+
+      <SideMenu visible={drawerVisible} onClose={() => setDrawerVisible(false)} />
     </ScrollView>
   );
 }

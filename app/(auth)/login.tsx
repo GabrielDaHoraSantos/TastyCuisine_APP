@@ -144,11 +144,11 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   button: {
-    width: '80%',
+    width: 150,
     height: 55,
     marginTop: 10,
     backgroundColor: '#f7b773ff',
-    borderRadius: 12,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
   link: {
     marginTop: 20,
     color: '#FFF',
-    fontSize: 16
+    fontSize: 16,
   },
   linkBold: {
     fontWeight: 'bold',

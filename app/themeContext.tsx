@@ -3,35 +3,34 @@ import React, { createContext, useState, useContext, ReactNode } from 'react';
 // Tema "Sabor Azul"
 const lightBlueTheme = {
   background: {
-    primary: '#f2ecde',
-    secondary: '#f7b77359',
+    primary: '#ffffffff',
+    secondary: '#ffffffff',
   },
   text: {
-    primary: '#2b2b2b',
-    secondary: '#979797',
+    primary: '#7c7c7cff',
+    secondary: '#000000ff',
   },
-  primary: '#f2921d',
-  accent: '#46334f',
-  button: '#f2921d',
+  primary: '#030303ff',
+  accent: '#cc2929ff',
+  button: '#d41818ff',
   error: '#E74C3C',
 };
-// #f2c230 #f2921d #f24f13 #8082a6 #46334f #f2ecde
 
 const darkBlueTheme = {
  background: {
-    primary: '#131211ff',
-    secondary: 'rgb(199, 168, 135)',
+    primary: '#000000',
+    secondary: '#1A1A1A',
   },
   text: {
-    primary: '#8082a6',
-    secondary: '#7F8C8D',
+    primary: '#FFFFFF',
+    secondary: '#A0A0A0',
   },
-  primary: '#f2921d',
-  accent: '#e8c094',
-  button: '#f2921d',
-  error: '#dd1a05ff',
+  primary: '#FFFFFF',
+  accent: '#FFFFFF',
+  button: '#FFFFFF',
+  error: '#FF4444',
 };
-// #f2c230 #f2921d #f24f13 #8082a6 #46334f
+
 
 
 // 2. Tipagem do Tema
