@@ -18,17 +18,17 @@ const lightBlueTheme = {
 
 const darkBlueTheme = {
  background: {
-    primary: '#131211ff',
-    secondary: '#bd7c37ff',
+    primary: '#000000',
+    secondary: '#1A1A1A',
   },
   text: {
-    primary: '#e2e2e2ff',
-    secondary: '#7F8C8D',
+    primary: '#FFFFFF',
+    secondary: '#A0A0A0',
   },
-  primary: '#c5884eff',
-  accent: '#e8c094',
-  button: '#eccfc8',
-  error: '#dd1a05ff',
+  primary: '#FFFFFF',
+  accent: '#FFFFFF',
+  button: '#FFFFFF',
+  error: '#FF4444',
 };
 
 
