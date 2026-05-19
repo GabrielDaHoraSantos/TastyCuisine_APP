@@ -3,11 +3,9 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList, Image, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
 import { useTheme } from '../themeContext';
 import { FEATURED_DISHES } from '../../src/data/recipes';
-import Carousel from 'react-native-reanimated-carousel';
 import SideMenu from '../../components/SideMenu';
 import MenuButton from '../../components/MenuButton';
 
@@ -302,22 +300,24 @@ export default function HomeScreen() {
     setDrawerVisible(!drawerVisible);
   };
 
-  const carouselRef = React.useRef<any>(null);
-
   const handlePrevious = () => {
-    if (carouselRef.current && activeIndex > 0) {
-      carouselRef.current.prev();
+    if (activeIndex > 0) {
+      setActiveIndex(activeIndex - 1);
     }
   };
 
   const handleNext = () => {
-    if (carouselRef.current && activeIndex < featuredRecipes.length - 1) {
-      carouselRef.current.next();
+    if (activeIndex < featuredRecipes.length - 1) {
+      setActiveIndex(activeIndex + 1);
     }
   };
 
-  const renderCarouselCard = (item: any) => (
-    <View style={styles.carouselCard}>
+  const renderCarouselCard = (item: typeof FEATURED_DISHES[0]) => (
+    <TouchableOpacity 
+      style={styles.carouselCard}
+      onPress={() => handlePressDish(item.id)}
+      activeOpacity={0.9}
+    >
       <Image source={{ uri: item.image }} style={styles.carouselImage} resizeMode="cover" />
       <View style={styles.carouselOverlay}>
         <View style={styles.carouselLeftContent}>
@@ -339,7 +339,7 @@ export default function HomeScreen() {
           </View>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   const renderDishCard = ({ item }: any) => (
@@ -404,15 +404,9 @@ export default function HomeScreen() {
                       />
                     </Svg>
                   </View>
-                  <Carousel
-                    ref={carouselRef}
-                    width={SCREEN_WIDTH}
-                    height={220}
-                    data={featuredRecipes}
-                    renderItem={({ item }) => renderCarouselCard(item)}
-                    onSnapToItem={(index) => setActiveIndex(index)}
-                    loop={false}
-                  />
+                  <View style={{ width: SCREEN_WIDTH, height: 220 }}>
+                    {renderCarouselCard(featuredRecipes[activeIndex])}
+                  </View>
                   <View style={styles.waveBottomContainer}>
                     <Svg
                       height="40"

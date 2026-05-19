@@ -37,7 +37,7 @@ export default function SideMenu({ visible, onClose }: SideMenuProps) {
   const navigateTo = (screen: string) => {
     onClose();
     setTimeout(() => {
-      router.push(`/(tabs)/${screen}`);
+      router.push(`/(tabs)/${screen}` as any);
     }, 300);
   };
 
