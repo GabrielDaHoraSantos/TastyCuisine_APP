@@ -1,17 +1,16 @@
 'use client';
 
-import LGContainer from '../../src/components/LGContainer';
 import { useRouter } from 'expo-router';
 import { authAPI } from './api';
 import { useState } from 'react';
 import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { LinearGradient } from 'expo-linear-gradient'; // Certifique-se de ter instalado: npx expo install expo-linear-gradient
 
 export default function RegisterScreen() {
   const router = useRouter();
   const [formData, setFormData] = useState({
-    nome: '',
-    sobrenome: '',
+    username: '',
     email: '',
     senha: '',
     confirmarSenha: ''
@@ -21,14 +20,13 @@ export default function RegisterScreen() {
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
-    // Validações básicas
-    if (!formData.nome || !formData.email || !formData.senha) {
-      setError('Por favor, preencha os campos obrigatórios');
+    if (!formData.username || !formData.email || !formData.senha || !formData.confirmarSenha) {
+      setError('Please fill in all fields');
       return;
     }
 
     if (formData.senha !== formData.confirmarSenha) {
-      setError('As senhas não coincidem');
+      setError('Passwords do not match');
       return;
     }
 
@@ -37,28 +35,26 @@ export default function RegisterScreen() {
 
     try {
       const response = await authAPI.register({
-        nome: formData.nome,
-        sobrenome: formData.sobrenome,
+        nome: formData.username, // Ajuste os parâmetros conforme a sua API espera
+        sobrenome: '', 
         email: formData.email,
         senha: formData.senha,
-        nome_de_usuario: formData.email.split('@')[0] // Exemplo de geração de username
+        nome_de_usuario: formData.username
       });
 
       if (response.data) {
         const { token, user } = response.data as any;
         
-        // Salvar dados e token
         await AsyncStorage.setItem('userToken', token);
         await AsyncStorage.setItem('isLogged', 'true');
         await AsyncStorage.setItem('userId', String(user.id || user.cod_user));
         
-        // Navegar para preferências após registro bem-sucedido
         router.replace('/preferences');
       } else {
-        setError(response.error || 'Erro ao criar conta');
+        setError(response.error || 'Error creating account');
       }
     } catch (err) {
-      setError('Erro ao conectar com o servidor');
+      setError('Error connecting to the server');
       console.error('Erro ao registrar:', err);
     } finally {
       setLoading(false);
@@ -73,14 +69,18 @@ export default function RegisterScreen() {
   };
 
   return (
-    <LGContainer liquidColor="#f5913fff" fillLevel={0.6}>
-      <Image
-        source={require('../../assets/images/profile.png')}
-        style={styles.logo}
-      />
+    <LinearGradient colors={['#FCEAD2', '#F3A973']} style={styles.container}>
+      
+      {/* Logotipo Sanremo */}
+      <View style={styles.logoContainer}>
+        <Image
+          source={require('../../assets/images/T.png')} // Alinhado ao logo "Sanremo" da imagem
+          style={styles.logo}
+          resizeMode="contain"
+        />
+      </View>
 
-      <Text style={styles.title}>Criar Conta</Text>
-      <Text style={styles.subtitle}>Junte-se à TastyCuisine e descubra novos sabores!</Text>
+      <Text style={styles.title}>Sign up</Text>
 
       {error && (
         <View style={styles.errorContainer}>
@@ -88,48 +88,44 @@ export default function RegisterScreen() {
         </View>
       )}
 
+      {/* Inputs baseados na nova imagem */}
       <View style={styles.inputContainer}>
         <TextInput 
           style={styles.input} 
-          placeholder="Primeiro Nome" 
-          placeholderTextColor="#DDD"
-          value={formData.nome}
-          onChangeText={(v) => handleChange('nome', v)}
-        />
-        <TextInput 
-          style={styles.input} 
-          placeholder="Sobrenome" 
-          placeholderTextColor="#DDD"
-          value={formData.sobrenome}
-          onChangeText={(v) => handleChange('sobrenome', v)}
+          placeholder="Username" 
+          placeholderTextColor="#A0A0A0"
+          autoCapitalize="none"
+          value={formData.username}
+          onChangeText={(v) => handleChange('username', v)}
         />
         <TextInput 
           style={styles.input} 
           placeholder="Email" 
           keyboardType="email-address" 
-          placeholderTextColor="#DDD"
+          placeholderTextColor="#A0A0A0"
           autoCapitalize="none"
           value={formData.email}
           onChangeText={(v) => handleChange('email', v)}
         />
         <TextInput 
           style={styles.input} 
-          placeholder="Senha" 
+          placeholder="Password" 
           secureTextEntry 
-          placeholderTextColor="#DDD"
+          placeholderTextColor="#A0A0A0"
           value={formData.senha}
           onChangeText={(v) => handleChange('senha', v)}
         />
         <TextInput 
           style={styles.input} 
-          placeholder="Confirmar Senha" 
+          placeholder="Confirm Password" 
           secureTextEntry 
-          placeholderTextColor="#DDD"
+          placeholderTextColor="#A0A0A0"
           value={formData.confirmarSenha}
           onChangeText={(v) => handleChange('confirmarSenha', v)}
         />
       </View>
 
+      {/* Botão Principal de Cadastro */}
       <TouchableOpacity 
         style={[styles.button, loading && styles.buttonDisabled]} 
         onPress={handleRegister}
@@ -138,72 +134,107 @@ export default function RegisterScreen() {
         {loading ? (
           <ActivityIndicator color="#FFF" />
         ) : (
-          <Text style={styles.buttonText}>Cadastrar</Text>
+          <Text style={styles.buttonText}>Sign up</Text>
         )}
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => router.push('/login')}>
-        <Text style={styles.link}>Já tem uma conta? <Text style={styles.linkBold}>Faça Login</Text></Text>
+      {/* Divisor "Or Sign up with" */}
+      <View style={styles.dividerContainer}>
+        <View style={styles.line} />
+        <Text style={styles.dividerText}>Or Sign up with</Text>
+        <View style={styles.line} />
+      </View>
+
+      {/* Botões Sociais */}
+      <View style={styles.socialContainer}>
+        <TouchableOpacity style={styles.socialButton}>
+          <Text style={styles.socialButtonText}>Google</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.socialButton}>
+          <Text style={styles.socialButtonText}>Facebook</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Link para voltar ao Login */}
+      <TouchableOpacity onPress={() => router.push('/login')} style={styles.loginLinkContainer}>
+        <Text style={styles.link}>Already have an account? <Text style={styles.linkBold}>Log in</Text></Text>
       </TouchableOpacity>
-    </LGContainer>
+
+      {/* Pular/Skip no final da tela */}
+      <TouchableOpacity onPress={() => router.push('/home')} style={styles.skipContainer}>
+        <Text style={styles.skipText}>Skip now</Text>
+      </TouchableOpacity>
+
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  logo: {
-    width: 100,
-    height: 100,
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    paddingHorizontal: 25,
+    justifyContent: 'center',
+  },
+  logoContainer: {
     marginBottom: 20,
-    resizeMode: 'contain',
-    borderRadius: 77,
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  logo: {
+    width: 200,
+    height: 70,
   },
   title: {
-    fontSize: 32,
+    fontSize: 26,
     fontWeight: 'bold',
-    color: '#FFF',
-    marginBottom: 5
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#EEE',
-    marginBottom: 30,
-    textAlign: 'center'
+    color: '#BA531B', // Marrom terroso característico
+    marginBottom: 20,
   },
   errorContainer: {
-    backgroundColor: 'rgba(255, 0, 0, 0.3)',
+    backgroundColor: 'rgba(211, 47, 47, 0.2)',
     padding: 10,
     borderRadius: 8,
     marginBottom: 15,
-    width: '85%',
+    width: '100%',
   },
   errorText: {
-    color: '#FFF',
+    color: '#D32F2F',
     textAlign: 'center',
     fontSize: 14,
   },
   inputContainer: {
-    width: '85%',
+    width: '100%',
   },
   input: {
     width: '100%',
-    height: 50,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 12,
+    height: 48,
+    backgroundColor: '#FFF2E4', // Off-white suave dos inputs
+    borderRadius: 10,
     paddingHorizontal: 20,
-    color: '#FFF',
-    marginBottom: 15,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    color: '#5C3818',
+    marginBottom: 12,
+    fontSize: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   button: {
-   width: 150,
-    height: 55,
-    marginTop: 10,
-    backgroundColor: '#f7b773ff',
-    borderRadius: 8,
+    width: '100%',
+    height: 50,
+    backgroundColor: '#BA531B', // Cor marrom/laranja do botão redondo
+    borderRadius: 20, // Cantos bem arredondados (estilo pílula)
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    marginTop: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
   },
   buttonDisabled: {
     opacity: 0.7,
@@ -211,16 +242,63 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#FFF',
     fontWeight: 'bold',
-    fontSize: 18
+    fontSize: 16,
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 20,
+    width: '100%',
+  },
+  line: {
+    flex: 1,
+    height: 1,
+    backgroundColor: 'rgba(107, 64, 27, 0.2)',
+  },
+  dividerText: {
+    marginHorizontal: 10,
+    fontSize: 12,
+    color: '#6B401B',
+  },
+  socialContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginBottom: 20,
+  },
+  socialButton: {
+    flex: 0.47,
+    height: 40,
+    backgroundColor: '#FFF',
+    borderRadius: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#EFEFEF',
+  },
+  socialButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#555',
+  },
+  loginLinkContainer: {
+    marginBottom: 50,
   },
   link: {
-    marginTop: 20,
-    color: '#FFF',
-    fontSize: 15
+    color: '#6B401B',
+    fontSize: 13,
   },
   linkBold: {
     fontWeight: 'bold',
-    color: '#86dfe5ff',
-    textDecorationLine: 'underline'
-  }
+    color: '#BA531B',
+  },
+  skipContainer: {
+    position: 'absolute',
+    bottom: 25,
+  },
+  skipText: {
+    fontSize: 13,
+    color: '#6B401B',
+    fontWeight: '500',
+  },
 });
