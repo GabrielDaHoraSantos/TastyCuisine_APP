@@ -133,14 +133,14 @@ export default function LoginScreen() {
       {/* Botões Sociais */}
       <View style={styles.socialContainer}>
         <TouchableOpacity style={styles.socialButton}>
-          {/* Adicione um ícone do Google aqui se preferir */}
+         <Image
+                 source={require('../../assets/images/google.png')}
+                 style={styles.image}
+                 resizeMode="cover"/>
           <Text style={styles.socialButtonText}>Google</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.socialButton}>
-          {/* Adicione um ícone do Facebook aqui se preferir */}
-          <Text style={styles.socialButtonText}>Facebook</Text>
-        </TouchableOpacity>
+        
       </View>
 
       {/* Link de Cadastro */}
@@ -270,9 +270,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#6B401B',
   },
+  image:{
+    width: 20,
+    height: 20,
+    marginRight: 8,
+    },
   socialContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     width: '100%',
     marginBottom: 25,
   },
@@ -286,6 +291,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderWidth: 1,
     borderColor: '#EFEFEF',
+    
   },
   socialButtonText: {
     fontSize: 13,
