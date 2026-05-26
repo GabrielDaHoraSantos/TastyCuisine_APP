@@ -94,15 +94,15 @@ export default function SideMenu({ visible, onClose }: SideMenuProps) {
     drawerItemActive: {
       backgroundColor: isDarkMode ? 'rgba(255, 107, 53, 0.15)' : 'rgba(255, 107, 53, 0.1)',
       borderRightWidth: 4,
-      borderRightColor: theme.primary
+      borderRightColor: theme.text.primary
     },
     drawerItemText: {
       fontSize: 16,
-      color: theme.text.primary,
+      color: theme.text.secondary,
       fontWeight: '500'
     },
     drawerItemTextActive: {
-      color: theme.primary,
+      color: theme.text.primary,
       fontWeight: '600'
     }
   });
