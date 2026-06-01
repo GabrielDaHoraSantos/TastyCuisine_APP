@@ -16,7 +16,7 @@ export default function WelcomeScreen() {
 
   return (
     <LinearGradient
-      colors={['#F7E4CF', '#E5A46D']}
+      colors={['#F7E4CF', '#637231ff']}
       start={{ x: 0.5, y: 0 }}
       end={{ x: 0.5, y: 1 }}
       style={styles.container}
@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
     top: -100,
     width: '72%',
     height: 375,
-    backgroundColor: '#C96D2D',
+    backgroundColor: '#ffbb6e',
     borderRadius: 28,
   },
 
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     width: 5,
     height: 5,
     borderRadius: 20,
-    backgroundColor: '#7ad882ff',
+    backgroundColor: 'rgb(255, 3, 3)',
     marginHorizontal: 4,
   },
 
