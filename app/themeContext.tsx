@@ -27,6 +27,7 @@ const darkBlueTheme = {
     secondary: '#A0A0A0',
   },
   primary: '#FFFFFF',
+  secondary: '#ffbb6e',
   accent: '#FFFFFF',
   button: '#FFFFFF',
   error: '#FF4444',

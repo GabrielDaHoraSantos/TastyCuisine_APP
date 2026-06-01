@@ -33,6 +33,34 @@ public class UsuarioController {
 
     }
 
+    @PostMapping("/login")
+    public ResponseEntity<Object> login(@RequestBody Map<String, String> credenciais) {
+        String identificador = credenciais.getOrDefault("nomeDeUsuario", credenciais.get("gmail"));
+        String senha = credenciais.get("senha");
+
+        if (identificador == null || identificador.isBlank() || senha == null || senha.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "status", 400,
+                    "error", "bad request",
+                    "message", "usuario/email e senha sao obrigatorios"
+            ));
+        }
+
+        try {
+            Usuario usuario = usuarioService.login(identificador, senha);
+            return ResponseEntity.ok(Map.of(
+                    "token", "usuario-" + usuario.getCodUser(),
+                    "user", usuario
+            ));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(401).body(Map.of(
+                    "status", 401,
+                    "error", "unauthorized",
+                    "message", "usuario ou senha incorretos"
+            ));
+        }
+    }
+
     //procurando usuario por ID
     @GetMapping("/{codUser}")
     public ResponseEntity<Object> findById(@PathVariable String codUser) {

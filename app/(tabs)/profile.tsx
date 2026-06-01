@@ -1,5 +1,7 @@
-import React from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Image,
   Platform,
   SafeAreaView,
@@ -12,6 +14,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { usuariosAPI } from '../(auth)/api';
 
 const avatar = require('../../assets/images/profile.png');
 
@@ -57,6 +60,52 @@ const tabs: Array<{ icon: IoniconName; activeIcon: IoniconName; label: string; r
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const [profile, setProfile] = useState({
+    name: 'Guest user',
+    email: 'Sign in to sync your profile',
+  });
+  const [loadingProfile, setLoadingProfile] = useState(true);
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const userId = await AsyncStorage.getItem('userId');
+
+        if (!userId) {
+          setLoadingProfile(false);
+          return;
+        }
+
+        const response = await usuariosAPI.getById(userId);
+        const user = response.data as any;
+
+        if (user) {
+          setProfile({
+            name: user.nomeCompleto || user.nomeDeUsuario || 'User',
+            email: user.gmail || '',
+          });
+        } else {
+          const cachedName = await AsyncStorage.getItem('userName');
+          const cachedEmail = await AsyncStorage.getItem('userEmail');
+          setProfile({
+            name: cachedName || 'User',
+            email: cachedEmail || '',
+          });
+        }
+      } catch (err) {
+        const cachedName = await AsyncStorage.getItem('userName');
+        const cachedEmail = await AsyncStorage.getItem('userEmail');
+        setProfile({
+          name: cachedName || 'User',
+          email: cachedEmail || '',
+        });
+      } finally {
+        setLoadingProfile(false);
+      }
+    };
+
+    loadProfile();
+  }, []);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -74,8 +123,14 @@ export default function ProfileScreen() {
           <View style={styles.profileCard}>
             <Image source={avatar} style={styles.avatar} />
             <View style={styles.profileText}>
-              <Text style={styles.name}>Ronald Richards</Text>
-              <Text style={styles.email}>ronaldrichards@gmail.com</Text>
+              {loadingProfile ? (
+                <ActivityIndicator color="#BA531B" />
+              ) : (
+                <>
+                  <Text style={styles.name}>{profile.name}</Text>
+                  <Text style={styles.email}>{profile.email}</Text>
+                </>
+              )}
             </View>
           </View>
 

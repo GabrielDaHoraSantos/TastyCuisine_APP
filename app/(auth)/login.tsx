@@ -11,7 +11,7 @@ import { LinearGradient } from 'expo-linear-gradient'; // Certifique-se de ter i
 export default function LoginScreen() {
   const router = useRouter();
   const [formData, setFormData] = useState({
-    nome_de_usuario: '',
+    nomeDeUsuario: '',
     senha: ''
   });
   const [rememberMe, setRememberMe] = useState(false);
@@ -20,7 +20,7 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
-    if (!formData.nome_de_usuario || !formData.senha) {
+    if (!formData.nomeDeUsuario || !formData.senha) {
       setError('Por favor, preencha todos os campos');
       return;
     }
@@ -36,8 +36,9 @@ export default function LoginScreen() {
         
         await AsyncStorage.setItem('userToken', token);
         await AsyncStorage.setItem('isLogged', 'true');
-        await AsyncStorage.setItem('userId', String(user.id || user.cod_user));
-        await AsyncStorage.setItem('userName', user.nome_de_usuario);
+        await AsyncStorage.setItem('userId', String(user.codUser || user.id));
+        await AsyncStorage.setItem('userName', user.nomeCompleto || user.nomeDeUsuario);
+        await AsyncStorage.setItem('userEmail', user.gmail);
         
         router.replace('/home');
       } else {
@@ -81,10 +82,10 @@ export default function LoginScreen() {
 
       {/* Inputs */}
       <TextInput 
-        value={formData.nome_de_usuario}
-        onChangeText={(value) => handleChange('nome_de_usuario', value)}
+        value={formData.nomeDeUsuario}
+        onChangeText={(value) => handleChange('nomeDeUsuario', value)}
         style={styles.input}
-        placeholder="Username"
+        placeholder="Username or email"
         placeholderTextColor="#A0A0A0"
         autoCapitalize="none"
       />
@@ -95,7 +96,7 @@ export default function LoginScreen() {
         style={styles.input} 
         placeholder="Password" 
         placeholderTextColor="#A0A0A0"
-        secureTextEntry 
+        secureTextEntry={!rememberMe}
       />
 
       {/* Remember me & Forgot Password */}

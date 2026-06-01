@@ -9,8 +9,8 @@ const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8080';
 // Endpoints
 export const API_ENDPOINTS = {
   // Auth
-  LOGIN: `${API_BASE_URL}/auth/login`,
-  REGISTER: `${API_BASE_URL}/auth/register`,
+  LOGIN: `${API_BASE_URL}/usuario/login`,
+  REGISTER: `${API_BASE_URL}/usuario`,
 
   // Receitas
   RECEITAS_ALL: `${API_BASE_URL}/receita/findAll`,
@@ -109,6 +109,7 @@ export const authAPI = {
     await AsyncStorage.removeItem('isLogged');
     await AsyncStorage.removeItem('userId');
     await AsyncStorage.removeItem('userName');
+    await AsyncStorage.removeItem('userEmail');
   }
 }
 

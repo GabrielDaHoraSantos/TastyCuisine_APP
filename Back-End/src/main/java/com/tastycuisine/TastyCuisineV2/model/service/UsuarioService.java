@@ -22,6 +22,12 @@ public class UsuarioService {
         return usuarioRepository.save(usuario);
     }
 
+    public Usuario login(String identificador, String senha) {
+        return usuarioRepository.findByNomeDeUsuarioAndSenha(identificador, senha)
+                .or(() -> usuarioRepository.findByGmailAndSenha(identificador, senha))
+                .orElseThrow(() -> new RuntimeException("Usuario ou senha invalidos"));
+    }
+
     // Listar usuario por Id
     public Usuario findById(long codUser) {
         return usuarioRepository.findById(codUser)
