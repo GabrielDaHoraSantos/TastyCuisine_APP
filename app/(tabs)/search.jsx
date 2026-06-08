@@ -1,11 +1,11 @@
-import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, FlatList, Image, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useTheme } from '../themeContext';
-import { FEATURED_DISHES } from '../../src/data/recipes';
-import SideMenu from '../../components/SideMenu';
+import { useMemo, useState } from 'react';
+import { FlatList, Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MenuButton from '../../components/MenuButton';
+import SideMenu from '../../components/SideMenu';
+import { FEATURED_DISHES } from '../../src/data/recipes';
+import { useTheme } from '../themeContext';
 
 export default function SearchScreen() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -31,9 +31,10 @@ export default function SearchScreen() {
       
       const matchesChef = selectedChef === 'Todos' || dish.chef === selectedChef;
       
-      const matchesTime = selectedTime === 'Todos' || 
-        (selectedTime === 'Rápido (<30min)' && parseInt(dish.prepareTime) < 30) ||
-        (selectedTime === 'Médio (30-60min)' && parseInt(dish.prepareTime) >= 30);
+      const prep = parseInt((dish.prepareTime || '').toString().replace(/\D/g, ''), 10) || 0;
+      const matchesTime = selectedTime === 'Todos' ||
+       (selectedTime === 'Rápido (<30min)' && prep < 30) ||
+       (selectedTime === 'Médio (30-60min)' && prep >= 30 && prep <= 60);
 
       return matchesSearch && matchesChef && matchesTime;
     });
@@ -171,34 +172,38 @@ export default function SearchScreen() {
     <View style={styles.container}>
       <MenuButton onPress={() => setDrawerVisible(true)} />
       <View style={styles.header}>
+
         <Text style={styles.title}>Pesquisar Receitas</Text>
-        <View style={styles.searchContainer}>
-          <View style={styles.searchBar}>
-            <Ionicons name="search" size={20} color={theme.text.secondary} />
-            <TextInput
-              placeholder="Buscar por nome ou ingrediente..."
-              placeholderTextColor={theme.text.secondary}
-              style={styles.searchInput}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-            {searchQuery !== '' && (
-              <TouchableOpacity onPress={() => setSearchQuery('')}>
-                <Ionicons name="close-circle" size={20} color={theme.text.secondary} />
-              </TouchableOpacity>
-            )}
-          </View>
-          <TouchableOpacity 
-            style={[styles.filterButton, hasActiveFilters && styles.filterButtonActive]} 
-            onPress={openFilterModal}
-          >
-            <Ionicons 
-              name="funnel" 
-              size={22} 
-              color={hasActiveFilters ? '#FFF' : theme.text.primary} 
-            />
-          </TouchableOpacity>
         </View>
+
+      <View style={styles.resultSection}>
+        <Text style={styles.resultCount}>
+          {filteredDishes.length} {filteredDishes.length === 1 ? 'receita encontrada' : 'receitas encontradas'}
+        </Text>
+        <FlatList
+          data={filteredDishes}
+          keyExtractor={(item) => item.id}
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingBottom: 120 }}
+          initialNumToRender={8}
+          windowSize={5}
+          renderItem={({ item }) => (
+            <TouchableOpacity style={styles.card} onPress={() => handlePressDish(item.id)}>
+              <Image source={{ uri: item.image }} style={styles.image} />
+              <View style={styles.info}>
+                <Text style={styles.name}>{item.name}</Text>
+                <Text style={styles.chef}>{item.chef}</Text>
+                <Text style={styles.time}>⏱️ {item.prepareTime}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={24} color={theme.text.secondary} />
+            </TouchableOpacity>
+          )}
+          ListEmptyComponent={
+            <Text style={styles.empty}>
+              {searchQuery ? 'Nenhuma receita encontrada' : 'Digite algo para pesquisar'}
+            </Text>
+          }
+        />
       </View>
 
       <Modal
@@ -264,36 +269,6 @@ export default function SearchScreen() {
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
-
-      <ScrollView showsVerticalScrollIndicator={false}>
-
-        <View style={styles.resultSection}>
-          <Text style={styles.resultCount}>
-            {filteredDishes.length} {filteredDishes.length === 1 ? 'receita encontrada' : 'receitas encontradas'}
-          </Text>
-          <FlatList
-            data={filteredDishes}
-            keyExtractor={(item) => item.id}
-            scrollEnabled={false}
-            renderItem={({ item }) => (
-              <TouchableOpacity style={styles.card} onPress={() => handlePressDish(item.id)}>
-                <Image source={{ uri: item.image }} style={styles.image} />
-                <View style={styles.info}>
-                  <Text style={styles.name}>{item.name}</Text>
-                  <Text style={styles.chef}>{item.chef}</Text>
-                  <Text style={styles.time}>⏱️ {item.prepareTime}</Text>
-                </View>
-                <Ionicons name="chevron-forward" size={24} color={theme.text.secondary} />
-              </TouchableOpacity>
-            )}
-            ListEmptyComponent={
-              <Text style={styles.empty}>
-                {searchQuery ? 'Nenhuma receita encontrada' : 'Digite algo para pesquisar'}
-              </Text>
-            }
-          />
-        </View>
-      </ScrollView>
 
       <SideMenu visible={drawerVisible} onClose={() => setDrawerVisible(false)} />
     </View>

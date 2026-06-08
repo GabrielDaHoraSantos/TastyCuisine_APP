@@ -1,3 +1,15 @@
 npx tsc --noEmit //ver erros do codigo pelo terminal
 Invoke-WebRequest -Uri https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe -OutFile cloudflared.exe//Instalar o clouFlared
 ./cloudfared tunnel --url http://localhost:8080
+
+# rodar sem túnel (mais leve)
+npm run start
+
+# rodar com túnel (escola/celular)
+npm run start:tunnel
+
+# checar lint
+npm run lint
+
+# checar dependências / expo doctor
+npx expo doctor
