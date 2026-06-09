@@ -20,7 +20,7 @@ const navItems: NavItem[] = [
 ];
 
 export default function BottomNavigation() {
-  const { theme } = useTheme();
+  const { theme, isDarkMode } = useTheme();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -70,8 +70,6 @@ export default function BottomNavigation() {
       fontWeight: '600',
     },
   });
-
-  const { isDarkMode } = useTheme();
 
   return (
     <View style={styles.container}>
