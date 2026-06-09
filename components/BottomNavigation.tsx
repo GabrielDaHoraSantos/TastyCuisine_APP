@@ -1,6 +1,6 @@
 // components/BottomNavigation.tsx
 import React from 'react';
-import { View, TouchableOpacity, StyleSheet, Text } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Text, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, usePathname } from 'expo-router';
 import { useTheme } from '../app/themeContext';
@@ -38,8 +38,9 @@ export default function BottomNavigation() {
       backgroundColor: theme.background.secondary,
       borderTopWidth: 1,
       borderTopColor: isDarkMode ? '#333333' : '#E5E5E5',
-      paddingVertical: 8,
+      paddingVertical: 12,
       paddingHorizontal: 8,
+      paddingBottom: Platform.OS === 'ios' ? 20 : 12,
       justifyContent: 'space-around',
       alignItems: 'center',
       shadowColor: '#000',
