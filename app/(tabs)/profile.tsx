@@ -15,6 +15,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { usuariosAPI } from '../(auth)/api';
+import BottomNavigation from '../../components/BottomNavigation';
 
 const avatar = require('../../assets/images/profile.png');
 
@@ -48,14 +49,6 @@ const sections: Array<{ title: string; data: ProfileRow[] }> = [
     title: 'Support',
     data: [{ icon: 'help-circle-outline', label: 'Help Center' }],
   },
-];
-
-const tabs: Array<{ icon: IoniconName; activeIcon: IoniconName; label: string; route?: string }> = [
-  { icon: 'home-outline', activeIcon: 'home', label: 'Home', route: '/(tabs)/home' },
-  { icon: 'compass-outline', activeIcon: 'compass', label: 'Explore', route: '/(tabs)/search' },
-  { icon: 'heart-outline', activeIcon: 'heart', label: 'Favorites', route: '/(tabs)/favorites' },
-  { icon: 'business-outline', activeIcon: 'business', label: 'Agents' },
-  { icon: 'person-outline', activeIcon: 'person', label: 'Profile', route: '/(tabs)/profile' },
 ];
 
 export default function ProfileScreen() {
@@ -161,27 +154,7 @@ export default function ProfileScreen() {
           ))}
         </ScrollView>
 
-        <View style={styles.bottomBar}>
-          {tabs.map((tab) => {
-            const isActive = tab.label === 'Profile';
-
-            return (
-              <TouchableOpacity
-                key={tab.label}
-                activeOpacity={0.75}
-                style={styles.tabItem}
-                onPress={() => tab.route && router.push(tab.route as never)}
-              >
-                <Ionicons
-                  name={isActive ? tab.activeIcon : tab.icon}
-                  size={28}
-                  color={isActive ? '#0B0B0B' : '#A8A8A8'}
-                />
-                <Text style={[styles.tabLabel, isActive && styles.activeTabLabel]}>{tab.label}</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+        <BottomNavigation />
       </View>
     </SafeAreaView>
   );
@@ -296,42 +269,5 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     marginRight: 18,
-  },
-  bottomBar: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: 96,
-    paddingTop: 10,
-    paddingBottom: Platform.OS === 'ios' ? 22 : 12,
-    paddingHorizontal: 8,
-    backgroundColor: '#FFFFFF',
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#EEEEEE',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    shadowColor: '#DCDCDC',
-    shadowOffset: { width: 0, height: -8 },
-    shadowOpacity: 0.22,
-    shadowRadius: 18,
-    elevation: 12,
-  },
-  tabItem: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minWidth: 0,
-  },
-  tabLabel: {
-    color: '#8F8F8F',
-    fontSize: 14,
-    fontWeight: '700',
-    marginTop: 5,
-  },
-  activeTabLabel: {
-    color: '#111111',
-    fontWeight: '900',
   },
 });
