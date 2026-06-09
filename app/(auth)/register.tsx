@@ -20,13 +20,12 @@ export default function RegisterScreen() {
   const router = useRouter();
 
   const [formData, setFormData] = useState({
-    fullName: '',
-    username: '',
-    age: '',
+    nomeCompleto: '',
+    nomeUsuario: '',
+    idade: '',
     email: '',
     senha: '',
     confirmarSenha: '',
-    restrictions: '',
   });
 
   const [error, setError] = useState<string | null>(null);
@@ -34,9 +33,9 @@ export default function RegisterScreen() {
 
   const handleRegister = async () => {
     if (
-      !formData.fullName ||
-      !formData.username ||
-      !formData.age ||
+      !formData.nomeCompleto ||
+      !formData.nomeUsuario ||
+      !formData.idade ||
       !formData.email ||
       !formData.senha ||
       !formData.confirmarSenha
@@ -50,9 +49,9 @@ export default function RegisterScreen() {
       return;
     }
 
-    const idade = Number(formData.age);
+    const idade = Number(formData.idade);
     if (!Number.isInteger(idade) || idade < 14 || idade > 100) {
-      setError('Age must be between 14 and 100');
+      setError('idade must be between 14 and 100');
       return;
     }
 
@@ -61,12 +60,11 @@ export default function RegisterScreen() {
 
     try {
       const response = await authAPI.register({
-        nomeCompleto: formData.fullName.trim(),
-        nomeDeUsuario: formData.username.trim(),
+        nomeCompleto: formData.nomeCompleto.trim(),
+        nomeDeUsuario: formData.nomeUsuario.trim(),
         idade,
         gmail: formData.email.trim(),
         senha: formData.senha,
-        restricoesAlimentares: formData.restrictions.trim() || null,
       });
 
       if (!response.data) {
@@ -78,7 +76,7 @@ export default function RegisterScreen() {
       await AsyncStorage.setItem('userToken', `usuario-${user.codUser}`);
       await AsyncStorage.setItem('isLogged', 'true');
       await AsyncStorage.setItem('userId', String(user.codUser));
-      await AsyncStorage.setItem('userName', user.nomeCompleto || user.nomeDeUsuario);
+      await AsyncStorage.setItem('nomeUsuario', user.nomeCompleto || user.nomeDeUsuario);
       await AsyncStorage.setItem('userEmail', user.gmail);
 
       router.replace('/preferences');
@@ -118,33 +116,33 @@ export default function RegisterScreen() {
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
-          placeholder="Full name"
+          placeholder="Nome Completo"
           placeholderTextColor="#A0A0A0"
-          value={formData.fullName}
-          onChangeText={(v) => handleChange('fullName', v)}
+          value={formData.nomeCompleto}
+          onChangeText={(v) => handleChange('nomeCompleto', v)}
         />
 
         <TextInput
           style={styles.input}
-          placeholder="Username"
+          placeholder="Nome de Usuario"
           placeholderTextColor="#A0A0A0"
           autoCapitalize="none"
-          value={formData.username}
-          onChangeText={(v) => handleChange('username', v)}
+          value={formData.nomeUsuario}
+          onChangeText={(v) => handleChange('nomeUsuario', v)}
         />
 
         <TextInput
           style={styles.input}
-          placeholder="Age"
+          placeholder="idade"
           keyboardType="number-pad"
           placeholderTextColor="#A0A0A0"
-          value={formData.age}
-          onChangeText={(v) => handleChange('age', v)}
+          value={formData.idade}
+          onChangeText={(v) => handleChange('idade', v)}
         />
 
         <TextInput
           style={styles.input}
-          placeholder="Email"
+          placeholder="test@exemplo.com"
           keyboardType="email-address"
           placeholderTextColor="#A0A0A0"
           autoCapitalize="none"
@@ -154,7 +152,7 @@ export default function RegisterScreen() {
 
         <TextInput
           style={styles.input}
-          placeholder="Password"
+          placeholder="12345678"
           secureTextEntry
           placeholderTextColor="#A0A0A0"
           value={formData.senha}
@@ -163,20 +161,13 @@ export default function RegisterScreen() {
 
         <TextInput
           style={styles.input}
-          placeholder="Confirm Password"
+          placeholder="12345678"
           secureTextEntry
           placeholderTextColor="#A0A0A0"
           value={formData.confirmarSenha}
           onChangeText={(v) => handleChange('confirmarSenha', v)}
         />
 
-        <TextInput
-          style={styles.input}
-          placeholder="Food restrictions (optional)"
-          placeholderTextColor="#A0A0A0"
-          value={formData.restrictions}
-          onChangeText={(v) => handleChange('restrictions', v)}
-        />
       </View>
 
       <TouchableOpacity

@@ -13,3 +13,5 @@ npm run lint
 
 # checar dependências / expo doctor
 npx expo doctor
+
+limite de caracteres da senha
