@@ -88,6 +88,11 @@ export default function RegisterScreen() {
     }
   };
 
+  const handleSkip = async () => {
+    // Skip without saving - go directly to preferences or home
+    router.replace('/preferences');
+  };
+
   const handleChange = (name: string, value: string) => {
     setFormData({
       ...formData,
@@ -202,7 +207,7 @@ export default function RegisterScreen() {
         </Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => router.push('/home')} style={styles.skipContainer}>
+      <TouchableOpacity onPress={handleSkip} style={styles.skipContainer}>
         <Text style={styles.skipText}>Skip now</Text>
       </TouchableOpacity>
     </LinearGradient>
