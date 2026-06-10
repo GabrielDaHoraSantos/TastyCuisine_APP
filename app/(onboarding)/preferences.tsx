@@ -57,7 +57,7 @@ export default function PreferencesScreen() {
     if (!canAdvance()) return;
 
     if (isLastQuestion) {
-      router.replace('/home');
+      router.replace('/(tabs)/home');
     } else {
       setCurrentQuestionIndex(prev => prev + 1);
     }
@@ -67,6 +67,11 @@ export default function PreferencesScreen() {
     if (!isFirstQuestion) {
       setCurrentQuestionIndex(prev => prev - 1);
     }
+  };
+
+  const handleSkip = () => {
+    // Skip without filling preferences - go directly to home
+    router.replace('/(tabs)/home');
   };
 
   const renderOption = ({ item }: { item: Option }) => {
@@ -129,6 +134,10 @@ export default function PreferencesScreen() {
             <Text style={styles.navButtonText}>{isLastQuestion ? 'Finalizar' : 'Avançar'}</Text>
           </TouchableOpacity>
         </View>
+
+        <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
+          <Text style={styles.skipButtonText}>Pular</Text>
+        </TouchableOpacity>
       </View>
     </LGContainer>
   );
@@ -255,5 +264,16 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0,0,0,0.3)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
+  },
+  skipButton: {
+    marginTop: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+  },
+  skipButtonText: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: '600',
+    textDecorationLine: 'underline',
   },
 });
