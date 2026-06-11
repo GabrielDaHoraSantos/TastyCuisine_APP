@@ -1,23 +1,45 @@
 'use client';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import {
   ActivityIndicator,
   Image,
+  Platform,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
 
 import { authAPI } from './api';
 
 export default function RegisterScreen() {
   const router = useRouter();
+  const [birthDate, setBirthDate] = useState<Date | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
+  const handleDateChange = (event: any, selectedDate?: Date) => {
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+    }
+    if (selectedDate) {
+      setBirthDate(selectedDate);
+    }
+  };
+
+  const getDateString = () => {
+    if (birthDate) {
+      return birthDate.toLocaleDateString('pt-BR');
+    }
+    return '';
+  };
+
 
   const [formData, setFormData] = useState({
     nomeCompleto: '',
@@ -35,23 +57,24 @@ export default function RegisterScreen() {
     if (
       !formData.nomeCompleto ||
       !formData.nomeUsuario ||
-      !formData.idade ||
+      !birthDate ||
       !formData.email ||
-      !formData.senha ||
-      !formData.confirmarSenha
+      !formData.senha 
     ) {
       setError('Please fill in all required fields');
       return;
     }
 
-    if (formData.senha !== formData.confirmarSenha) {
-      setError('Passwords do not match');
-      return;
+    // Calcula idade a partir da data de nascimento
+    const today = new Date();
+    let idade = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      idade--;
     }
 
-    const idade = Number(formData.idade);
-    if (!Number.isInteger(idade) || idade < 14 || idade > 100) {
-      setError('idade must be between 14 and 100');
+    if (idade < 14 || idade > 100) {
+      setError('You must be between 14 and 100 years old');
       return;
     }
 
@@ -136,15 +159,39 @@ export default function RegisterScreen() {
           onChangeText={(v) => handleChange('nomeUsuario', v)}
         />
 
-        <TextInput
-          style={styles.input}
-          placeholder="idade"
-          keyboardType="number-pad"
-          placeholderTextColor="#A0A0A0"
-          value={formData.idade}
-          onChangeText={(v) => handleChange('idade', v)}
-        />
+            <View style={styles.dateInputWrapper}>
+            <TextInput
+            style={styles.dateInput}
+            placeholder="xx/xx/xxxx"
+            placeholderTextColor="#A0A0A0"
+            value={getDateString()}
+            editable={false}
+  />
 
+           <TouchableOpacity
+  style={styles.calendarButton}
+ onPress={() => {
+  console.log(showDatePicker);
+  setShowDatePicker(true);
+}}
+>
+  <Ionicons name="calendar-outline" size={22} color="#BA531B" />
+</TouchableOpacity>
+            </View>
+
+        {showDatePicker && (
+  <View>
+    <Text>TESTE</Text>
+
+    <DateTimePicker
+      value={birthDate || new Date()}
+      mode="date"
+display="calendar"      onChange={handleDateChange}
+    />
+  </View>
+)}
+
+       
         <TextInput
           style={styles.input}
           placeholder="test@exemplo.com"
@@ -164,14 +211,6 @@ export default function RegisterScreen() {
           onChangeText={(v) => handleChange('senha', v)}
         />
 
-        <TextInput
-          style={styles.input}
-          placeholder="12345678"
-          secureTextEntry
-          placeholderTextColor="#A0A0A0"
-          value={formData.confirmarSenha}
-          onChangeText={(v) => handleChange('confirmarSenha', v)}
-        />
 
       </View>
 
@@ -341,4 +380,33 @@ const styles = StyleSheet.create({
     color: '#6B401B',
     fontWeight: '500',
   },
+  dateInputWrapper: {
+  width: '100%',
+  height: 44,
+  backgroundColor: '#FFF2E4',
+  borderRadius: 10,
+  flexDirection: 'row',
+  alignItems: 'center',
+  marginBottom: 10,
+  paddingLeft: 20,
+},
+
+dateInput: {
+  flex: 1,
+  height: '100%',
+  color: '#5C3818',
+  fontSize: 15,
+},
+
+calendarButton: {
+  width: 50,
+  height: '100%',
+  justifyContent: 'center',
+  alignItems: 'center',
+},
+
+calendarIcon: {
+  fontSize: 22,
+},
+
 });
