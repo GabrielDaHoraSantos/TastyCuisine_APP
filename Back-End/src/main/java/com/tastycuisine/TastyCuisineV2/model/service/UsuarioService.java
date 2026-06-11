@@ -19,13 +19,8 @@ public class UsuarioService {
 
     // Salvar usuario
     public Usuario save(Usuario usuario) {
+        usuario.setStatusUser(true);
         return usuarioRepository.save(usuario);
-    }
-
-    public Usuario login(String identificador, String senha) {
-        return usuarioRepository.findByNomeDeUsuarioAndSenha(identificador, senha)
-                .or(() -> usuarioRepository.findByGmailAndSenha(identificador, senha))
-                .orElseThrow(() -> new RuntimeException("Usuario ou senha invalidos"));
     }
 
     // Listar usuario por Id
@@ -37,21 +32,50 @@ public class UsuarioService {
     //atualizar usuario
     public Usuario update(long codUser, Usuario usuario) {
         Usuario usuarioExistente = findById(codUser);
-        usuarioExistente.setNomeCompleto(usuario.getNomeCompleto());
-        usuarioExistente.setNomeDeUsuario(usuario.getNomeDeUsuario());
-        usuarioExistente.setGmail(usuario.getGmail());
-        usuarioExistente.setIdade(usuario.getIdade());
-        usuarioExistente.setSenha(usuario.getSenha());
-        usuarioExistente.setRestricoesAlimentares(usuario.getRestricoesAlimentares());
+        if (usuario.getNomeCompleto() != null && !usuario.getNomeCompleto().isBlank()) {
+            usuarioExistente.setNomeCompleto(usuario.getNomeCompleto());
+        }
+        if (usuario.getNomeDeUsuario() != null && !usuario.getNomeDeUsuario().isBlank()) {
+            usuarioExistente.setNomeDeUsuario(usuario.getNomeDeUsuario());
+        }
+        if (usuario.getGmail() != null && !usuario.getGmail().isBlank()) {
+            usuarioExistente.setGmail(usuario.getGmail());
+        }
+        if (usuario.getIdade() > 0) {
+            usuarioExistente.setIdade(usuario.getIdade());
+        }
+        if (usuario.getSenha() != null && !usuario.getSenha().isBlank()) {
+            usuarioExistente.setSenha(usuario.getSenha());
+        }
+        if (usuario.getRestricoesAlimentares() != null) {
+            usuarioExistente.setRestricoesAlimentares(usuario.getRestricoesAlimentares());
+        }
         return usuarioRepository.save(usuarioExistente);
     }
     
 
-    //excluir usuario
-    public void delete (Long codUser){
+    //desativar usuario (delete lógico)
+    public void delete(Long codUser) {
         Usuario usuarioExistente = findById(codUser);
-        usuarioRepository.delete(usuarioExistente);
+        usuarioExistente.setStatusUser(false);
+        usuarioRepository.save(usuarioExistente);
+    }
 
+    //alterar status do usuario (banir/reativar)
+    public Usuario alterarStatus(Long codUser, boolean status) {
+        Usuario usuarioExistente = findById(codUser);
+        usuarioExistente.setStatusUser(status);
+        return usuarioRepository.save(usuarioExistente);
+    }
+
+    //login de usuario
+    public Usuario login(String gmail, String senha) {
+        Usuario usuario = usuarioRepository.findByGmailAndSenha(gmail, senha)
+                .orElseThrow(() -> new RuntimeException("Email ou senha incorretos"));
+        if (Boolean.FALSE.equals(usuario.getStatusUser())) {
+            throw new RuntimeException("Usuário banido ou inativo");
+        }
+        return usuario;
     }
 
 
