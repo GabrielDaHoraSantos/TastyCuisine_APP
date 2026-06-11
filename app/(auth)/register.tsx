@@ -1,6 +1,5 @@
 'use client';
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
@@ -71,13 +70,6 @@ export default function RegisterScreen() {
         setError(response.error || 'Could not create your account');
         return;
       }
-
-      const user = response.data as any;
-      await AsyncStorage.setItem('userToken', `usuario-${user.codUser}`);
-      await AsyncStorage.setItem('isLogged', 'true');
-      await AsyncStorage.setItem('userId', String(user.codUser));
-      await AsyncStorage.setItem('nomeUsuario', user.nomeCompleto || user.nomeDeUsuario);
-      await AsyncStorage.setItem('userEmail', user.gmail);
 
       router.replace('/preferences');
     } catch (err) {

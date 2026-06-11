@@ -1,6 +1,7 @@
 // app/_layout.jsx
 import { Stack } from 'expo-router';
 import { ThemeProvider } from './themeContext';
+import { AuthProvider } from './authContext';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
@@ -8,6 +9,7 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
+        <AuthProvider>
         <ThemeProvider>
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="index" />
@@ -15,8 +17,10 @@ export default function RootLayout() {
             <Stack.Screen name="(onboarding)" />
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="Sobpo/[id]" />
+            <Stack.Screen name="receita/[id]" />
           </Stack>
         </ThemeProvider>
+        </AuthProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

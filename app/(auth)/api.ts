@@ -1,8 +1,6 @@
 /**
  * API Configuration
- * Centralized API endpoints and utilities for communicating with the Tasty Cuisine backend
  */
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8080';
 
@@ -59,12 +57,9 @@ export async function apiCall<T>(
   options?: RequestInit
 ): Promise<{ data?: T; error?: string; status: number }> {
   try {
-    const token = await AsyncStorage.getItem('userToken');
-    
     const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
         ...options?.headers,
       },
       ...options,
@@ -82,7 +77,7 @@ export async function apiCall<T>(
       return { error: errorMessage, status: response.status }
     }
 
-    const data = await response.json()
+    const data = await response.json().catch(() => ({}));
     return { data, status: response.status }
   } catch (error) {
     return {
@@ -104,13 +99,15 @@ export const authAPI = {
       method: 'POST',
       body: JSON.stringify(userData),
     }),
-  logout: async () => {
-    await AsyncStorage.removeItem('userToken');
-    await AsyncStorage.removeItem('isLogged');
-    await AsyncStorage.removeItem('userId');
-    await AsyncStorage.removeItem('userName');
-    await AsyncStorage.removeItem('userEmail');
-  }
+  logout: async () => {}
+}
+
+export const reativarAPI = {
+  reativar: (email: string, senha: string) =>
+    apiCall(`${API_BASE_URL}/usuario/reativar`, {
+      method: 'POST',
+      body: JSON.stringify({ email, senha }),
+    }),
 }
 
 // Receitas API
@@ -151,11 +148,29 @@ export const usuariosAPI = {
     apiCall(API_ENDPOINTS.USUARIO_BY_ID(id), {
       method: 'DELETE',
     }),
+  inativar: (id: string | number) =>
+    apiCall(`${API_BASE_URL}/usuario/delete/${id}`, {
+      method: 'PUT',
+    }),
 }
 
-// Favoritos API (simplificado para brevidade, mantendo a estrutura)
+// Favoritos API
 export const favoritosAPI = {
   getAll: () => apiCall(API_ENDPOINTS.FAVORITOS_ALL),
   create: (data: any) => apiCall(API_ENDPOINTS.FAVORITOS, { method: 'POST', body: JSON.stringify(data) }),
   delete: (id: string | number) => apiCall(API_ENDPOINTS.FAVORITO_BY_ID(id), { method: 'DELETE' }),
+}
+
+// Avaliações API
+export const avaliacoesAPI = {
+  getAll: () => apiCall(API_ENDPOINTS.AVALIACOES_ALL),
+  create: (data: any) => apiCall(API_ENDPOINTS.AVALIACOES, { method: 'POST', body: JSON.stringify(data) }),
+  delete: (id: string | number) => apiCall(API_ENDPOINTS.AVALIACAO_BY_ID(id), { method: 'DELETE' }),
+}
+
+// Comentários API
+export const comentariosAPI = {
+  getAll: () => apiCall(API_ENDPOINTS.COMENTARIOS_ALL),
+  create: (data: any) => apiCall(API_ENDPOINTS.COMENTARIOS, { method: 'POST', body: JSON.stringify(data) }),
+  delete: (id: string | number) => apiCall(API_ENDPOINTS.COMENTARIO_BY_ID(id), { method: 'DELETE' }),
 }

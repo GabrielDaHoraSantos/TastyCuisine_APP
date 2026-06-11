@@ -1,26 +1,28 @@
-'use client';
-
 import { useRouter } from 'expo-router';
-import { Linking } from 'react-native';
-import { authAPI } from './api';
+import { Linking, Modal } from 'react-native';
+import { authAPI, reativarAPI } from './api';
+import { useAuth } from '../authContext';
 import { useState } from 'react';
 import { Image, StyleSheet, Text, TextInput, TouchableOpacity, ActivityIndicator, View } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { LinearGradient } from 'expo-linear-gradient'; // Certifique-se de ter instalado: npx expo install expo-linear-gradient
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
-    nomeDeUsuario: '',
+    email: '',
     senha: ''
   });
   const [rememberMe, setRememberMe] = useState(false);
+  const [contaInativa, setContaInativa] = useState(false);
+  const [reativando, setReativando] = useState(false);
+  const [confirmarSenha, setConfirmarSenha] = useState('');
 
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
-    if (!formData.nomeDeUsuario || !formData.senha) {
+    if (!formData.email || !formData.senha) {
       setError('Por favor, preencha todos os campos');
       return;
     }
@@ -29,20 +31,15 @@ export default function LoginScreen() {
     setError(null);
 
     try {
-      const response = await authAPI.login(formData);
-      
+      const response = await authAPI.login({ email: formData.email, senha: formData.senha });
+
       if (response.data) {
-        const { token, user } = response.data as any;
-        
-        await AsyncStorage.setItem('userToken', token);
-        await AsyncStorage.setItem('isLogged', 'true');
-        await AsyncStorage.setItem('userId', String(user.codUser || user.id));
-        await AsyncStorage.setItem('userName', user.nomeCompleto || user.nomeDeUsuario);
-        await AsyncStorage.setItem('userEmail', user.gmail);
-        
+        await login(response.data);
         router.replace('/home');
+      } else if (response.status === 403) {
+        setContaInativa(true);
       } else {
-        setError(response.error || 'Usuário ou senha incorretos');
+        setError(response.error || 'Email ou senha incorretos');
       }
     } catch (err) {
       setError('Erro ao conectar com o servidor');
@@ -57,6 +54,27 @@ export default function LoginScreen() {
       ...formData,
       [name]: value,
     });
+  };
+
+  const handleReativar = async () => {
+    if (confirmarSenha !== formData.senha) {
+      setError('As senhas não coincidem.');
+      setContaInativa(false);
+      return;
+    }
+    setReativando(true);
+    const res = await reativarAPI.reativar(formData.email, formData.senha);
+    setReativando(false);
+    if (res.data) {
+      await login(res.data);
+      setContaInativa(false);
+      setConfirmarSenha('');
+      router.replace('/home');
+    } else {
+      setError('Email ou senha incorretos.');
+      setContaInativa(false);
+      setConfirmarSenha('');
+    }
   };
 
   return (
@@ -82,10 +100,10 @@ export default function LoginScreen() {
 
       {/* Inputs */}
       <TextInput 
-        value={formData.nomeDeUsuario}
-        onChangeText={(value) => handleChange('nomeDeUsuario', value)}
+        value={formData.email}
+        onChangeText={(value) => handleChange('email', value)}
         style={styles.input}
-        placeholder="Username or email"
+        placeholder="Email"
         placeholderTextColor="#A0A0A0"
         autoCapitalize="none"
       />
@@ -153,6 +171,34 @@ export default function LoginScreen() {
       <TouchableOpacity onPress={() => router.push('/home')} style={styles.skipContainer}>
         <Text style={styles.skipText}>Skip now</Text>
       </TouchableOpacity>
+
+      {/* Modal conta inativa */}
+      <Modal visible={contaInativa} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalTitle}>Conta Inativa</Text>
+            <Text style={styles.modalDesc}>Sua conta está inativa. Confirme sua senha para reativá-la.</Text>
+            <TextInput
+              value={confirmarSenha}
+              onChangeText={setConfirmarSenha}
+              placeholder="Confirme sua senha"
+              placeholderTextColor="#A0A0A0"
+              secureTextEntry
+              style={[styles.input, { marginBottom: 16 }]}
+            />
+            <TouchableOpacity
+              style={[styles.button, (reativando || !confirmarSenha) && styles.buttonDisabled]}
+              onPress={handleReativar}
+              disabled={reativando || !confirmarSenha}
+            >
+              {reativando ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>Reativar conta</Text>}
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setContaInativa(false)} style={{ marginTop: 14 }}>
+              <Text style={{ color: '#BA531B', fontWeight: '600' }}>Cancelar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
     </LinearGradient>
   );
@@ -318,5 +364,32 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#6B401B',
     fontWeight: '500',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 30,
+  },
+  modalBox: {
+    backgroundColor: '#FFF',
+    borderRadius: 20,
+    padding: 28,
+    width: '100%',
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#BA531B',
+    marginBottom: 10,
+  },
+  modalDesc: {
+    fontSize: 14,
+    color: '#6B401B',
+    textAlign: 'center',
+    marginBottom: 20,
+    lineHeight: 20,
   },
 });
