@@ -30,7 +30,7 @@ export default function RegisterScreen() {
     }
     if (selectedDate) {
       setBirthDate(selectedDate);
-    }
+    } 
   };
 
   const getDateString = () => {
