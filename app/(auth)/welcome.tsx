@@ -43,7 +43,7 @@ export default function WelcomeScreen() {
         style={styles.loginButton}
         onPress={() => router.push('/(auth)/login')}
       >
-        <Text style={styles.loginText}>Log in</Text>
+        <Text style={styles.loginText}>Logar</Text>
       </TouchableOpacity>
 
       {/* Botão Cadastro */}
@@ -51,7 +51,7 @@ export default function WelcomeScreen() {
         style={styles.signupButton}
         onPress={() => router.push('/(auth)/register')}
       >
-        <Text style={styles.signupText}>Sign Up</Text>
+        <Text style={styles.signupText}>Cadastrar-se</Text>
       </TouchableOpacity>
 
       {/* Skip */}
@@ -59,7 +59,7 @@ export default function WelcomeScreen() {
         style={styles.skipContainer}
         onPress={() => router.push('/home')}
       >
-        <Text style={styles.skipText}>Skip now</Text>
+        <Text style={styles.skipText}>pular</Text>
       </TouchableOpacity>
     </LinearGradient>
   );

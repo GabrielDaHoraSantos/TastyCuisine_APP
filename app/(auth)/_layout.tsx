@@ -19,7 +19,7 @@ export default function RootLayout() {
           <Stack.Screen name="(tabs)" />
           
           {/* Tela de Detalhes do Prato (fora das abas) */}
-          <Stack.Screen name="dish/[id]" />
+          <Stack.Screen name="Sobpo/[id]" />
         </Stack>
       </SafeAreaProvider>
     </GestureHandlerRootView>

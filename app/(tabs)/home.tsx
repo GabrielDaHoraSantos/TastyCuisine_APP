@@ -19,7 +19,7 @@ export default function HomeScreen() {
 
   const handlePressDish = (id: string) => {
     router.push({
-      pathname: "/dish/[id]",
+      pathname: "/Sobpo/[id]",
       params: { id }
     });
   };

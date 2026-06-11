@@ -72,7 +72,7 @@ export default function LoginScreen() {
         />
       </View>
 
-      <Text style={styles.title}>Log in</Text>
+      <Text style={styles.title}>Logar</Text>
 
       {error && (
         <View style={styles.errorContainer}>

@@ -110,7 +110,7 @@ export default function RegisterScreen() {
         />
       </View>
 
-      <Text style={styles.title}>Sign up</Text>
+      <Text style={styles.title}>Cadastro</Text>
 
       {error && (
         <View style={styles.errorContainer}>
@@ -185,7 +185,7 @@ export default function RegisterScreen() {
 
       <View style={styles.dividerContainer}>
         <View style={styles.line} />
-        <Text style={styles.dividerText}>Or Sign up with</Text>
+        <Text style={styles.dividerText}>ou logar com</Text>
         <View style={styles.line} />
       </View>
 

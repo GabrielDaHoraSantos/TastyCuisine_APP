@@ -42,7 +42,7 @@ export default function SearchScreen() {
 
   const handlePressDish = (id) => {
     router.push({
-      pathname: "/dish/[id]",
+      pathname: "/Sobpo/[id]",
       params: { id }
     });
   };

@@ -1,7 +1,7 @@
 import React, { createContext, useState, useContext, ReactNode } from 'react';
 
 // Tema "Sabor Azul"
-const lightBlueTheme = {
+const LightMode = {
   background: {
     primary: '#ffffffff',
     secondary: '#ffffffff',
@@ -17,7 +17,7 @@ const lightBlueTheme = {
   error: '#E74C3C',
 };
 
-const darkBlueTheme = {
+const DarkMode = {
  background: {
     primary: '#000000',
     secondary: '#1A1A1A',
@@ -36,7 +36,7 @@ const darkBlueTheme = {
 
 
 // 2. Tipagem do Tema
-type Theme = typeof lightBlueTheme; // Todos os temas devem ter a mesma estrutura
+type Theme = typeof LightMode; // Todos os temas devem ter a mesma estrutura
 
 // 3. Tipagem do Contexto
 interface ThemeContextType {
@@ -52,19 +52,19 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 // 5. Provedor do Tema
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
-  const [currentThemeName, setCurrentThemeName] = useState<'purple' | 'blue' | 'modern'>('purple'); // Tema inicial
+  const [currentThemeName, setCurrentThemeName] = useState<'blue'>('blue'); // Tema inicial
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false); // Modo inicial: claro
 
-  const getTheme = (name: 'purple' | 'blue' | 'modern', isDark: boolean): Theme => {
+  const getTheme = (name:'blue', isDark: boolean): Theme => {
     switch (name) {
-      case 'blue': return isDark ? darkBlueTheme : lightBlueTheme;
-      default: return isDark ? darkBlueTheme : lightBlueTheme; // Fallback
+      case 'blue': return isDark ? DarkMode : LightMode;
+      default: return isDark ? DarkMode : LightMode; // Fallback
     }
   };
 
   const theme = getTheme(currentThemeName, isDarkMode);
 
-  const setTheme = (name: 'purple' | 'blue' | 'modern') => setCurrentThemeName(name);
+  const setTheme = (name:'blue') => setCurrentThemeName(name);
   const toggleDarkMode = () => setIsDarkMode(prev => !prev);
 
   return (
