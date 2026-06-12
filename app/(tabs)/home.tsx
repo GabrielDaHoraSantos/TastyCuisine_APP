@@ -114,7 +114,7 @@ export default function HomeScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Em Destaque</Text>
+            <Text style={styles.sectionTitle}>Destaques da semana</Text>
           </View>
           {loading ? (
             <View style={styles.loadingContainer}><ActivityIndicator color="#FF6B35" size="large" /></View>

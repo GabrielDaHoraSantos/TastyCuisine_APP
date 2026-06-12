@@ -121,11 +121,11 @@ export default function LoginScreen() {
       <View style={styles.rowOptions}>
         <TouchableOpacity style={styles.checkboxContainer} onPress={() => setRememberMe(!rememberMe)}>
           <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]} />
-          <Text style={styles.optionText}>show password</Text>
+          <Text style={styles.optionText}>mostrar senha</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => Linking.openURL('https://accounts.google.com/signin/recovery')}>
-  <Text style={styles.optionText}>Forgot your password?</Text>
+  <Text style={styles.optionText}>esqueceu sua senha?</Text>
 </TouchableOpacity>
       </View>
 
@@ -138,14 +138,14 @@ export default function LoginScreen() {
         {loading ? (
           <ActivityIndicator color="#FFF" />
         ) : (
-          <Text style={styles.buttonText}>Log in</Text>
+          <Text style={styles.buttonText}>Entrar</Text>
         )}
       </TouchableOpacity>
 
       {/* Divisor "Or Sign in with" */}
       <View style={styles.dividerContainer}>
         <View style={styles.line} />
-        <Text style={styles.dividerText}>Or Sign in with</Text>
+        <Text style={styles.dividerText}>Ou entre com</Text>
         <View style={styles.line} />
       </View>
 
@@ -164,12 +164,12 @@ export default function LoginScreen() {
 
       {/* Link de Cadastro */}
       <TouchableOpacity onPress={() => router.push('/register')} style={styles.registerContainer}>
-        <Text style={styles.link}>Don't have an account? <Text style={styles.linkBold}>Sign up</Text></Text>
+        <Text style={styles.link}>Não tem uma conta? <Text style={styles.linkBold}>Cadastre-se</Text></Text>
       </TouchableOpacity>
 
       {/* Pular/Skip no final da tela */}
       <TouchableOpacity onPress={() => router.push('/home')} style={styles.skipContainer}>
-        <Text style={styles.skipText}>Skip now</Text>
+        <Text style={styles.skipText}>Pular agora</Text>
       </TouchableOpacity>
 
       {/* Modal conta inativa */}

@@ -212,7 +212,7 @@ display="calendar"      onChange={handleDateChange}
         onPress={handleRegister}
         disabled={loading}
       >
-        {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>Sign up</Text>}
+        {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>Cadastrar</Text>}
       </TouchableOpacity>
 
       <View style={styles.dividerContainer}>
@@ -235,12 +235,12 @@ display="calendar"      onChange={handleDateChange}
 
       <TouchableOpacity onPress={() => router.push('/login')} style={styles.loginLinkContainer}>
         <Text style={styles.link}>
-          Already have an account? <Text style={styles.linkBold}>Log in</Text>
+          Já tem uma conta? <Text style={styles.linkBold}>Logar</Text>
         </Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={handleSkip} style={styles.skipContainer}>
-        <Text style={styles.skipText}>Skip now</Text>
+      <TouchableOpacity onPress={() => router.push('/home')} style={styles.skipContainer}>
+        <Text style={styles.skipText}>pular</Text>
       </TouchableOpacity>
     </LinearGradient>
   );

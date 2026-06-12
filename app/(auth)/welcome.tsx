@@ -15,12 +15,7 @@ export default function WelcomeScreen() {
   const router = useRouter();
 
   return (
-    <LinearGradient
-      colors={['#F7E4CF', '#637231ff']}
-      start={{ x: 0.5, y: 0 }}
-      end={{ x: 0.5, y: 1 }}
-      style={styles.container}
-    >
+   <LinearGradient colors={['#FCEAD2', '#F3A973']} style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
       {/* Parte escura atrás da imagem */}

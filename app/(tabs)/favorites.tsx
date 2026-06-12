@@ -40,7 +40,7 @@ export default function FavoritesScreen() {
 
   const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: theme.background.primary, padding: 20, paddingTop: 60 },
-    title: { fontSize: 24, fontWeight: 'bold', color: theme.primary, marginBottom: 20 },
+    title: { fontSize: 24, fontWeight: 'bold', color: theme.text.primary, marginBottom: 20 },
     card: { flexDirection: 'row', backgroundColor: theme.background.secondary, borderRadius: 12, padding: 12, marginBottom: 15, alignItems: 'center', borderWidth: 1, borderColor: isDarkMode ? '#333' : '#EEE' },
     image: { width: 70, height: 70, borderRadius: 8, backgroundColor: isDarkMode ? '#333' : '#EEE' },
     info: { flex: 1, marginLeft: 15 },

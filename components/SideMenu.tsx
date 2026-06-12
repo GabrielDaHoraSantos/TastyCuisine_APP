@@ -73,16 +73,17 @@ export default function SideMenu({ visible, onClose }: SideMenuProps) {
     drawerTitle: {
       fontSize: 24,
       fontWeight: 'bold',
-      color: '#FFFFFF',
+      color: theme.text.primary,
       marginBottom: 4
     },
     drawerSubtitle: {
       fontSize: 14,
-      color: '#FFFFFF',
+      color: theme.text.secondary,
       opacity: 0.9
     },
     drawerMenu: {
       paddingTop: 20
+
     },
     drawerItem: {
       flexDirection: 'row',
@@ -93,8 +94,8 @@ export default function SideMenu({ visible, onClose }: SideMenuProps) {
     },
     drawerItemActive: {
       backgroundColor: isDarkMode ? 'rgba(255, 107, 53, 0.15)' : 'rgba(255, 107, 53, 0.1)',
-      borderRightWidth: 4,
-      borderRightColor: theme.text.primary
+      borderRightWidth: 7,
+      borderRightColor: theme.secondary
     },
     drawerItemText: {
       fontSize: 16,
@@ -139,7 +140,7 @@ export default function SideMenu({ visible, onClose }: SideMenuProps) {
                 <Ionicons 
                   name="home" 
                   size={24} 
-                  color={isActive('home') ? theme.primary : theme.text.primary} 
+                  color={isActive('home') ? theme.accent : theme.text.primary} 
                 />
                 <Text style={[
                   styles.drawerItemText, 
@@ -156,7 +157,7 @@ export default function SideMenu({ visible, onClose }: SideMenuProps) {
                 <Ionicons 
                   name="heart" 
                   size={24} 
-                  color={isActive('favorites') ? theme.primary : theme.text.primary} 
+                  color={isActive('favorites') ? theme.accent : theme.text.primary} 
                 />
                 <Text style={[
                   styles.drawerItemText, 
@@ -173,7 +174,7 @@ export default function SideMenu({ visible, onClose }: SideMenuProps) {
                 <Ionicons 
                   name="search-outline" 
                   size={24} 
-                  color={isActive('search') ? theme.primary : theme.text.primary} 
+                  color={isActive('search') ? theme.accent : theme.text.primary} 
                 />
                 <Text style={[
                   styles.drawerItemText, 
@@ -190,7 +191,7 @@ export default function SideMenu({ visible, onClose }: SideMenuProps) {
                 <Ionicons 
                   name="person" 
                   size={24} 
-                  color={isActive('profile') ? theme.primary : theme.text.primary} 
+                  color={isActive('profile') ? theme.accent : theme.text.primary} 
                 />
                 <Text style={[
                   styles.drawerItemText, 

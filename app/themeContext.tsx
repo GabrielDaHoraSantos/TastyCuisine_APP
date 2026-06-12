@@ -10,9 +10,9 @@ const LightMode = {
     primary: '#000000ff',
     secondary: '#696969ff',
   },
-  primary: '#637231ff',
-  secondary: '#ffbb6e',
-  accent: '#cc2929ff',
+  primary: '#ffbb6e',
+  secondary: '#637231ff',
+  accent: '#637231ff',
   button: '#d41818ff',
   error: '#E74C3C',
 };
@@ -28,8 +28,8 @@ const DarkMode = {
   },
   primary: '#FFFFFF',
   secondary: '#ffbb6e',
-  accent: '#FFFFFF',
-  button: '#FFFFFF',
+  accent: '#637231ff',
+  button: '#d41818ff',
   error: '#FF4444',
 };
 
