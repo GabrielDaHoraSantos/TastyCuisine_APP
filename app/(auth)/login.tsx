@@ -97,22 +97,22 @@ export default function LoginScreen() {
           <Text style={styles.errorText}>{error}</Text>
         </View>
       )}
-
+        <Text style = {styles.text}> Email </Text>
       {/* Inputs */}
       <TextInput 
         value={formData.email}
         onChangeText={(value) => handleChange('email', value)}
         style={styles.input}
-        placeholder="Email"
+        placeholder="test@exemplo.com"
         placeholderTextColor="#A0A0A0"
         autoCapitalize="none"
       />
-
+        <Text style = {styles.text}> Senha </Text>
       <TextInput 
         value={formData.senha} 
         onChangeText={(value) => handleChange('senha', value)}
         style={styles.input} 
-        placeholder="Password" 
+        placeholder="12345678" 
         placeholderTextColor="#A0A0A0"
         secureTextEntry={!rememberMe}
       />
@@ -220,6 +220,13 @@ const styles = StyleSheet.create({
     width: 200,
     height: 80,
   },
+  text: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    marginBottom: 7,
+        color: '#BA531B',
+
+  },
   title: {
     fontSize: 26,
     fontWeight: 'bold',
@@ -239,7 +246,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   input: {
-    width: '100%',
+    width: 320,
     height: 50,
     backgroundColor: '#FFF2E4', // Fundo off-white/bege clarinho dos inputs
     borderRadius: 10,
@@ -256,7 +263,7 @@ const styles = StyleSheet.create({
   rowOptions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    width: '100%',
+    width: 320,
     marginBottom: 25,
     paddingHorizontal: 2,
   },
@@ -281,7 +288,7 @@ const styles = StyleSheet.create({
     color: '#6B401B',
   },
   button: {
-    width: '100%',
+    width: 320,
     height: 50,
     backgroundColor: '#BA531B', // Laranja terroso escuro do botão principal
     borderRadius: 20, // Cantos bem arredondados como na foto
@@ -325,7 +332,7 @@ const styles = StyleSheet.create({
   socialContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    width: '100%',
+    width: 320,
     marginBottom: 25,
   },
   socialButton: {

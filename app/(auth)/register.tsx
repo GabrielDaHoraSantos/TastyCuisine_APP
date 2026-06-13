@@ -188,26 +188,33 @@ if (idade === null) {
       )}
  
       <View style={styles.inputContainer}>
+        
+        <Text style = {styles.text}> Nome Completo </Text>
+
         <TextInput
           style={styles.input}
-          placeholder="Nome Completo"
+          placeholder="Gabriel da Hora Santos"
           placeholderTextColor="#A0A0A0"
           value={formData.nomeCompleto}
           onChangeText={(v) => handleChange('nomeCompleto', v)}
         />
+
+         <Text style = {styles.text}> Nome de Usuario </Text>
  
         <TextInput
           style={styles.input}
-          placeholder="Nome de Usuario"
+          placeholder="Gabs"
           placeholderTextColor="#A0A0A0"
           autoCapitalize="none"
           value={formData.nomeUsuario}
           onChangeText={(v) => handleChange('nomeUsuario', v)}
         />
- 
+
+          <Text style = {styles.text}> Data de Nascimento </Text>
+
         <TextInput
   style={styles.input}
-  placeholder="Data de nascimento (DD/MM/AAAA)"
+  placeholder="(DD/MM/AAAA)"
   placeholderTextColor="#A0A0A0"
   keyboardType="number-pad"
   maxLength={10}
@@ -217,7 +224,8 @@ if (idade === null) {
   }
 />
  
- 
+          <Text style = {styles.text}> Email </Text>
+
         <TextInput
           style={styles.input}
           placeholder="test@exemplo.com"
@@ -227,6 +235,8 @@ if (idade === null) {
           value={formData.email}
           onChangeText={(v) => handleChange('email', v)}
         />
+
+        <Text style = {styles.text}> Senha </Text>
  
         <TextInput
           style={styles.input}
@@ -245,7 +255,7 @@ if (idade === null) {
         onPress={handleRegister}
         disabled={loading}
       >
-        {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>Sign up</Text>}
+        {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>Entrar</Text>}
       </TouchableOpacity>
  
       <View style={styles.dividerContainer}>
@@ -268,12 +278,12 @@ if (idade === null) {
  
       <TouchableOpacity onPress={() => router.push('/login')} style={styles.loginLinkContainer}>
         <Text style={styles.link}>
-          Already have an account? <Text style={styles.linkBold}>Log in</Text>
+          Já tem uma conta? <Text style={styles.linkBold}>Logar-se</Text>
         </Text>
       </TouchableOpacity>
  
-      <TouchableOpacity onPress={handleSkip} style={styles.skipContainer}>
-        <Text style={styles.skipText}>Skip now</Text>
+      <TouchableOpacity onPress={() => router.push('/home')} style={styles.skipContainer}>
+        <Text style={styles.skipText}>pular</Text>
       </TouchableOpacity>
     </LinearGradient>
   );
@@ -295,6 +305,14 @@ const styles = StyleSheet.create({
     width: 190,
     height: 62,
   },
+  text: {
+    textAlign: 'center',
+    fontSize: 10,
+    fontWeight: 'bold',
+    marginBottom: 7,
+    color: '#BA531B',
+
+  },
   title: {
     fontSize: 26,
     fontWeight: 'bold',
@@ -306,7 +324,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 8,
     marginBottom: 12,
-    width: '100%',
+     width: 320,
   },
   errorText: {
     color: '#D32F2F',
@@ -314,20 +332,26 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   inputContainer: {
-    width: '100%',
+    width: 320,
   },
-  input: {
-    width: '100%',
-    height: 44,
-    backgroundColor: '#FFF2E4',
+
+   input: {
+     width: 320,
+    height: 50,
+    backgroundColor: '#FFF2E4', // Fundo off-white/bege clarinho dos inputs
     borderRadius: 10,
     paddingHorizontal: 20,
     color: '#5C3818',
-    marginBottom: 10,
+    marginBottom: 15,
     fontSize: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   button: {
-    width: '100%',
+     width: 320,
     height: 50,
     backgroundColor: '#BA531B',
     borderRadius: 20,
@@ -362,7 +386,7 @@ const styles = StyleSheet.create({
   socialContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    width: '100%',
+     width: 320,
     marginBottom: 16,
   },
   socialButton: {
