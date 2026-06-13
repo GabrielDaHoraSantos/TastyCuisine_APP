@@ -22,6 +22,7 @@ CREATE TABLE Usuario (
 -- 3. Tabela de Chefe
 CREATE TABLE Chefe (
     Cod_chefe INT IDENTITY(1,1) PRIMARY KEY,
+    Status_Chefe NVARCHAR(20) NOT NULL DEfault 'ATIVO',
     Nome_usuario NVARCHAR(60) NOT NULL,
     Nome_completo NVARCHAR(300) NOT NULL,
     Idade INT NOT NULL,
