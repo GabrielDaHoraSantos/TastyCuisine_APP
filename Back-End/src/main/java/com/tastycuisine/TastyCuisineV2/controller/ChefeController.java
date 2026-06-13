@@ -46,7 +46,7 @@ public class ChefeController {
         }
     }
 
-    @PutMapping("inativar/{codChefe}")
+    @PutMapping("/inativar/{codChefe}")
     public ResponseEntity<Object> inativar(@PathVariable Long codChefe) {
         try {
             chefeService.inativar(codChefe);
@@ -56,7 +56,7 @@ public class ChefeController {
         }
     }
     
-    @PutMapping("ativar/{codChefe}")
+    @PutMapping("/ativar/{codChefe}")
     public ResponseEntity<Object> ativar(@PathVariable Long codChefe) {
         try {
             chefeService.ativar(codChefe);
