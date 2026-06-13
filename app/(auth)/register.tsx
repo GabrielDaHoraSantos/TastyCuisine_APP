@@ -1,46 +1,99 @@
 'use client';
-
+ 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Ionicons } from '@expo/vector-icons';
 import {
   ActivityIndicator,
   Image,
-  Platform,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View
 } from 'react-native';
-
+ 
 import { authAPI } from './api';
-
+ 
 export default function RegisterScreen() {
   const router = useRouter();
-  const [birthDate, setBirthDate] = useState<Date | null>(null);
-  const [showDatePicker, setShowDatePicker] = useState(false);
-
-  const handleDateChange = (event: any, selectedDate?: Date) => {
-    if (Platform.OS === 'android') {
-      setShowDatePicker(false);
+  const formatBirthDate = (text: string) => {
+    const numbers = text.replace(/\D/g, '');
+ 
+    if (numbers.length <= 2) return numbers;
+ 
+    if (numbers.length <= 4) {
+      return `${numbers.slice(0, 2)}/${numbers.slice(2)}`;
     }
-    if (selectedDate) {
-      setBirthDate(selectedDate);
-    } 
+ 
+    return `${numbers.slice(0, 2)}/${numbers.slice(
+      2,
+      4
+    )}/${numbers.slice(4, 8)}`;
   };
-
-  const getDateString = () => {
-    if (birthDate) {
-      return birthDate.toLocaleDateString('pt-BR');
-    }
-    return '';
-  };
-
-
+ 
+  const calculateAge = (dateString: string) => {
+  const parts = dateString.split('/');
+ 
+  if (parts.length !== 3) return null;
+ 
+  const day = Number(parts[0]);
+  const month = Number(parts[1]);
+  const year = Number(parts[2]);
+ 
+  if (
+    isNaN(day) ||
+    isNaN(month) ||
+    isNaN(year)
+  ) {
+    return null;
+  }
+ 
+  if (
+    day < 1 ||
+    day > 31 ||
+    month < 1 ||
+    month > 12 ||
+    year < 1900
+  ) {
+    return null;
+  }
+ 
+  const birth = new Date(year, month - 1, day);
+ 
+  // Verifica se a data realmente existe
+  if (
+    birth.getDate() !== day ||
+    birth.getMonth() !== month - 1 ||
+    birth.getFullYear() !== year
+  ) {
+    return null;
+  }
+ 
+  const today = new Date();
+ 
+  let age =
+    today.getFullYear() -
+    birth.getFullYear();
+ 
+  const monthDiff =
+    today.getMonth() -
+    birth.getMonth();
+ 
+  if (
+    monthDiff < 0 ||
+    (monthDiff === 0 &&
+      today.getDate() < birth.getDate())
+  ) {
+    age--;
+  }
+ 
+  return age;
+};
+  const [birthDate, setBirthDate] = useState('');
+ 
+ 
   const [formData, setFormData] = useState({
     nomeCompleto: '',
     nomeUsuario: '',
@@ -49,38 +102,38 @@ export default function RegisterScreen() {
     senha: '',
     confirmarSenha: '',
   });
-
+ 
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
+ 
   const handleRegister = async () => {
     if (
       !formData.nomeCompleto ||
       !formData.nomeUsuario ||
-      !birthDate ||
+      !birthDate.trim() ||
       !formData.email ||
-      !formData.senha 
+      !formData.senha
     ) {
       setError('Please fill in all required fields');
       return;
     }
-
+ 
     // Calcula idade a partir da data de nascimento
-    const today = new Date();
-    let idade = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      idade--;
-    }
-
+    const idade = calculateAge(birthDate);
+ 
+if (idade === null) {
+  setError('Data de nascimento inválida');
+  return;
+}
+ 
     if (idade < 14 || idade > 100) {
       setError('You must be between 14 and 100 years old');
       return;
     }
-
+ 
     setLoading(true);
     setError(null);
-
+ 
     try {
       const response = await authAPI.register({
         nomeCompleto: formData.nomeCompleto.trim(),
@@ -89,12 +142,12 @@ export default function RegisterScreen() {
         gmail: formData.email.trim(),
         senha: formData.senha,
       });
-
+ 
       if (!response.data) {
         setError(response.error || 'Could not create your account');
         return;
       }
-
+ 
       router.replace('/preferences');
     } catch (err) {
       setError('Error connecting to the server');
@@ -103,19 +156,19 @@ export default function RegisterScreen() {
       setLoading(false);
     }
   };
-
+ 
   const handleSkip = async () => {
     // Skip without saving - go directly to preferences or home
     router.replace('/preferences');
   };
-
+ 
   const handleChange = (name: string, value: string) => {
     setFormData({
       ...formData,
       [name]: value,
     });
   };
-
+ 
   return (
     <LinearGradient colors={['#FCEAD2', '#F3A973']} style={styles.container}>
       <View style={styles.logoContainer}>
@@ -125,15 +178,15 @@ export default function RegisterScreen() {
           resizeMode="contain"
         />
       </View>
-
+ 
       <Text style={styles.title}>Cadastro</Text>
-
+ 
       {error && (
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{error}</Text>
         </View>
       )}
-
+ 
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
@@ -142,7 +195,7 @@ export default function RegisterScreen() {
           value={formData.nomeCompleto}
           onChangeText={(v) => handleChange('nomeCompleto', v)}
         />
-
+ 
         <TextInput
           style={styles.input}
           placeholder="Nome de Usuario"
@@ -151,40 +204,20 @@ export default function RegisterScreen() {
           value={formData.nomeUsuario}
           onChangeText={(v) => handleChange('nomeUsuario', v)}
         />
-
-            <View style={styles.dateInputWrapper}>
-            <TextInput
-            style={styles.dateInput}
-            placeholder="xx/xx/xxxx"
-            placeholderTextColor="#A0A0A0"
-            value={getDateString()}
-            editable={false}
-  />
-
-           <TouchableOpacity
-  style={styles.calendarButton}
- onPress={() => {
-  console.log(showDatePicker);
-  setShowDatePicker(true);
-}}
->
-  <Ionicons name="calendar-outline" size={22} color="#BA531B" />
-</TouchableOpacity>
-            </View>
-
-        {showDatePicker && (
-  <View>
-    <Text>TESTE</Text>
-
-    <DateTimePicker
-      value={birthDate || new Date()}
-      mode="date"
-display="calendar"      onChange={handleDateChange}
-    />
-  </View>
-)}
-
-       
+ 
+        <TextInput
+  style={styles.input}
+  placeholder="Data de nascimento (DD/MM/AAAA)"
+  placeholderTextColor="#A0A0A0"
+  keyboardType="number-pad"
+  maxLength={10}
+  value={birthDate}
+  onChangeText={(text) =>
+    setBirthDate(formatBirthDate(text))
+  }
+/>
+ 
+ 
         <TextInput
           style={styles.input}
           placeholder="test@exemplo.com"
@@ -194,7 +227,7 @@ display="calendar"      onChange={handleDateChange}
           value={formData.email}
           onChangeText={(v) => handleChange('email', v)}
         />
-
+ 
         <TextInput
           style={styles.input}
           placeholder="12345678"
@@ -203,24 +236,24 @@ display="calendar"      onChange={handleDateChange}
           value={formData.senha}
           onChangeText={(v) => handleChange('senha', v)}
         />
-
-
+ 
+ 
       </View>
-
+ 
       <TouchableOpacity
         style={[styles.button, loading && styles.buttonDisabled]}
         onPress={handleRegister}
         disabled={loading}
       >
-        {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>Cadastrar</Text>}
+        {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>Sign up</Text>}
       </TouchableOpacity>
-
+ 
       <View style={styles.dividerContainer}>
         <View style={styles.line} />
         <Text style={styles.dividerText}>ou logar com</Text>
         <View style={styles.line} />
       </View>
-
+ 
       <View style={styles.socialContainer}>
         <TouchableOpacity style={styles.socialButton}>
           <Image
@@ -228,24 +261,24 @@ display="calendar"      onChange={handleDateChange}
             style={styles.image}
             resizeMode="contain"
           />
-
+ 
           <Text style={styles.socialButtonText}>Google</Text>
         </TouchableOpacity>
       </View>
-
+ 
       <TouchableOpacity onPress={() => router.push('/login')} style={styles.loginLinkContainer}>
         <Text style={styles.link}>
-          Já tem uma conta? <Text style={styles.linkBold}>Logar</Text>
+          Already have an account? <Text style={styles.linkBold}>Log in</Text>
         </Text>
       </TouchableOpacity>
-
-      <TouchableOpacity onPress={() => router.push('/home')} style={styles.skipContainer}>
-        <Text style={styles.skipText}>pular</Text>
+ 
+      <TouchableOpacity onPress={handleSkip} style={styles.skipContainer}>
+        <Text style={styles.skipText}>Skip now</Text>
       </TouchableOpacity>
     </LinearGradient>
   );
 }
-
+ 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -373,33 +406,5 @@ const styles = StyleSheet.create({
     color: '#6B401B',
     fontWeight: '500',
   },
-  dateInputWrapper: {
-  width: '100%',
-  height: 44,
-  backgroundColor: '#FFF2E4',
-  borderRadius: 10,
-  flexDirection: 'row',
-  alignItems: 'center',
-  marginBottom: 10,
-  paddingLeft: 20,
-},
-
-dateInput: {
-  flex: 1,
-  height: '100%',
-  color: '#5C3818',
-  fontSize: 15,
-},
-
-calendarButton: {
-  width: 50,
-  height: '100%',
-  justifyContent: 'center',
-  alignItems: 'center',
-},
-
-calendarIcon: {
-  fontSize: 22,
-},
-
 });
+ 
