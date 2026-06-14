@@ -1,11 +1,21 @@
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Image, Modal, Platform, SafeAreaView,
-  ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View
+  Image,
+  Modal,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { usuariosAPI } from '../(auth)/api';
 import BolinhaqGira from '../../components/BolinhaqGira';
@@ -16,47 +26,55 @@ import { useAuth } from '../authContext';
 // import { LinearGradient } from 'expo-linear-gradient';
 // <LinearGradient colors={['#C4703A', '#A0522D', '#7A3B1E']} style={s.hero}>
 
-const avatar = require('../../assets/images/profile.png');
+// NOTE: Instale expo-image-picker:
+//   npx expo install expo-image-picker
+
+const avatarDefault = require('../../assets/images/profile.png');
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 const C = {
-  bg:           '#F5EDE3',   // creme aconchegante
-  surface:      '#FFFFFF',   // cards brancos
-  surfaceHi:    '#F0E6DA',   // separadores / inputs
-  hero:         '#C4703A',   // terracota principal
-  heroDark:     '#7A3B1E',   // terracota escuro (gradiente)
-  heroMid:      '#A0522D',
-  accent:       '#C4703A',
-  accentSoft:   '#FFF0E8',
-  accentBorder: '#F0C8A0',
-  danger:       '#D94F4F',
-  dangerSoft:   '#FFF0F0',
-  textPrimary:  '#3D2010',
-  textSub:      '#B8906A',
-  textMuted:    '#D4B89A',
-  textOnHero:   '#FFFFFF',
-  textOnHeroSub:'rgba(255,230,200,0.85)',
-  textOnHeroFaint:'rgba(255,220,180,0.65)',
-  white:        '#FFFFFF',
-  green:        '#6DB86D',
+  bg:              '#F5EDE3',
+  surface:         '#FFFFFF',
+  surfaceHi:       '#F0E6DA',
+  hero:            '#C4703A',
+  accent:          '#C4703A',
+  accentSoft:      '#FFF0E8',
+  accentBorder:    '#F0C8A0',
+  danger:          '#D94F4F',
+  dangerSoft:      '#FFF0F0',
+  textPrimary:     '#3D2010',
+  textSub:         '#B8906A',
+  textMuted:       '#D4B89A',
+  textOnHero:      '#FFFFFF',
+  textOnHeroSub:   'rgba(255,230,200,0.85)',
+  textOnHeroFaint: 'rgba(255,220,180,0.65)',
+  white:           '#FFFFFF',
+  green:           '#6DB86D',
 };
 
-// ─── Stats type ───────────────────────────────────────────────────────────────
 interface UserStats {
   favoritos: number;
   avaliacoes: number;
   comentarios: number;
 }
 
+// ─── URL base da API ──────────────────────────────────────────────────────────
+// Ajuste conforme o seu ambiente
+
+//const API_BASE = 'http://SEU_IP:8080';
+const API_BASE = 'http://192.168.1.100:8080';
+
 export default function ProfileScreen() {
   const router = useRouter();
   const { user, userId, login, logout, loading } = useAuth();
-  const [editModalVisible, setEditModalVisible]     = useState(false);
-  const [drawerVisible, setDrawerVisible]           = useState(false);
+
+  const [editModalVisible,   setEditModalVisible]   = useState(false);
+  const [drawerVisible,      setDrawerVisible]      = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [saving,   setSaving]   = useState(false);
-  const [stats, setStats] = useState<UserStats>({ favoritos: 0, avaliacoes: 0, comentarios: 0 });
+  const [deleting,     setDeleting]     = useState(false);
+  const [saving,       setSaving]       = useState(false);
+  const [savingPhoto,  setSavingPhoto]  = useState(false);
+  const [stats,        setStats]        = useState<UserStats>({ favoritos: 0, avaliacoes: 0, comentarios: 0 });
   const [loadingStats, setLoadingStats] = useState(true);
 
   const [form, setForm] = useState({
@@ -71,32 +89,82 @@ export default function ProfileScreen() {
     if (!userId && !loading) router.push('/login');
   }, [loading]);
 
-  // Busca os stats do usuário (favoritos, avaliações, comentários)
-  // Adapte as chamadas abaixo para os endpoints reais da sua API
+  // Busca stats do usuário
   useEffect(() => {
     if (!userId) return;
     const fetchStats = async () => {
       setLoadingStats(true);
       try {
-        // TODO: substitua pelos endpoints reais da sua API
-        // Exemplo: GET /usuarios/:id/stats retornando { favoritos, avaliacoes, comentarios }
-        const res = await fetch(`/usuarios/${userId}/stats`);
+        // TODO: substitua pelo endpoint real → GET /usuario/:id/stats
+        // retornando { favoritos, avaliacoes, comentarios }
+        const res = await fetch(`${API_BASE}/usuario/${userId}/stats`);
         if (res.ok) {
           const data = await res.json();
           setStats({
-            favoritos:  data.favoritos  ?? 0,
-            avaliacoes: data.avaliacoes ?? 0,
-            comentarios:data.comentarios ?? 0,
+            favoritos:   data.favoritos   ?? 0,
+            avaliacoes:  data.avaliacoes  ?? 0,
+            comentarios: data.comentarios ?? 0,
           });
         }
       } catch {
-        // silently fail — stats ficam zerados
+        // silently fail
       } finally {
         setLoadingStats(false);
       }
     };
     fetchStats();
   }, [userId]);
+
+  // ── Seleciona foto da galeria e envia ao backend ──────────────────────────
+  const handlePickPhoto = async () => {
+    // 1. Pede permissão
+
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert(
+        'Permissão necessária',
+        'Precisamos de acesso à sua galeria para trocar a foto de perfil.'
+      );
+      return;
+    }
+
+    // 2. Abre o picker
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'], // permite recorte
+      allowsEditing: true,   // permite recorte
+      aspect: [1, 1],        // recorte quadrado (igual ao avatar circular)
+      quality: 0.6,          // reduz tamanho sem perder qualidade visível
+      base64: true,          // retorna string base64
+    });
+
+    if (result.canceled || !result.assets?.[0]?.base64) return;
+
+    const asset = result.assets[0];
+    // Monta o data URI — o backend salva essa string inteira no campo foto_perfil
+    const mimeType = asset.mimeType ?? 'image/jpeg';
+    const base64String = `data:${mimeType};base64,${asset.base64}`;
+
+    // 3. Envia ao backend: PATCH /usuario/:id/foto
+    setSavingPhoto(true);
+    try {
+      const res = await fetch(`${API_BASE}/usuario/${userId}/foto`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fotoPerfil: base64String }),
+      });
+
+      if (!res.ok) throw new Error('Falha ao salvar foto');
+  const usuarioAtualizado = await res.json();
+  console.log('fotoPerfil recebida:', usuarioAtualizado?.fotoPerfil?.slice(0, 50)); // ✅ aqui
+  login(usuarioAtualizado);
+     
+    } catch {
+      Alert.alert('Erro', 'Não foi possível salvar a foto. Tente novamente.');
+    } finally {
+      setSavingPhoto(false);
+    }
+  };
+  // ─────────────────────────────────────────────────────────────────────────
 
   const openEdit = () => {
     setForm({
@@ -146,13 +214,6 @@ export default function ProfileScreen() {
 
   if (loading) return <BolinhaqGira />;
 
-  const initials = (user?.nomeCompleto ?? 'U')
-    .split(' ')
-    .map((w: string) => w[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
-
   const restricoes = user?.restricoesAlimentares
     ? (user.restricoesAlimentares as string)
         .split(',')
@@ -160,56 +221,149 @@ export default function ProfileScreen() {
         .filter(Boolean)
     : [];
 
+  // Fonte da imagem: base64 do banco ou asset local padrão
+const avatarSource = user?.fotoPerfil
+  ? { uri: user.fotoPerfil }
+  : { uri: `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.nomeCompleto ?? 'U')}&background=C4703A&color=fff&size=200` };
   return (
-    
-    loading ? (
-              <BolinhaqGira/>
-        ) : 
-    <SafeAreaView style={styles.safeArea}>
-      {loading && 
-        <ActivityIndicator color="#ffbb6e" style={{marginTop: 40, flex: 1, justifyContent: 'center', alignItems: 'center' }}/>}
-      <StatusBar barStyle="dark-content" backgroundColor="#F6F6F6" />
-      {!loading &&<MenuButton onPress={() => setDrawerVisible(true)} />}
-      <View style={styles.screen}>
-        <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-          {!loading && <View style={styles.header}>
-            <Text style={styles.title}>Perfil</Text>
-          </View>}
+    <SafeAreaView style={s.safeArea}>
+      <StatusBar barStyle="light-content" backgroundColor={C.hero} />
 
-          {!loading && <View style={styles.profileCard}>
-            <Image source={avatar} style={styles.avatar} />
-            <View style={styles.profileText}>
-              <Text style={styles.name}>{user?.nomeCompleto ?? 'Usuário'}</Text>
-              <Text style={styles.email}>{user?.gmail ?? ''}</Text>
-              <Text style={styles.username}>@{user?.nomeDeUsuario ?? ''}</Text>
+
+
+      <ScrollView
+        style={s.scroll}
+        contentContainerStyle={s.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* ── HERO ── */}
+        <View style={s.hero}>
+          <View style={s.blob1} />
+          <View style={s.blob2} />
+          <View style={s.blob3} />
+
+          <Text style={s.pageLabel}>MEU PERFIL</Text>
+
+          {/* Avatar clicável */}
+          <TouchableOpacity
+            style={s.avatarWrap}
+            onPress={handlePickPhoto}
+            activeOpacity={0.85}
+            disabled={savingPhoto}
+          >
+            <Image source={avatarSource} style={s.avatarImg} />
+
+            {/* Overlay de troca de foto */}
+            <View style={s.avatarOverlay}>
+              {savingPhoto
+                ? <ActivityIndicator color={C.white} size="small" />
+                : <Ionicons name="camera" size={20} color={C.white} />}
+            </View>
+
+            {/* Ponto de status online */}
+            {!savingPhoto && <View style={s.statusDot} />}
+          </TouchableOpacity>
+
+          <Text style={s.heroName}>{user?.nomeCompleto ?? 'Usuário'}</Text>
+          <Text style={s.heroHandle}>@{user?.nomeDeUsuario ?? ''}</Text>
+          <Text style={s.heroEmail}>{user?.gmail ?? ''}</Text>
+
+          {/* Stats */}
+          <View style={s.statsRow}>
+            <StatBox value={loadingStats ? '…' : String(stats.favoritos)}   label="Favoritos" />
+            <View style={s.statsDivider} />
+            <StatBox value={loadingStats ? '…' : String(stats.avaliacoes)}  label="Avaliações" />
+            <View style={s.statsDivider} />
+            <StatBox value={loadingStats ? '…' : String(stats.comentarios)} label="Comentários" />
+          </View>
+        </View>
+
+        {/* ── CHIPS ── */}
+        <View style={s.chipsRow}>
+          {user?.idade ? (
+            <View style={s.chip}>
+              <View style={[s.chipDot, { backgroundColor: C.accent }]} />
+              <Text style={s.chipText}>{user.idade} anos</Text>
             </View>
           ) : null}
           <View style={s.chip}>
             <View style={[s.chipDot, { backgroundColor: C.green }]} />
             <Text style={s.chipText}>Conta ativa</Text>
           </View>
-        </ScrollView>
-      </View>
-      
-      <SideMenu visible={drawerVisible} onClose={() => setDrawerVisible(false)} />
-      <Modal visible={editModalVisible} animationType="slide" transparent onRequestClose={() => setEditModalVisible(false)}>
-        {!loading &&<View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Editar Perfil</Text>
-              <TouchableOpacity onPress={() => setEditModalVisible(false)}>
-                <Ionicons name="close" size={24} color="#333" />
+        </View>
+
+        {/* ── RESTRIÇÕES ── */}
+        {restricoes.length > 0 && (
+          <>
+            <Text style={s.sectionLabel}>RESTRIÇÕES ALIMENTARES</Text>
+            <View style={s.restricoesWrap}>
+              {restricoes.map((r, i) => (
+                <View key={i} style={s.restricaoTag}>
+                  <Ionicons name="alert-circle-outline" size={13} color={C.accent} />
+                  <Text style={s.restricaoText}>{r}</Text>
+                </View>
+              ))}
+            </View>
+          </>
+        )}
+
+        {/* ── AÇÕES ── */}
+        <Text style={s.sectionLabel}>CONFIGURAÇÕES</Text>
+
+        <View style={s.card}>
+          <ActionRow icon="create-outline" label="Editar perfil" onPress={openEdit} />
+          <Divider />
+          <ActionRow
+            icon="log-out-outline"
+            label="Sair da conta"
+            color={C.accent}
+            onPress={() => { logout(); router.replace('/(auth)/login'); }}
+          />
+          <Divider />
+          <ActionRow
+            icon="trash-outline"
+            label="Inativar conta"
+            color={C.danger}
+            onPress={() => setDeleteModalVisible(true)}
+          />
+        </View>
+
+        <Text style={s.versionText}>v1.0.0</Text>
+
+        
+      </ScrollView>
+
+     
+      {/* ── EDIT MODAL ── */}
+      <Modal
+        visible={editModalVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setEditModalVisible(false)}
+      >
+        <View style={s.modalOverlay}>
+          <View style={s.modalSheet}>
+            <View style={s.dragPill} />
+
+            <View style={s.modalHeader}>
+              <Text style={s.modalTitle}>Editar Perfil</Text>
+              <TouchableOpacity
+                onPress={() => setEditModalVisible(false)}
+                style={s.closeBtn}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Ionicons name="close" size={20} color={C.textSub} />
               </TouchableOpacity>
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false} style={{ marginBottom: 8 }}>
-              {[
-                { label: 'Nome completo',        key: 'nomeCompleto',  placeholder: 'Seu nome completo' },
-                { label: 'Nome de usuário',       key: 'nomeDeUsuario', placeholder: 'nome_de_usuario' },
-                { label: 'Idade',                 key: 'idade',         placeholder: '0', keyboardType: 'numeric' as const },
-                { label: 'Email',                 key: 'gmail',         placeholder: 'voce@email.com', keyboardType: 'email-address' as const },
-                { label: 'Nova senha',            key: 'senha',         placeholder: 'Deixe em branco para manter', secureTextEntry: true },
-              ].map(field => (
+              {([
+                { label: 'Nome completo',   key: 'nomeCompleto',  placeholder: 'Seu nome completo' },
+                { label: 'Nome de usuário', key: 'nomeDeUsuario', placeholder: 'nome_de_usuario' },
+                { label: 'Idade',           key: 'idade',         placeholder: '0', keyboardType: 'numeric' as const },
+                { label: 'Email',           key: 'gmail',         placeholder: 'voce@email.com', keyboardType: 'email-address' as const },
+                { label: 'Nova senha',      key: 'senha',         placeholder: 'Deixe em branco para manter', secureTextEntry: true },
+              ] as const).map(field => (
                 <View key={field.key} style={s.fieldGroup}>
                   <Text style={s.fieldLabel}>{field.label}</Text>
                   <TextInput
@@ -218,8 +372,8 @@ export default function ProfileScreen() {
                     onChangeText={v => setForm(f => ({ ...f, [field.key]: v }))}
                     placeholder={field.placeholder}
                     placeholderTextColor={C.textMuted}
-                    keyboardType={field.keyboardType}
-                    secureTextEntry={field.secureTextEntry}
+                    keyboardType={(field as any).keyboardType}
+                    secureTextEntry={(field as any).secureTextEntry}
                     autoCapitalize="none"
                   />
                 </View>
@@ -272,39 +426,230 @@ export default function ProfileScreen() {
               <Text style={s.ghostBtnText}>Cancelar</Text>
             </TouchableOpacity>
           </View>
-    
         </View>
-      </Modal>}
-      
+      </Modal>
+      <BottomNavigation />
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#F6F6F6' },
-  screen: { flex: 1, backgroundColor: '#F6F6F6' },
-  scroll: { flex: 1 },
-  content: { paddingHorizontal: 20, paddingTop: Platform.OS === 'android' ? 64 : 54, paddingBottom: 40 },
-  header: { alignItems: 'center', justifyContent: 'center', height: 84 },
-  title: { color: '#111111', fontSize: 25, fontWeight: '800' },
-  profileCard: { minHeight: 118, borderRadius: 20, backgroundColor: '#FFFFFF', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, marginBottom: 28, shadowColor: '#D8D8D8', shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.18, shadowRadius: 18, elevation: 3 },
-  avatar: { width: 76, height: 76, borderRadius: 38, marginRight: 22, backgroundColor: '#E8E8E8' },
-  profileText: { flex: 1 },
-  name: { color: '#141414', fontSize: 22, fontWeight: '800' },
-  email: { color: '#C3C3C3', fontSize: 15, fontWeight: '600', marginTop: 4 },
-  username: { color: '#BA531B', fontSize: 14, fontWeight: '600', marginTop: 2 },
-  actionsCard: { borderRadius: 18, backgroundColor: '#FFFFFF', overflow: 'hidden', shadowColor: '#E1E1E1', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.15, shadowRadius: 14, elevation: 2 },
-  actionRow: { minHeight: 72, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 18 },
-  separator: { height: StyleSheet.hairlineWidth, backgroundColor: '#EFEFEF', marginHorizontal: 18 },
-  iconSlot: { width: 36, alignItems: 'center', marginRight: 12 },
-  rowLabel: { flex: 1, color: '#232323', fontSize: 18, fontWeight: '700' },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  modalContent: { backgroundColor: '#FFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, maxHeight: '90%' },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  modalTitle: { fontSize: 20, fontWeight: '800', color: '#111' },
-  fieldGroup: { marginBottom: 16 },
-  fieldLabel: { fontSize: 13, fontWeight: '600', color: '#888', marginBottom: 6 },
-  fieldInput: { borderWidth: 1, borderColor: '#E0E0E0', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 16, color: '#111', backgroundColor: '#FAFAFA' },
-  saveBtn: { backgroundColor: '#BA531B', paddingVertical: 16, borderRadius: 14, alignItems: 'center', marginTop: 12 },
-  saveBtnText: { color: '#FFF', fontSize: 16, fontWeight: '800' },
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+function StatBox({ value, label }: { value: string; label: string }) {
+  return (
+    <View style={s.statBox}>
+      <Text style={s.statNum}>{value}</Text>
+      <Text style={s.statLbl}>{label}</Text>
+    </View>
+  );
+}
+
+function ActionRow({
+  icon, label, color = C.textPrimary, onPress,
+}: {
+  icon: string; label: string; color?: string; onPress: () => void;
+}) {
+  return (
+    <TouchableOpacity style={s.actionRow} onPress={onPress} activeOpacity={0.7}>
+      <View style={[s.iconBubble, { backgroundColor: color === C.danger ? C.dangerSoft : C.accentSoft }]}>
+        <Ionicons name={icon as any} size={20} color={color} />
+      </View>
+      <Text style={[s.actionLabel, { color }]}>{label}</Text>
+      <Ionicons name="chevron-forward" size={18} color={color + '66'} />
+    </TouchableOpacity>
+  );
+}
+
+function Divider() {
+  return <View style={s.divider} />;
+}
+
+// ─── Styles ───────────────────────────────────────────────────────────────────
+
+const s = StyleSheet.create({
+  safeArea:     { flex: 1, backgroundColor: C.hero },
+  scroll:       { flex: 1, backgroundColor: C.bg },
+  scrollContent:{ paddingBottom: 48 },
+
+  // Hero
+  hero: {
+    backgroundColor: C.hero,
+    paddingTop: Platform.OS === 'android' ? 72 : 60,
+    paddingBottom: 28,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    overflow: 'hidden',
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+  },
+  blob1: {
+    position: 'absolute', width: 220, height: 220, borderRadius: 110,
+    backgroundColor: 'rgba(255,255,255,0.07)', top: -70, right: -50,
+  },
+  blob2: {
+    position: 'absolute', width: 150, height: 150, borderRadius: 75,
+    backgroundColor: 'rgba(255,180,100,0.10)', bottom: -40, left: -30,
+  },
+  blob3: {
+    position: 'absolute', width: 80, height: 80, borderRadius: 40,
+    backgroundColor: 'rgba(255,255,255,0.04)', top: 40, left: 70,
+  },
+  pageLabel: {
+    color: 'rgba(255,230,200,0.75)', fontSize: 10, fontWeight: '700',
+    letterSpacing: 3, marginBottom: 18,
+  },
+
+  // Avatar
+  avatarWrap: {
+    width: 90, height: 90, borderRadius: 45,
+    borderWidth: 3, borderColor: 'rgba(255,255,255,0.5)',
+    marginBottom: 14,
+    shadowColor: '#000', shadowOpacity: 0.25,
+    shadowRadius: 12, shadowOffset: { width: 0, height: 6 },
+    elevation: 8,
+  },
+  avatarImg: {
+    width: '100%', height: '100%', borderRadius: 45,
+  },
+  // Overlay escuro com ícone de câmera que aparece sobre a foto
+  avatarOverlay: {
+    position: 'absolute', bottom: 0, left: 0, right: 0,
+    height: 32, borderBottomLeftRadius: 45, borderBottomRightRadius: 45,
+    backgroundColor: 'rgba(0,0,0,0.42)',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  statusDot: {
+    position: 'absolute', bottom: 2, right: 2,
+    width: 16, height: 16, borderRadius: 8,
+    backgroundColor: C.green, borderWidth: 2.5, borderColor: C.hero,
+  },
+
+  heroName:   { color: C.textOnHero,      fontSize: 22, fontWeight: '800', marginBottom: 3 },
+  heroHandle: { color: C.textOnHeroSub,   fontSize: 14, fontWeight: '600', marginBottom: 2 },
+  heroEmail:  { color: C.textOnHeroFaint, fontSize: 12, marginBottom: 20 },
+
+  // Stats
+  statsRow: {
+    flexDirection: 'row', alignSelf: 'stretch',
+    backgroundColor: 'rgba(0,0,0,0.15)',
+    borderRadius: 18, overflow: 'hidden',
+  },
+  statBox:      { flex: 1, alignItems: 'center', paddingVertical: 14 },
+  statNum:      { color: C.white, fontSize: 22, fontWeight: '800', lineHeight: 26 },
+  statLbl:      { color: 'rgba(255,230,200,0.75)', fontSize: 10, fontWeight: '600', letterSpacing: 0.5, marginTop: 2, textTransform: 'uppercase' },
+  statsDivider: { width: 0.5, backgroundColor: 'rgba(255,255,255,0.2)', marginVertical: 12 },
+
+  // Chips
+  chipsRow: {
+    flexDirection: 'row', justifyContent: 'center',
+    gap: 8, marginTop: 20, marginBottom: 4,
+    paddingHorizontal: 20, flexWrap: 'wrap',
+  },
+  chip: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    backgroundColor: C.white, borderRadius: 20,
+    paddingHorizontal: 14, paddingVertical: 7,
+    borderWidth: 0.5, borderColor: C.accentBorder,
+  },
+  chipDot:  { width: 7, height: 7, borderRadius: 4 },
+  chipText: { color: C.textPrimary, fontSize: 12, fontWeight: '600' },
+
+  // Restrições
+  restricoesWrap: {
+    flexDirection: 'row', flexWrap: 'wrap',
+    gap: 8, paddingHorizontal: 16, marginBottom: 4,
+  },
+  restricaoTag: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    backgroundColor: C.accentSoft, borderRadius: 20,
+    paddingHorizontal: 12, paddingVertical: 6,
+    borderWidth: 0.5, borderColor: C.accentBorder,
+  },
+  restricaoText: { color: C.accent, fontSize: 12, fontWeight: '600' },
+
+  // Section label
+  sectionLabel: {
+    color: C.textSub, fontSize: 10, fontWeight: '700',
+    letterSpacing: 2.5, marginLeft: 20, marginBottom: 10, marginTop: 20,
+  },
+
+  // Card de ações
+  card: {
+    backgroundColor: C.surface,
+    marginHorizontal: 16, borderRadius: 20,
+    overflow: 'hidden',
+    borderWidth: 0.5, borderColor: '#EDE0D4',
+    shadowColor: '#8B5028', shadowOpacity: 0.08,
+    shadowRadius: 16, shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+  },
+  actionRow: {
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 18, paddingVertical: 16, gap: 14,
+  },
+  iconBubble: {
+    width: 40, height: 40, borderRadius: 12,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  actionLabel: { flex: 1, fontSize: 15, fontWeight: '600', color: C.textPrimary },
+  divider:     { height: StyleSheet.hairlineWidth, backgroundColor: C.surfaceHi, marginHorizontal: 18 },
+
+  versionText: { color: C.textMuted, textAlign: 'center', fontSize: 12, marginTop: 32, letterSpacing: 0.5 },
+
+  // Modal
+  modalOverlay: {
+    flex: 1, backgroundColor: 'rgba(61,32,16,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalSheet: {
+    backgroundColor: C.surface,
+    borderTopLeftRadius: 28, borderTopRightRadius: 28,
+    padding: 24, maxHeight: '92%',
+  },
+  dragPill: {
+    width: 40, height: 4, borderRadius: 2,
+    backgroundColor: C.surfaceHi, alignSelf: 'center', marginBottom: 20,
+  },
+  modalHeader: {
+    flexDirection: 'row', justifyContent: 'space-between',
+    alignItems: 'center', marginBottom: 22,
+  },
+  modalTitle: { color: C.textPrimary, fontSize: 20, fontWeight: '800' },
+  closeBtn:   { backgroundColor: C.surfaceHi, borderRadius: 10, padding: 6 },
+
+  // Fields
+  fieldGroup: { marginBottom: 18 },
+  fieldLabel: { color: C.textSub, fontSize: 12, fontWeight: '600', letterSpacing: 0.5, marginBottom: 8 },
+  fieldInput: {
+    backgroundColor: '#FBF5EF', borderRadius: 14,
+    paddingHorizontal: 16, paddingVertical: 14,
+    fontSize: 15, color: C.textPrimary,
+    borderWidth: 1, borderColor: C.accentBorder,
+  },
+
+  // Buttons
+  primaryBtn: {
+    backgroundColor: C.accent,
+    paddingVertical: 16, borderRadius: 16,
+    alignItems: 'center', marginTop: 8,
+    shadowColor: C.accent, shadowOpacity: 0.3,
+    shadowRadius: 10, shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
+  },
+  primaryBtnText: { color: C.white, fontSize: 16, fontWeight: '800' },
+  ghostBtn:       { alignItems: 'center', paddingVertical: 14, marginTop: 4 },
+  ghostBtnText:   { color: C.textSub, fontSize: 15, fontWeight: '600' },
+
+  // Alert modal
+  alertSheet: { alignItems: 'center', paddingBottom: 32 },
+  alertIcon: {
+    backgroundColor: C.dangerSoft, width: 64, height: 64,
+    borderRadius: 20, alignItems: 'center', justifyContent: 'center',
+    marginBottom: 16, marginTop: 8,
+  },
+  alertTitle: { color: C.textPrimary, fontSize: 20, fontWeight: '800', marginBottom: 10 },
+  alertBody:  {
+    color: C.textSub, fontSize: 14, lineHeight: 22,
+    textAlign: 'center', marginBottom: 24, paddingHorizontal: 8,
+  },
 });

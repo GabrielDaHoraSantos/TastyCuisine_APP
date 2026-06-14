@@ -3,6 +3,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { favoritosAPI, receitasAPI, usuariosAPI } from './(auth)/api';
 
 interface AuthUser {
+  [x: string]: any;
   codUser: number;
   nomeCompleto: string;
   nomeDeUsuario: string;
