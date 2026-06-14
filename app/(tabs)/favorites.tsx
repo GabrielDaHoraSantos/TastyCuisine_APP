@@ -22,11 +22,11 @@ export default function FavoritesScreen() {
   const getName = (f: any) => f.receita?.nomeReceita ?? '';
   const getChef = (f: any) => f.receita?.chefe?.nomeCompleto ?? '';
   const getImage = (f: any) => f.receita?.fotoReceita ?? '';
-  const getReceitaId = (f: any) => String(f.receita?.codReceitas ?? '');
+  const getreceitaId = (f: any) => String(f.receita?.codReceitas ?? '');
   const getFavId = (f: any) => String(f.codFavoritos ?? '');
 
   const handleDesfavoritar =  async (item: any) => {
-  await toggleFavorito(getReceitaId(item), item.receita?.codReceitas)
+  await toggleFavorito(getreceitaId(item), item.receita?.codreceitas)
 };
 
   const styles = StyleSheet.create({
@@ -47,7 +47,7 @@ export default function FavoritesScreen() {
         ) : 
     <View style={styles.container2}>
       <View style={styles.container}>
-      {!loading &&<Text style={styles.title}>Receitas Favoritadas</Text>}
+      {!loading &&<Text style={styles.title}>Favoritadas</Text>}
       {loading ? (
         <ActivityIndicator color={theme.primary} style={{ marginTop: 40, flex: 1, justifyContent: 'center', alignItems: 'center'}} />
       ) : (
@@ -56,7 +56,7 @@ export default function FavoritesScreen() {
           keyExtractor={getFavId}
           contentContainerStyle={{ paddingBottom: 100 }}
           renderItem={({ item }) => (
-            <TouchableOpacity style={styles.card} onPress={() => router.push({ pathname: '/Sobpo/[id]', params: { id: getReceitaId(item) } })}>
+            <TouchableOpacity style={styles.card} onPress={() => router.push({ pathname: '/Sobpo/[id]', params: { id: getreceitaId(item) } })}>
               <Image source={{ uri: getImage(item) || 'https://worldfoodtour.co.uk/wp-content/uploads/2013/06/neptune-placeholder-48.jpg' }} style={styles.image} />
               <View style={styles.info}>
                 <Text style={styles.name}>{getName(item)}</Text>
@@ -67,7 +67,7 @@ export default function FavoritesScreen() {
               </TouchableOpacity>
             </TouchableOpacity>
           )}
-          ListEmptyComponent={<Text style={styles.empty}>Você ainda não favoritou nenhuma receita.</Text>}
+          ListEmptyComponent={<Text style={styles.empty}>Você ainda não favoritou nenhuma recipe.</Text>}
         />
       )}
       </View>

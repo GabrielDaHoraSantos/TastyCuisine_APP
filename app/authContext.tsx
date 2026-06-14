@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { favoritosAPI, receitasAPI, usuariosAPI } from './(auth)/api';
+import { avaliacoesAPI, comentariosAPI, favoritosAPI, receitasAPI, usuariosAPI } from './(auth)/api';
 
 interface AuthUser {
   [x: string]: any;
@@ -21,6 +21,9 @@ interface AuthContextType {
   loading: boolean;
   favoritos: any[];      
   recipes: any[];
+  rating: string,
+  getComentarios: (receitaId: string) => Promise<any[]>;
+  enviarAvaliacao: (receitaId: number, nota: number, texto: string) => Promise<void>;
   toggleFavorito: (receitaId: string, codReceitas: number) => Promise<void>;
   login: (userData: any) => void;
   logout: () => void;
@@ -33,6 +36,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true)
   const [favoritos, setFavoritos] = useState<any[]>([])
   const [recipes, setRecipes] = useState<any[]>([])
+  const [rating, setRating] = useState<string>("")
 
   useEffect(() => {
     async function carregarUsuario() {
@@ -68,20 +72,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }
 
   async function toggleFavorito(receitaId: string, codReceitas: number) {
-    if (!user) return
-    const jaExiste = favoritos.find(f => String(f.receita?.codReceitas) === String(receitaId))
-    if (jaExiste) {
-      await favoritosAPI.delete(String(jaExiste.codFavoritos))
-      setFavoritos(prev => prev.filter(f => f.codFavoritos !== jaExiste.codFavoritos))
-    } else {
-      const res = await favoritosAPI.create({ usuario: { codUser: Number(user.codUser) }, receita: { codReceitas } })
-      if (res.data) setFavoritos(prev => [...prev, res.data])
-    }
+  if (!user) return
+  const jaExiste = favoritos.find(f => String(f.receita?.codReceitas) === String(receitaId))
+  if (jaExiste) {
+    await favoritosAPI.delete(String(jaExiste.codFavoritos))
+    setFavoritos(prev => prev.filter(f => f.codFavoritos !== jaExiste.codFavoritos))
+  } else {
+    await favoritosAPI.create({ usuario: { codUser: Number(user.codUser) }, receita: { codReceitas } })
+    await loadFavoritos(String(user.codUser)) // recarrega tudo do banco!
   }
+}
 
   async function loadRecipes() {
   const res = await receitasAPI.getAll()
   if (res.data) setRecipes(res.data as any[])
+}
+
+async function getComentarios(receitaId: string) {
+  const res = await fetch(`http://localhost:8080/comentario/receita/${receitaId}`)
+  if (!res.ok) return []
+  return await res.json()
+}
+async function enviarAvaliacao(receitaId: number, nota: number, texto: string) {
+  await avaliacoesAPI.create({ usuario: { codUser: Number(user?.codUser) }, receita: { codReceitas: receitaId }, nota })
+  await comentariosAPI.create({ usuario: { codUser: Number(user?.codUser) }, receita: { codReceitas: receitaId }, texto })
 }
 
   return (
@@ -94,8 +108,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       favoritos,           
       toggleFavorito,
       recipes,
+      rating,
       login,
       logout,
+      getComentarios,
+      enviarAvaliacao,
     }}>
       {children}
     </AuthContext.Provider>

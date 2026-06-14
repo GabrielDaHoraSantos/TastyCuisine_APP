@@ -13,7 +13,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { receitasAPI } from '../(auth)/api';
 import BolinhaqGira from '../../components/BolinhaqGira';
 import BottomNavigation from '../../components/BottomNavigation';
 import { useAuth } from '../authContext';
@@ -107,19 +106,11 @@ function WideCard({ item, onPress }: { item: any; onPress: () => void }) {
 
 // ─── Main Screen ─────────────────────────────────────────────────────────────
 export default function HomeScreen() {
-  const { userName, userId } = useAuth();
+  const { userName, userId, recipes, loading } = useAuth();
   const router = useRouter();
 
   const [activeIndex, setActiveIndex]       = useState(0);
   const [activeCategory, setActiveCategory] = useState('todos');
-  const [recipes, setRecipes]               = useState<any[]>([]);
-  const [loading, setLoading]               = useState(true);
-
-  useEffect(() => {
-    receitasAPI.getAll().then(res => {
-      if (res.data) setRecipes(res.data as any[]);
-    }).finally(() => setLoading(false));
-  }, []);
 
   useEffect(() => {
     if (!userId && !loading) router.push('/login');

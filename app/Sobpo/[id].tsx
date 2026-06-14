@@ -2,7 +2,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { avaliacoesAPI, comentariosAPI, favoritosAPI, receitasAPI } from '../(auth)/api';
 import BolinhaqGira from '../../components/BolinhaqGira';
 import { useAuth } from '../authContext';
 import { useTheme } from '../themeContext';
@@ -50,88 +49,43 @@ export default function DishDetailScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const { theme, isDarkMode } = useTheme();
-  const { userId } = useAuth();
+  const { userId, recipes, loading, favoritos, toggleFavorito,getComentarios, enviarAvaliacao  } = useAuth();
 
-  const [recipe, setRecipe] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const [servings, setServings] = useState(1);
   const [rating, setRating] = useState(0);
   const [commentText, setCommentText] = useState('');
   const [sending, setSending] = useState(false);
-  const [favoritoId, setFavoritoId] = useState<string | null>(null);
-  const [favLoading, setFavLoading] = useState(false);
   const [comentarios, setComentarios] = useState<any[]>([]);
 
+  const recipe = recipes.find(r => String(r.codReceitas ?? r.id) === String(id))
+  const fav = favoritos.find(f => String(f.receita?.codReceitas) === String(id))
+  const favoritoId = fav ? String(fav.codFavoritos) : null
+  
+    
     useEffect(() => {
-      if (!userId && !loading) {
-        router.push('/login')}
-    }, [loading])
-    
+    if (!userId && !loading) router.push('/login')
+  }, [loading])
+
   useEffect(() => {
-    receitasAPI.getById(id as string).then(res => {
-      if (res.data) setRecipe(res.data);
-    }).finally(() => setLoading(false));
-    
-    // Carrega comentários
-    comentariosAPI.getAll().then(res => {
-      if (res.data) {
-        const todos = res.data as any[];
-        setComentarios(todos.filter(c => String(c.receita?.codReceitas) === String(id)));
-      }
-    });
-
-    // Verifica se já está favoritado
-    if (userId) {
-      favoritosAPI.getAll().then(res => {
-        if (res.data) {
-          const todos = res.data as any[];
-          const fav = todos.find(f =>
-            String(f.usuario?.codUser) === String(userId) &&
-            String(f.receita?.codReceitas) === String(id)
-          );
-          if (fav) setFavoritoId(String(fav.codFavoritos));
-        }
-      });
-    }
-  }, [id, userId]);
-
+  getComentarios(String(id)).then(setComentarios)
+}, [id]);
   const handleToggleFavorito = async () => {
-    if (!userId) { Alert.alert('Atenção', 'Você precisa estar logado.'); return; }
-    setFavLoading(true);
-    if (favoritoId) {
-      await favoritosAPI.delete(favoritoId);
-      setFavoritoId(null);
-    } else {
-      const res = await favoritosAPI.create({
-        usuario: { codUser: Number(userId) },
-        receita: { codReceitas: recipe.codReceitas },
-      });
-      if (res.data) setFavoritoId(String((res.data as any).codFavoritos));
-    }
-    setFavLoading(false);
-  };
+    await toggleFavorito(String(id), Number(id))
+  }
 
   const handleEnviarAvaliacao = async () => {
-    if (!userId) { Alert.alert('Atenção', 'Você precisa estar logado para avaliar.'); return; }
-    if (rating === 0) { Alert.alert('Atenção', 'Selecione uma nota de 1 a 5.'); return; }
-    if (commentText.trim() === '') { Alert.alert('Atenção', 'Escreva um comentário.'); return; }
-    setSending(true);
-    const [resAv, resCom] = await Promise.all([
-      avaliacoesAPI.create({ usuario: { codUser: Number(userId) }, receita: { codReceitas: recipe.codReceitas }, nota: rating }),
-      comentariosAPI.create({ usuario: { codUser: Number(userId) }, receita: { codReceitas: recipe.codReceitas }, texto: commentText.trim() }),
-    ]);
-    setSending(false);
-    if (!resAv.error && !resCom.error) {
-      const novoComentario = (resCom.data as any);
-      setComentarios(prev => [novoComentario, ...prev]);
-      Alert.alert('Obrigado!', 'Avaliação enviada com sucesso.');
-      setRating(0);
-      setCommentText('');
-    } else {
-      Alert.alert('Erro', 'Não foi possível enviar a avaliação.');
-    }
-  };
-
+  if (!userId) { Alert.alert('Atenção', 'Você precisa estar logado para avaliar.'); return; }
+  if (rating === 0) { Alert.alert('Atenção', 'Selecione uma nota de 1 a 5.'); return; }
+  if (commentText.trim() === '') { Alert.alert('Atenção', 'Escreva um comentário.'); return; }
+  setSending(true);
+  await enviarAvaliacao(Number(id), rating, commentText.trim())
+  setSending(false);
+  const atualizados = await getComentarios(String(id))
+  setComentarios(atualizados)
+  Alert.alert('Obrigado!', 'Avaliação enviada com sucesso.');
+  setRating(0);
+  setCommentText('');
+}
   const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: theme.background.primary },
     header: { position: 'absolute', top: 50, left: 20, right: 20, zIndex: 10, flexDirection: 'row', justifyContent: 'space-between' },
@@ -166,7 +120,6 @@ export default function DishDetailScreen() {
     commentText: { color: theme.text.secondary, fontSize: 14, lineHeight: 20 },
   });
 
-
   if (!recipe) {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
@@ -177,13 +130,14 @@ export default function DishDetailScreen() {
       </View>
     );
   }
-
+  
   const nomeReceita = str(recipe.nomeReceita ?? recipe.name);
   const nomeChefe = str(recipe.chefe?.nomeCompleto);
   const descricao = str(recipe.descricao);
   const fotoReceita = str(recipe.fotoReceita ?? recipe.image);
   const ingredientes = parseIngredientes(recipe.ingredientes);
   const passos = parsePassos(recipe.modoPreparo);
+
 
   const scaledIngredients = ingredientes.map(ing => {
     const qty = parseFloat(ing.quantidade);
@@ -217,11 +171,8 @@ export default function DishDetailScreen() {
         <View style={styles.content}>
           <View style={styles.titleRow}>
             <Text style={styles.title}>{nomeReceita}</Text>
-            <TouchableOpacity onPress={handleToggleFavorito} disabled={favLoading} style={{ paddingTop: 4 }}>
-              {favLoading
-                ? <ActivityIndicator size="small" color={theme.accent} />
-                : <Ionicons name={favoritoId ? 'heart' : 'heart-outline'} size={28} color={favoritoId ? '#E53935' : theme.text.secondary} />
-              }
+            <TouchableOpacity onPress={handleToggleFavorito} style={{ paddingTop: 4 }}>
+                <Ionicons name={favoritoId ? 'heart' : 'heart-outline'} size={28} color={favoritoId ? '#E53935' : theme.text.secondary} />
             </TouchableOpacity>
           </View>
           <Text style={styles.chef}>por {nomeChefe}</Text>
