@@ -1,20 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useRouter } from 'expo-router';
+import { useEffect } from 'react';
 import { ActivityIndicator, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { favoritosAPI } from '../(auth)/api';
-import MenuButton from '../../components/MenuButton';
-import SideMenu from '../../components/SideMenu';
+import BolinhaqGira from '../../components/BolinhaqGira';
+import BottomNavigation from '../../components/BottomNavigation';
 import { useAuth } from '../authContext';
 import { useTheme } from '../themeContext';
-import BolinhaqGira from '../../components/BolinhaqGira';
 
 export default function FavoritesScreen() {
   const { theme, isDarkMode } = useTheme();
-  const { userId } = useAuth();
-  const [drawerVisible, setDrawerVisible] = useState(false);
-  const [favoritos, setFavoritos] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {  loading, recipes,userId,favoritos,toggleFavorito} = useAuth();
   const router = useRouter();
   
       
@@ -23,16 +18,6 @@ export default function FavoritesScreen() {
         router.push('/login')}
     }, [loading])
     
-  useFocusEffect(useCallback(() => {
-    setLoading(true);
-    favoritosAPI.getAll().then(res => {
-      if (res.data) {
-        const todos = res.data as any[];
-        const doUsuario = todos.filter(f => String(f.usuario?.codUser) === String(userId));
-        setFavoritos(doUsuario);
-      }
-    }).finally(() => setLoading(false));
-  }, [userId]));
 
   const getName = (f: any) => f.receita?.nomeReceita ?? '';
   const getChef = (f: any) => f.receita?.chefe?.nomeCompleto ?? '';
@@ -40,16 +25,16 @@ export default function FavoritesScreen() {
   const getReceitaId = (f: any) => String(f.receita?.codReceitas ?? '');
   const getFavId = (f: any) => String(f.codFavoritos ?? '');
 
-  const handleDesfavoritar = async (favId: string) => {
-    await favoritosAPI.delete(favId);
-    setFavoritos(prev => prev.filter(f => getFavId(f) !== favId));
-  };
+  const handleDesfavoritar =  async (item: any) => {
+  await toggleFavorito(getReceitaId(item), item.receita?.codReceitas)
+};
 
   const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: theme.background.primary, padding: 20, paddingTop: 60 },
+    container2: { flex: 1, backgroundColor: theme.background.primary, padding: 0 },
     title: { fontSize: 24, fontWeight: 'bold', color: theme.text.primary, marginBottom: 20 },
-    card: { flexDirection: 'row', backgroundColor: theme.background.secondary, borderRadius: 12, padding: 12, marginBottom: 15, alignItems: 'center', borderWidth: 1, borderColor: isDarkMode ? '#333' : '#EEE' },
-    image: { width: 70, height: 70, borderRadius: 8, backgroundColor: isDarkMode ? '#333' : '#EEE' },
+    card: { flexDirection: 'row', backgroundColor: theme.background.secondary, borderRadius: 12, padding: 12, marginBottom: 15, alignItems: 'center', borderWidth: 1, borderColor: isDarkMode ? '#333' :'#fcad45' },
+    image: { width: 70, height: 70, borderRadius: 8, backgroundColor: isDarkMode ? '#333' : '#EEE', borderWidth: 0.5,borderColor: '#fabf72' },
     info: { flex: 1, marginLeft: 15 },
     name: { fontSize: 16, fontWeight: 'bold', color: theme.text.primary },
     chef: { fontSize: 14, color: theme.text.secondary, marginTop: 2 },
@@ -60,8 +45,8 @@ export default function FavoritesScreen() {
     loading ? (
               <BolinhaqGira/>
         ) : 
-    <View style={styles.container}>
-      {!loading  &&<MenuButton onPress={() => setDrawerVisible(true)} />}
+    <View style={styles.container2}>
+      <View style={styles.container}>
       {!loading &&<Text style={styles.title}>Receitas Favoritadas</Text>}
       {loading ? (
         <ActivityIndicator color={theme.primary} style={{ marginTop: 40, flex: 1, justifyContent: 'center', alignItems: 'center'}} />
@@ -72,12 +57,12 @@ export default function FavoritesScreen() {
           contentContainerStyle={{ paddingBottom: 100 }}
           renderItem={({ item }) => (
             <TouchableOpacity style={styles.card} onPress={() => router.push({ pathname: '/Sobpo/[id]', params: { id: getReceitaId(item) } })}>
-              <Image source={{ uri: getImage(item) }} style={styles.image} />
+              <Image source={{ uri: getImage(item) || 'https://worldfoodtour.co.uk/wp-content/uploads/2013/06/neptune-placeholder-48.jpg' }} style={styles.image} />
               <View style={styles.info}>
                 <Text style={styles.name}>{getName(item)}</Text>
                 <Text style={styles.chef}>{getChef(item)}</Text>
               </View>
-              <TouchableOpacity onPress={() => handleDesfavoritar(getFavId(item))}>
+              <TouchableOpacity onPress={() => handleDesfavoritar(item  )}>
                 <Ionicons name="heart" size={24} color="#e68a00" />
               </TouchableOpacity>
             </TouchableOpacity>
@@ -85,7 +70,8 @@ export default function FavoritesScreen() {
           ListEmptyComponent={<Text style={styles.empty}>Você ainda não favoritou nenhuma receita.</Text>}
         />
       )}
-      {!loading &&<SideMenu visible={drawerVisible} onClose={() => setDrawerVisible(false)} />}
+      </View>
+        <BottomNavigation />
     </View>
   );
 }

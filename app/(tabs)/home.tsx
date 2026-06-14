@@ -4,12 +4,11 @@ import { useEffect, useId, useState } from 'react';
 import { ActivityIndicator, Dimensions, FlatList, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { receitasAPI } from '../(auth)/api';
-import MenuButton from '../../components/MenuButton';
+import BolinhaqGira from '../../components/BolinhaqGira';
+import BottomNavigation from '../../components/BottomNavigation';
 import RecipeCard from '../../components/RecipeCard';
-import SideMenu from '../../components/SideMenu';
 import { useAuth } from '../authContext';
 import { useTheme } from '../themeContext';
-import BolinhaqGira from '../../components/BolinhaqGira';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -18,16 +17,16 @@ export default function HomeScreen() {
   const { userName } = useAuth();
   const router = useRouter();
   const [activeIndex, setActiveIndex] = useState(0);
-  const [drawerVisible, setDrawerVisible] = useState(false);
   const [recipes, setRecipes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { userId } = useAuth();
 
-    useEffect(() => {
-      if (!useId && !loading) {
-        router.push('/login')}
-    }, [loading])
-    
+  useEffect(() => {
+    if (!useId && !loading) {
+      router.push('/login')
+    }
+  }, [loading])
+
   useEffect(() => {
     receitasAPI.getAll().then(res => {
       if (res.data) setRecipes(res.data as any[]);
@@ -48,8 +47,8 @@ export default function HomeScreen() {
     container: { flex: 1, backgroundColor: theme.background.primary },
     scrollContent: { paddingBottom: 30 },
     header: { paddingHorizontal: 20, paddingTop: 60, paddingBottom: 30, backgroundColor: theme.background.primary },
-    greeting: { fontSize: 32, fontWeight: 'bold', color: theme.text.primary, marginBottom: 8 },
-    subtitle: { fontSize: 18, color: theme.text.secondary, fontWeight: '400' },
+    greeting: { fontSize: 23, fontWeight: 'bold', color: theme.text.primary, marginBottom: 8 },
+    subtitle: { fontSize: 15, color: theme.text.secondary, fontWeight: '400' },
     section: { marginBottom: 30 },
     sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 15 },
     sectionTitle: { fontSize: 22, fontWeight: 'bold', color: theme.text.primary },
@@ -112,67 +111,72 @@ export default function HomeScreen() {
 
   return (
     loading ? (
-              <BolinhaqGira/>
-        ) : 
-    <View style={styles.container}>
-      {!loading &&<MenuButton onPress={() => setDrawerVisible(!drawerVisible)} />}
-      <View style={styles.header}>
-        {!loading && <Text style={styles.greeting}>Olá, {userName || 'Gourmet'}!</Text>}
-        {!loading && <Text style={styles.subtitle}>Descubra receitas incríveis</Text>}
-      </View>
-
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            {!loading &&<Text style={styles.sectionTitle}>Destaques da semana</Text>}
-          </View>
-          {loading ? (
-            <View style={styles.loadingContainer}><ActivityIndicator color="#ffbb6e" style={{marginTop: 40, flex: 1, justifyContent: 'center', alignItems: 'center' }}/></View>
-          ) : featuredRecipes.length > 0 ? (
-            <>
-              <View style={styles.carouselWrapper}>
-                <View style={styles.waveTopContainer}>
-                  <Svg height="40" width={SCREEN_WIDTH} viewBox={`0 0 ${SCREEN_WIDTH} 40`} style={styles.waveMask}>
-                    <Path d={`M0,0 L${SCREEN_WIDTH},0 L${SCREEN_WIDTH},20 Q${SCREEN_WIDTH * 0.75},30 ${SCREEN_WIDTH * 0.5},20 T0,20 Z`} fill={isDarkMode ? '#121212' : '#FFFFFF'} />
-                  </Svg>
-                </View>
-                <View style={{ width: SCREEN_WIDTH, height: 220 }}>
-                  {renderCarouselCard(featuredRecipes[activeIndex])}
-                </View>
-                <View style={styles.waveBottomContainer}>
-                  <Svg height="40" width={SCREEN_WIDTH} viewBox={`0 0 ${SCREEN_WIDTH} 40`} style={styles.waveMask}>
-                    <Path d={`M0,20 Q${SCREEN_WIDTH * 0.25},10 ${SCREEN_WIDTH * 0.5},20 T${SCREEN_WIDTH},20 L${SCREEN_WIDTH},40 L0,40 Z`} fill={isDarkMode ? '#121212' : '#FFFFFF'} />
-                  </Svg>
-                </View>
-                <View style={styles.navigationContainer}>
-                  <TouchableOpacity style={styles.navButton} onPress={() => setActiveIndex(Math.max(0, activeIndex - 1))} activeOpacity={0.7}>
-                    <Ionicons name="chevron-back" size={24} color="#FFF" />
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.navButton} onPress={() => setActiveIndex(Math.min(featuredRecipes.length - 1, activeIndex + 1))} activeOpacity={0.7}>
-                    <Ionicons name="chevron-forward" size={24} color="#FFF" />
-                  </TouchableOpacity>
-                </View>
-              </View>
-              <View style={styles.paginationContainer}>
-                {featuredRecipes.map((_, i) => (
-                  <View key={i} style={i === activeIndex ? styles.paginationDotActive : styles.paginationDot} />
-                ))}
-              </View>
-            </>
-          ) : null}
+      <BolinhaqGira />
+    ) :
+      <View style={styles.container}>
+        <View style={styles.header}>
+          {!loading && <Text style={styles.greeting}>Olá, {userName || 'Gourmet'}.</Text>}
+          {!loading && <Text style={styles.subtitle}>Descubra receitas incríveis!</Text>}
         </View>
 
-        {quickRecipes.length > 0 && (
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Receitas Rápidas</Text>
+              {!loading && <Text style={styles.sectionTitle}>Destaques da semana</Text>}
             </View>
-            <FlatList data={quickRecipes} horizontal showsHorizontalScrollIndicator={false} keyExtractor={getRecipeId} renderItem={renderDishCard} contentContainerStyle={{ paddingRight: 20 }} />
+            {loading ? (
+              <View style={styles.loadingContainer}><ActivityIndicator color="#ffbb6e" style={{ marginTop: 40, flex: 1, justifyContent: 'center', alignItems: 'center' }} /></View>
+            ) : featuredRecipes.length > 0 ? (
+              <>
+                <View style={styles.carouselWrapper}>
+                  <View style={styles.waveTopContainer}>
+                    <Svg height="40" width={SCREEN_WIDTH} viewBox={`0 0 ${SCREEN_WIDTH} 40`} style={styles.waveMask}>
+                      <Path d={`M0,0 L${SCREEN_WIDTH},0 L${SCREEN_WIDTH},20 Q${SCREEN_WIDTH * 0.75},30 ${SCREEN_WIDTH * 0.5},20 T0,20 Z`} fill={isDarkMode ? '#121212' : '#FFFFFF'} />
+                    </Svg>
+                  </View>
+                  <View style={{ width: SCREEN_WIDTH, height: 220 }}>
+                    {renderCarouselCard(featuredRecipes[activeIndex])}
+                  </View>
+                  <View style={styles.waveBottomContainer}>
+                    <Svg height="40" width={SCREEN_WIDTH} viewBox={`0 0 ${SCREEN_WIDTH} 40`} style={styles.waveMask}>
+                      <Path d={`M0,20 Q${SCREEN_WIDTH * 0.25},10 ${SCREEN_WIDTH * 0.5},20 T${SCREEN_WIDTH},20 L${SCREEN_WIDTH},40 L0,40 Z`} fill={isDarkMode ? '#121212' : '#FFFFFF'} />
+                    </Svg>
+                  </View>
+                  <View style={styles.navigationContainer}>
+                    <TouchableOpacity style={styles.navButton} onPress={() => setActiveIndex(Math.max(0, activeIndex - 1))} activeOpacity={0.7}>
+                      <Ionicons name="chevron-back" size={24} color="#FFF" />
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.navButton} onPress={() => setActiveIndex(Math.min(featuredRecipes.length - 1, activeIndex + 1))} activeOpacity={0.7}>
+                      <Ionicons name="chevron-forward" size={24} color="#FFF" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+                <View style={styles.paginationContainer}>
+                  {featuredRecipes.map((_, i) => (
+                    <View key={i} style={i === activeIndex ? styles.paginationDotActive : styles.paginationDot} />
+                  ))}
+                </View>
+              </>
+            ) : null}
           </View>
-        )}
-      </ScrollView>
 
-      <SideMenu visible={drawerVisible} onClose={() => setDrawerVisible(false)} />
-    </View>
+          {quickRecipes.length > 0 && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Receitas Rápidas</Text>
+              </View>
+              <FlatList
+                data={quickRecipes}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                keyExtractor={getRecipeId}
+                renderItem={renderDishCard}
+                contentContainerStyle={{ paddingRight: 20, paddingBottom: 10 }} />
+            </View>
+          )}
+        </ScrollView>
+
+        <BottomNavigation />
+      </View>
   );
 }

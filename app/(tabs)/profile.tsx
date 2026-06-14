@@ -4,14 +4,14 @@ import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Image, Modal, Platform, SafeAreaView,
+  Image, Modal,
+  SafeAreaView,
   ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View
 } from 'react-native';
 import { usuariosAPI } from '../(auth)/api';
-import MenuButton from '../../components/MenuButton';
-import SideMenu from '../../components/SideMenu';
-import { useAuth } from '../authContext';
 import BolinhaqGira from '../../components/BolinhaqGira';
+import BottomNavigation from '../../components/BottomNavigation';
+import { useAuth } from '../authContext';
 
 
 const avatar = require('../../assets/images/profile.png');
@@ -94,7 +94,6 @@ export default function ProfileScreen() {
       {loading && 
         <ActivityIndicator color="#ffbb6e" style={{marginTop: 40, flex: 1, justifyContent: 'center', alignItems: 'center' }}/>}
       <StatusBar barStyle="dark-content" backgroundColor="#F6F6F6" />
-      {!loading &&<MenuButton onPress={() => setDrawerVisible(true)} />}
       <View style={styles.screen}>
         <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           {!loading && <View style={styles.header}>
@@ -136,7 +135,6 @@ export default function ProfileScreen() {
         </ScrollView>
       </View>
       
-      <SideMenu visible={drawerVisible} onClose={() => setDrawerVisible(false)} />
       <Modal visible={editModalVisible} animationType="slide" transparent onRequestClose={() => setEditModalVisible(false)}>
         {!loading &&<View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -199,8 +197,10 @@ export default function ProfileScreen() {
               <Text style={{ color: '#BA531B', fontWeight: '600', fontSize: 15 }}>Cancelar</Text>
             </TouchableOpacity>
           </View>
+    
         </View>
       </Modal>}
+        <BottomNavigation />
       
     </SafeAreaView>
   );
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#F6F6F6' },
   screen: { flex: 1, backgroundColor: '#F6F6F6' },
   scroll: { flex: 1 },
-  content: { paddingHorizontal: 20, paddingTop: Platform.OS === 'android' ? 64 : 54, paddingBottom: 40 },
+  content: { paddingHorizontal: 20, paddingTop: 20 , paddingBottom: 40 },
   header: { alignItems: 'center', justifyContent: 'center', height: 84 },
   title: { color: '#111111', fontSize: 25, fontWeight: '800' },
   profileCard: { minHeight: 118, borderRadius: 20, backgroundColor: '#FFFFFF', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, marginBottom: 28, shadowColor: '#D8D8D8', shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.18, shadowRadius: 18, elevation: 3 },

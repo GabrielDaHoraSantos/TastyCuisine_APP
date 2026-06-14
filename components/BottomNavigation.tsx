@@ -46,7 +46,7 @@ export default function BottomNavigation() {
       shadowOffset: { width: 0, height: -2 },
       shadowOpacity: 0.1,
       shadowRadius: 4,
-      elevation: 5,
+      elevation: 0,
     },
     navItem: {
       flex: 1,
