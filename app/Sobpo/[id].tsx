@@ -3,6 +3,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { avaliacoesAPI, comentariosAPI, favoritosAPI, receitasAPI } from '../(auth)/api';
+import BolinhaqGira from '../../components/BolinhaqGira';
 import { useAuth } from '../authContext';
 import { useTheme } from '../themeContext';
 
@@ -12,6 +13,8 @@ const str = (v: any): string => {
   if (typeof v === 'number') return String(v);
   return '';
 };
+
+
 
 type Ingrediente = { quantidade: string; unidade: string; nome: string };
 
@@ -59,11 +62,16 @@ export default function DishDetailScreen() {
   const [favLoading, setFavLoading] = useState(false);
   const [comentarios, setComentarios] = useState<any[]>([]);
 
+    useEffect(() => {
+      if (!userId && !loading) {
+        router.push('/login')}
+    }, [loading])
+    
   useEffect(() => {
     receitasAPI.getById(id as string).then(res => {
       if (res.data) setRecipe(res.data);
     }).finally(() => setLoading(false));
-
+    
     // Carrega comentários
     comentariosAPI.getAll().then(res => {
       if (res.data) {
@@ -158,13 +166,6 @@ export default function DishDetailScreen() {
     commentText: { color: theme.text.secondary, fontSize: 14, lineHeight: 20 },
   });
 
-  if (loading) {
-    return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator size="large" color={theme.accent} />
-      </View>
-    );
-  }
 
   if (!recipe) {
     return (
@@ -193,6 +194,9 @@ export default function DishDetailScreen() {
   });
 
   return (
+    loading ? (
+              <BolinhaqGira/>
+        ) : 
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       <View style={styles.header}>

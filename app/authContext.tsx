@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { usuariosAPI } from './(auth)/api';
 
 interface AuthUser {
   codUser: number;
@@ -15,6 +17,7 @@ interface AuthContextType {
   isLogged: boolean;
   userName: string | null;
   userId: string | null;
+  loading: boolean;
   login: (userData: any) => void;
   logout: () => void;
 }
@@ -23,13 +26,30 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [loading, setLoading] = useState(true)
 
-  const login = (userData: any) => {
+  useEffect(() => {
+  async function carregarUsuario() {
+    const id = await AsyncStorage.getItem('userId');
+    if (id) {
+      const res = await usuariosAPI.getById(id);
+      if (res.data) setUser(res.data as AuthUser);
+    }
+    setLoading(false) 
+  }
+  carregarUsuario();
+}, []);
+
+  const login = async (userData: any) => {
     setUser(userData);
+   await AsyncStorage.setItem('userId', String(userData.codUser));
+   console.log('id de usuario salvo como: ', await AsyncStorage.getItem('usedId'))
   };
 
-  const logout = () => {
+  const logout = async () => {
     setUser(null);
+   await AsyncStorage.removeItem('userId');
+   console.log('removido!')
   };
 
   return (
@@ -38,6 +58,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       isLogged: !!user,
       userName: user?.nomeCompleto ?? null,
       userId: user ? String(user.codUser) : null,
+      loading,
       login,
       logout,
     }}>

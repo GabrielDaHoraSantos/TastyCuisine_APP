@@ -1,20 +1,24 @@
-import React, { useState } from 'react';
-import {
-  ActivityIndicator, Image, Modal, Platform, SafeAreaView,
-  ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View,
-} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useAuth } from '../authContext';
+import { useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  Image, Modal, Platform, SafeAreaView,
+  ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View
+} from 'react-native';
 import { usuariosAPI } from '../(auth)/api';
 import MenuButton from '../../components/MenuButton';
 import SideMenu from '../../components/SideMenu';
+import { useAuth } from '../authContext';
+import BolinhaqGira from '../../components/BolinhaqGira';
+
 
 const avatar = require('../../assets/images/profile.png');
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { user, userId, login, logout } = useAuth();
+  const { user, userId, login, logout, loading } = useAuth();
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
@@ -27,6 +31,7 @@ export default function ProfileScreen() {
     gmail: user?.gmail ?? '',
     senha: '',
   });
+      
 
   const openEdit = () => {
     setForm({
@@ -38,6 +43,10 @@ export default function ProfileScreen() {
     });
     setEditModalVisible(true);
   };
+      useEffect(() => {
+        if (!userId && !loading) {
+          router.push('/login')}
+      }, [loading])
 
   const handleSave = async () => {
     if (!userId) return;
@@ -77,52 +86,59 @@ export default function ProfileScreen() {
   };
 
   return (
+    
+    loading ? (
+              <BolinhaqGira/>
+        ) : 
     <SafeAreaView style={styles.safeArea}>
+      {loading && 
+        <ActivityIndicator color="#ffbb6e" style={{marginTop: 40, flex: 1, justifyContent: 'center', alignItems: 'center' }}/>}
       <StatusBar barStyle="dark-content" backgroundColor="#F6F6F6" />
-      <MenuButton onPress={() => setDrawerVisible(true)} />
+      {!loading &&<MenuButton onPress={() => setDrawerVisible(true)} />}
       <View style={styles.screen}>
         <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-          <View style={styles.header}>
+          {!loading && <View style={styles.header}>
             <Text style={styles.title}>Perfil</Text>
-          </View>
+          </View>}
 
-          <View style={styles.profileCard}>
+          {!loading && <View style={styles.profileCard}>
             <Image source={avatar} style={styles.avatar} />
             <View style={styles.profileText}>
               <Text style={styles.name}>{user?.nomeCompleto ?? 'Usuário'}</Text>
               <Text style={styles.email}>{user?.gmail ?? ''}</Text>
               <Text style={styles.username}>@{user?.nomeDeUsuario ?? ''}</Text>
             </View>
-          </View>
+          </View>}
 
           <View style={styles.actionsCard}>
-            <TouchableOpacity style={styles.actionRow} onPress={openEdit} activeOpacity={0.75}>
+            {!loading && <TouchableOpacity style={styles.actionRow} onPress={openEdit} activeOpacity={0.75}>
               <View style={styles.iconSlot}><Ionicons name="create-outline" size={24} color="#2B2B2B" /></View>
               <Text style={styles.rowLabel}>Editar perfil</Text>
               <Ionicons name="arrow-forward" size={20} color="#2B2B2B" />
-            </TouchableOpacity>
+            </TouchableOpacity>}
 
             <View style={styles.separator} />
 
-            <TouchableOpacity style={styles.actionRow} onPress={() => { logout(); router.replace('/(auth)/login'); }} activeOpacity={0.75}>
+            {!loading && <TouchableOpacity style={styles.actionRow} onPress={() => { logout(); router.replace('/(auth)/login'); }} activeOpacity={0.75}>
               <View style={styles.iconSlot}><Ionicons name="log-out-outline" size={24} color="#BA531B" /></View>
               <Text style={[styles.rowLabel, { color: '#BA531B' }]}>Sair</Text>
               <Ionicons name="arrow-forward" size={20} color="#BA531B" />
-            </TouchableOpacity>
+            </TouchableOpacity>}
 
             <View style={styles.separator} />
 
-            <TouchableOpacity style={styles.actionRow} onPress={() => setDeleteModalVisible(true)} activeOpacity={0.75}>
+            {!loading && <TouchableOpacity style={styles.actionRow} onPress={() => setDeleteModalVisible(true)} activeOpacity={0.75}>
               <View style={styles.iconSlot}><Ionicons name="trash-outline" size={24} color="#D32F2F" /></View>
               <Text style={[styles.rowLabel, { color: '#D32F2F' }]}>Inativar conta</Text>
               <Ionicons name="arrow-forward" size={20} color="#D32F2F" />
-            </TouchableOpacity>
+            </TouchableOpacity>}
           </View>
         </ScrollView>
       </View>
+      
       <SideMenu visible={drawerVisible} onClose={() => setDrawerVisible(false)} />
       <Modal visible={editModalVisible} animationType="slide" transparent onRequestClose={() => setEditModalVisible(false)}>
-        <View style={styles.modalOverlay}>
+        {!loading &&<View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Editar Perfil</Text>
@@ -159,9 +175,9 @@ export default function ProfileScreen() {
               {saving ? <ActivityIndicator color="#FFF" /> : <Text style={styles.saveBtnText}>Salvar alterações</Text>}
             </TouchableOpacity>
           </View>
-        </View>
+        </View>}
       </Modal>
-      <Modal visible={deleteModalVisible} transparent animationType="fade" onRequestClose={() => setDeleteModalVisible(false)}>
+      {!loading && <Modal visible={deleteModalVisible} transparent animationType="fade" onRequestClose={() => setDeleteModalVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, { borderRadius: 24, padding: 28 }]}>
             <Text style={[styles.modalTitle, { textAlign: 'center', marginBottom: 10 }]}>Inativar conta</Text>
@@ -184,7 +200,8 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           </View>
         </View>
-      </Modal>
+      </Modal>}
+      
     </SafeAreaView>
   );
 }

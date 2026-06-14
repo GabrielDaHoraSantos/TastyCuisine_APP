@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { favoritosAPI, receitasAPI } from '../(auth)/api';
+import BolinhaqGira from '../../components/BolinhaqGira';
 import MenuButton from '../../components/MenuButton';
 import SideMenu from '../../components/SideMenu';
 import { useAuth } from '../authContext';
@@ -22,6 +23,14 @@ export default function SearchScreen() {
   const router = useRouter();
   const { theme, isDarkMode } = useTheme();
   const { userId } = useAuth();
+
+  //Retorna ao login se o fia da mãe n tem ID
+
+  useEffect(() => {
+    if (!userId && !loading) {
+      router.push('/login')
+    }
+  }, [loading])
 
   useEffect(() => {
     receitasAPI.getAll().then(res => {
@@ -114,10 +123,13 @@ export default function SearchScreen() {
   });
 
   return (
+    loading ? (
+          <BolinhaqGira/>
+        ) :  
     <View style={styles.container}>
-      <MenuButton onPress={() => setDrawerVisible(true)} />
+      {!loading &&<MenuButton onPress={() => setDrawerVisible(true)} />}
       <View style={styles.header}>
-        <Text style={styles.title}>Pesquisar Receitas</Text>
+        {!loading &&<><Text style={styles.title}>Pesquisar Receitas</Text>
         <View style={styles.searchContainer}>
           <View style={styles.searchBar}>
             <Ionicons name="search-outline" size={20} color={theme.text.secondary} />
@@ -126,12 +138,12 @@ export default function SearchScreen() {
           <TouchableOpacity style={[styles.filterButton, hasActiveFilters && styles.filterButtonActive]} onPress={() => { setTempChef(selectedChef); setTempTime(selectedTime); setFilterModalVisible(true); }}>
             <Ionicons name="options-outline" size={22} color={hasActiveFilters ? '#FFF' : theme.text.primary} />
           </TouchableOpacity>
-        </View>
+        </View></>}
       </View>
 
       <View style={styles.resultSection}>
         {loading ? (
-          <ActivityIndicator color={theme.primary} style={{ marginTop: 40 }} />
+          <ActivityIndicator color="#ffbb6e" style={{marginTop: 40, flex: 1, justifyContent: 'center', alignItems: 'center' }}/>
         ) : (
           <>
             <Text style={styles.resultCount}>{filteredDishes.length} {filteredDishes.length === 1 ? 'receita encontrada' : 'receitas encontradas'}</Text>

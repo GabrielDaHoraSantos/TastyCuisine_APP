@@ -1,14 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, Image, ScrollView, TouchableOpacity, Dimensions, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useEffect, useId, useState } from 'react';
+import { ActivityIndicator, Dimensions, FlatList, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { useTheme } from '../themeContext';
-import { useAuth } from '../authContext';
 import { receitasAPI } from '../(auth)/api';
-import SideMenu from '../../components/SideMenu';
 import MenuButton from '../../components/MenuButton';
 import RecipeCard from '../../components/RecipeCard';
+import SideMenu from '../../components/SideMenu';
+import { useAuth } from '../authContext';
+import { useTheme } from '../themeContext';
+import BolinhaqGira from '../../components/BolinhaqGira';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -20,7 +21,13 @@ export default function HomeScreen() {
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [recipes, setRecipes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const { userId } = useAuth();
 
+    useEffect(() => {
+      if (!useId && !loading) {
+        router.push('/login')}
+    }, [loading])
+    
   useEffect(() => {
     receitasAPI.getAll().then(res => {
       if (res.data) setRecipes(res.data as any[]);
@@ -104,20 +111,23 @@ export default function HomeScreen() {
   );
 
   return (
+    loading ? (
+              <BolinhaqGira/>
+        ) : 
     <View style={styles.container}>
-      <MenuButton onPress={() => setDrawerVisible(!drawerVisible)} />
+      {!loading &&<MenuButton onPress={() => setDrawerVisible(!drawerVisible)} />}
       <View style={styles.header}>
-        <Text style={styles.greeting}>Olá, {userName || 'Gourmet'}!</Text>
-        <Text style={styles.subtitle}>Descubra receitas incríveis</Text>
+        {!loading && <Text style={styles.greeting}>Olá, {userName || 'Gourmet'}!</Text>}
+        {!loading && <Text style={styles.subtitle}>Descubra receitas incríveis</Text>}
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Destaques da semana</Text>
+            {!loading &&<Text style={styles.sectionTitle}>Destaques da semana</Text>}
           </View>
           {loading ? (
-            <View style={styles.loadingContainer}><ActivityIndicator color="#FF6B35" size="large" /></View>
+            <View style={styles.loadingContainer}><ActivityIndicator color="#ffbb6e" style={{marginTop: 40, flex: 1, justifyContent: 'center', alignItems: 'center' }}/></View>
           ) : featuredRecipes.length > 0 ? (
             <>
               <View style={styles.carouselWrapper}>

@@ -1,12 +1,13 @@
-import React, { useCallback, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter, useFocusEffect } from 'expo-router';
-import { useTheme } from '../themeContext';
-import { useAuth } from '../authContext';
-import SideMenu from '../../components/SideMenu';
-import MenuButton from '../../components/MenuButton';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { favoritosAPI } from '../(auth)/api';
+import MenuButton from '../../components/MenuButton';
+import SideMenu from '../../components/SideMenu';
+import { useAuth } from '../authContext';
+import { useTheme } from '../themeContext';
+import BolinhaqGira from '../../components/BolinhaqGira';
 
 export default function FavoritesScreen() {
   const { theme, isDarkMode } = useTheme();
@@ -15,7 +16,13 @@ export default function FavoritesScreen() {
   const [favoritos, setFavoritos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-
+  
+      
+    useEffect(() => {
+      if (!userId && !loading) {
+        router.push('/login')}
+    }, [loading])
+    
   useFocusEffect(useCallback(() => {
     setLoading(true);
     favoritosAPI.getAll().then(res => {
@@ -50,11 +57,14 @@ export default function FavoritesScreen() {
   });
 
   return (
+    loading ? (
+              <BolinhaqGira/>
+        ) : 
     <View style={styles.container}>
-      <MenuButton onPress={() => setDrawerVisible(true)} />
-      <Text style={styles.title}>Receitas Favoritadas</Text>
+      {!loading  &&<MenuButton onPress={() => setDrawerVisible(true)} />}
+      {!loading &&<Text style={styles.title}>Receitas Favoritadas</Text>}
       {loading ? (
-        <ActivityIndicator color={theme.primary} style={{ marginTop: 40 }} />
+        <ActivityIndicator color={theme.primary} style={{ marginTop: 40, flex: 1, justifyContent: 'center', alignItems: 'center'}} />
       ) : (
         <FlatList
           data={favoritos}
@@ -75,7 +85,7 @@ export default function FavoritesScreen() {
           ListEmptyComponent={<Text style={styles.empty}>Você ainda não favoritou nenhuma receita.</Text>}
         />
       )}
-      <SideMenu visible={drawerVisible} onClose={() => setDrawerVisible(false)} />
+      {!loading &&<SideMenu visible={drawerVisible} onClose={() => setDrawerVisible(false)} />}
     </View>
   );
 }

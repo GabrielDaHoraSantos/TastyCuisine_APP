@@ -1,8 +1,7 @@
 // components/BottomNavigation.tsx
-import React from 'react';
-import { View, TouchableOpacity, StyleSheet, Text, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter, usePathname } from 'expo-router';
+import { usePathname, useRouter } from 'expo-router';
+import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '../app/themeContext';
 
 interface NavItem {
