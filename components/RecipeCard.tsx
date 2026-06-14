@@ -11,6 +11,7 @@ type Props = {
   width?: number;
 };
 
+
 export default function RecipeCard({ item, onPress, width = 160 }: Props) {
   const { theme, isDarkMode } = useTheme();
   const { userId } = useAuth();
@@ -19,7 +20,7 @@ export default function RecipeCard({ item, onPress, width = 160 }: Props) {
 
   const nome = item.nomeReceita ?? item.name ?? '';
   const descricao = typeof item.descricao === 'string' ? item.descricao : '';
-  const imagem = item.fotoReceita ?? item.image ?? '';
+  const imagem = item.fotoReceita ?? item.image ?? 'https://worldfoodtour.co.uk/wp-content/uploads/2013/06/neptune-placeholder-48.jpg';
   const receitaId = item.codReceitas ?? item.id;
 
   useEffect(() => {

@@ -12,7 +12,7 @@ const LightMode = {
   },
   primary: '#ffbb6e',
   secondary: '#637231ff',
-  accent: '#637231ff',
+  accent: 'rgb(233, 134, 53)',
   button: '#d41818ff',
   error: '#E74C3C',
 };

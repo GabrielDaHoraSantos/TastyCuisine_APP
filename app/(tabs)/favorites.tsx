@@ -68,7 +68,7 @@ export default function FavoritesScreen() {
                 <Text style={styles.chef}>{getChef(item)}</Text>
               </View>
               <TouchableOpacity onPress={() => handleDesfavoritar(getFavId(item))}>
-                <Ionicons name="heart" size={24} color="#E53935" />
+                <Ionicons name="heart" size={24} color="#e68a00" />
               </TouchableOpacity>
             </TouchableOpacity>
           )}
