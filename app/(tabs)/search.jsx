@@ -2,10 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { favoritosAPI, receitasAPI } from '../(auth)/api';
 import BolinhaqGira from '../../components/BolinhaqGira';
-import MenuButton from '../../components/MenuButton';
-import SideMenu from '../../components/SideMenu';
+import BottomNavigation from '../../components/BottomNavigation';
 import { useAuth } from '../authContext';
 import { useTheme } from '../themeContext';
 
@@ -16,13 +14,9 @@ export default function SearchScreen() {
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [tempChef, setTempChef] = useState('Todos');
   const [tempTime, setTempTime] = useState('Todos');
-  const [drawerVisible, setDrawerVisible] = useState(false);
-  const [recipes, setRecipes] = useState([]);
-  const [favoritos, setFavoritos] = useState([]);
-  const [loading, setLoading] = useState(true);
   const router = useRouter();
   const { theme, isDarkMode } = useTheme();
-  const { userId } = useAuth();
+  const { userId, favoritos, toggleFavorito, recipes, loading} = useAuth();
 
   //Retorna ao login se o fia da mãe n tem ID
 
@@ -31,17 +25,6 @@ export default function SearchScreen() {
       router.push('/login')
     }
   }, [loading])
-
-  useEffect(() => {
-    receitasAPI.getAll().then(res => {
-      if (res.data) setRecipes(res.data);
-    }).finally(() => setLoading(false));
-    if (userId) {
-      favoritosAPI.getAll().then(res => {
-        if (res.data) setFavoritos(res.data.filter(f => String(f.usuario?.codUser) === String(userId)));
-      });
-    }
-  }, []);
 
   const getName = (r) => r.nomeReceita ?? r.name ?? '';
   const getChef = (r) => r.chefe?.nomeCompleto ?? r.chefe?.nome ?? r.chef ?? '';
@@ -54,18 +37,8 @@ export default function SearchScreen() {
   };
 
   const handleToggleFav = async (item) => {
-    const favId = getFavId(item);
-    if (favId) {
-      await favoritosAPI.delete(favId);
-      setFavoritos(prev => prev.filter(f => String(f.codFavoritos) !== favId));
-    } else {
-      const res = await favoritosAPI.create({
-        usuario: { codUser: Number(userId) },
-        receita: { codReceitas: item.codReceitas ?? item.id },
-      });
-      if (res.data) setFavoritos(prev => [...prev, res.data]);
-    }
-  };
+  await toggleFavorito(String(getId(item)), item.codReceitas ?? item.id)
+}
 
   const timeRanges = ['Todos', 'Rápido (<30min)', 'Médio (30-60min)'];
   const chefs = ['Todos', ...new Set(recipes.map(getChef).filter(Boolean))];
@@ -87,15 +60,14 @@ export default function SearchScreen() {
   const hasActiveFilters = selectedChef !== 'Todos' || selectedTime !== 'Todos';
 
   const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: theme.background.primary, paddingTop: 60 },
+    container: { flex: 1, backgroundColor: theme.background.primary, paddingTop: 60,zIndex:0 },
     header: { paddingHorizontal: 20, marginBottom: 15 },
     title: { fontSize: 24, fontWeight: 'bold', color: theme.text.primary, marginBottom: 15 },
     searchContainer: { flexDirection: 'row', gap: 10 },
     searchBar: { flex: 1, backgroundColor: theme.background.secondary, borderRadius: 12, paddingHorizontal: 15, height: 50, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: isDarkMode ? '#333' : '#EEE' },
     searchInput: { flex: 1, color: theme.text.primary, fontSize: 16, marginLeft: 10 },
     filterButton: { width: 50, height: 50, backgroundColor: theme.background.secondary, borderRadius: 12, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: isDarkMode ? '#333' : '#EEE' },
-    filterButtonActive: { backgroundColor: theme.primary, borderColor: theme.primary },
-    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: '' },
+    filterButtonActive: { backgroundColor: theme.primary, borderColor: theme.primary },modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
     modalContent: { backgroundColor: theme.background.primary, borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingTop: 20, paddingBottom: 40, maxHeight: '80%' },
     modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 20 },
     modalTitle: { fontSize: 20, fontWeight: 'bold', color: theme.text.primary },
@@ -112,8 +84,8 @@ export default function SearchScreen() {
     applyButtonText: { color: '#FFF', fontSize: 16, fontWeight: 'bold' },
     resultSection: { flex: 1, paddingHorizontal: 20 },
     resultCount: { fontSize: 14, color: theme.text.secondary, marginBottom: 15 },
-    card: { flexDirection: 'row', backgroundColor: theme.background.secondary, borderRadius: 12, padding: 12, marginBottom: 15, alignItems: 'center', borderWidth: 1, borderColor: isDarkMode ? '#333' : '#EEE' },
-    image: { width: 80, height: 80, borderRadius: 8 },
+    card: { flexDirection: 'row', backgroundColor: theme.background.secondary, borderRadius: 12, padding: 12, marginBottom: 15, alignItems: 'center', borderWidth: 1, borderColor: isDarkMode ? '#333' : '#fcad45' },
+    image: { width: 80, height: 80, borderRadius: 8, borderWidth: 0.5,borderColor: '#fabf72' },
     info: { flex: 1, marginLeft: 15 },
     nameRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
     name: { fontSize: 16, fontWeight: 'bold', color: theme.text.primary, marginBottom: 2, flex: 1, marginRight: 6 },
@@ -127,7 +99,6 @@ export default function SearchScreen() {
           <BolinhaqGira/>
         ) :  
     <View style={styles.container}>
-      {!loading &&<MenuButton onPress={() => setDrawerVisible(true)} />}
       <View style={styles.header}>
         {!loading &&<><Text style={styles.title}>Pesquisar Receitas</Text>
         <View style={styles.searchContainer}>
@@ -154,12 +125,12 @@ export default function SearchScreen() {
               contentContainerStyle={{ paddingBottom: 120 }}
               renderItem={({ item }) => (
                 <TouchableOpacity style={styles.card} onPress={() => router.push({ pathname: '/Sobpo/[id]', params: { id: getId(item) } })}>
-                  <Image source={{ uri: getImage(item) }} style={styles.image} />
+                  <Image source={{ uri: getImage(item) || 'https://worldfoodtour.co.uk/wp-content/uploads/2013/06/neptune-placeholder-48.jpg'}} style={styles.image} />
                   <View style={styles.info}>
                     <View style={styles.nameRow}>
                       <Text style={styles.name} numberOfLines={1}>{getName(item)}</Text>
                       <TouchableOpacity onPress={() => handleToggleFav(item)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                        <Ionicons name={getFavId(item) ? 'heart' : 'heart-outline'} size={18} color={getFavId(item) ? '#E53935' : theme.text.secondary} />
+                        <Ionicons name={getFavId(item) ? 'heart' : 'heart-outline'} size={18} color={getFavId(item) ? '#ffbb6e' : theme.text.secondary} />
                       </TouchableOpacity>
                     </View>
                     <Text style={styles.chef} numberOfLines={1}>{getChef(item)}</Text>
@@ -172,12 +143,17 @@ export default function SearchScreen() {
           </>
         )}
       </View>
-
+        {/* Preferencias da pesquisa */}
       <Modal visible={filterModalVisible} transparent animationType="slide" onRequestClose={() => setFilterModalVisible(false)}>
-        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setFilterModalVisible(false)}>
-          <TouchableOpacity activeOpacity={1} onPress={e => e.stopPropagation()}>
+        <View style={styles.modalOverlay}>
+
+        <TouchableOpacity style={{flex:1}} activeOpacity={1} onPress={() => setFilterModalVisible(false)}/>
+
             <View style={styles.modalContent}>
               <View style={styles.modalHeader}>
+
+
+
                 <Text style={styles.modalTitle}>Filtros</Text>
                 <TouchableOpacity style={styles.clearButton} onPress={clearFilters}><Text style={styles.clearButtonText}>Limpar</Text></TouchableOpacity>
               </View>
@@ -207,11 +183,9 @@ export default function SearchScreen() {
                 <Text style={styles.applyButtonText}>Aplicar Filtros</Text>
               </TouchableOpacity>
             </View>
-          </TouchableOpacity>
-        </TouchableOpacity>
+        </View>
       </Modal>
-
-      <SideMenu visible={drawerVisible} onClose={() => setDrawerVisible(false)} />
+          {!filterModalVisible && <BottomNavigation />}
     </View>
   );
 }
