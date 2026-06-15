@@ -34,7 +34,7 @@ public class UsuarioService {
     public Usuario atualizarFoto(Long codUser, String base64) {
     Usuario usuario = usuarioRepository.findById(codUser)
         .orElseThrow(() -> new RuntimeException("Usuário não encontrado: " + codUser));
-    usuario.setFotoPerfil(base64);
+    usuario.setFoto_perfil(base64);
     return usuarioRepository.save(usuario);
 }
 
