@@ -1,11 +1,10 @@
-import { useRouter } from 'expo-router';
-import { Linking, Modal } from 'react-native';
-import { authAPI, reativarAPI } from './api';
-import { useAuth } from '../authContext';
-import { useState } from 'react';
-import { Image, StyleSheet, Text, TextInput, TouchableOpacity, ActivityIndicator, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
+import { ActivityIndicator, Image, Linking, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useAuth } from '../authContext';
+import { authAPI, reativarAPI } from './api';
+ 
 export default function LoginScreen() {
   const router = useRouter();
   const { login } = useAuth();
@@ -17,22 +16,22 @@ export default function LoginScreen() {
   const [contaInativa, setContaInativa] = useState(false);
   const [reativando, setReativando] = useState(false);
   const [confirmarSenha, setConfirmarSenha] = useState('');
-
+ 
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
+ 
   const handleSubmit = async () => {
     if (!formData.email || !formData.senha) {
       setError('Por favor, preencha todos os campos');
       return;
     }
-
+ 
     setLoading(true);
     setError(null);
-
+ 
     try {
       const response = await authAPI.login({ email: formData.email, senha: formData.senha });
-
+ 
       if (response.data) {
         await login(response.data);
         router.replace('/home');
@@ -48,14 +47,14 @@ export default function LoginScreen() {
       setLoading(false);
     }
   };
-
+ 
   const handleChange = (name: string, value: string) => {
     setFormData({
       ...formData,
       [name]: value,
     });
   };
-
+ 
   const handleReativar = async () => {
     if (confirmarSenha !== formData.senha) {
       setError('As senhas não coincidem.');
@@ -76,22 +75,22 @@ export default function LoginScreen() {
       setConfirmarSenha('');
     }
   };
-
+ 
   return (
     // Degradê suave de fundo em tons pastel/laranja
     <LinearGradient colors={['#FCEAD2', '#F3A973']} style={styles.container}>
-      
+     
       {/* Logotipo Sanremo */}
       <View style={styles.logoContainer}>
-        <Image 
+        <Image
           source={require('../../assets/images/T.png')} // Substitua pela imagem do logo escrito "Sanremo"
-          style={styles.logo} 
+          style={styles.logo}
           resizeMode="contain"
         />
       </View>
-
+ 
       <Text style={styles.title}>Logar</Text>
-
+ 
       {error && (
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{error}</Text>
@@ -99,7 +98,7 @@ export default function LoginScreen() {
       )}
         <Text style = {styles.text}> Email </Text>
       {/* Inputs */}
-      <TextInput 
+      <TextInput
         value={formData.email}
         onChangeText={(value) => handleChange('email', value)}
         style={styles.input}
@@ -108,29 +107,29 @@ export default function LoginScreen() {
         autoCapitalize="none"
       />
         <Text style = {styles.text}> Senha </Text>
-      <TextInput 
-        value={formData.senha} 
+      <TextInput
+        value={formData.senha}
         onChangeText={(value) => handleChange('senha', value)}
-        style={styles.input} 
-        placeholder="12345678" 
+        style={styles.input}
+        placeholder="12345678"
         placeholderTextColor="#A0A0A0"
         secureTextEntry={!rememberMe}
       />
-
+ 
       {/* Remember me & Forgot Password */}
       <View style={styles.rowOptions}>
         <TouchableOpacity style={styles.checkboxContainer} onPress={() => setRememberMe(!rememberMe)}>
           <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]} />
           <Text style={styles.optionText}>mostrar senha</Text>
         </TouchableOpacity>
-
+ 
         <TouchableOpacity onPress={() => Linking.openURL('https://accounts.google.com/signin/recovery')}>
   <Text style={styles.optionText}>esqueceu sua senha?</Text>
 </TouchableOpacity>
       </View>
-
+ 
       {/* Botão de Entrar Principal */}
-      <TouchableOpacity 
+      <TouchableOpacity
         onPress={handleSubmit}
         style={[styles.button, loading && styles.buttonDisabled]}
         disabled={loading}
@@ -141,14 +140,14 @@ export default function LoginScreen() {
           <Text style={styles.buttonText}>Entrar</Text>
         )}
       </TouchableOpacity>
-
+ 
       {/* Divisor "Or Sign in with" */}
       <View style={styles.dividerContainer}>
         <View style={styles.line} />
         <Text style={styles.dividerText}>Ou entre com</Text>
         <View style={styles.line} />
       </View>
-
+ 
       {/* Botões Sociais */}
       <View style={styles.socialContainer}>
         <TouchableOpacity style={styles.socialButton}>
@@ -158,17 +157,17 @@ export default function LoginScreen() {
                  resizeMode="cover"/>
           <Text style={styles.socialButtonText}>Google</Text>
         </TouchableOpacity>
-
-        
+ 
+       
       </View>
-
+ 
       {/* Link de Cadastro */}
       <TouchableOpacity onPress={() => router.push('/register')} style={styles.registerContainer}>
         <Text style={styles.link}>Não tem uma conta? <Text style={styles.linkBold}>Cadastre-se</Text></Text>
       </TouchableOpacity>
-
-    
-
+ 
+   
+ 
       {/* Modal conta inativa */}
       <Modal visible={contaInativa} transparent animationType="fade">
         <View style={styles.modalOverlay}>
@@ -181,10 +180,10 @@ export default function LoginScreen() {
               placeholder="Confirme sua senha"
               placeholderTextColor="#A0A0A0"
               secureTextEntry
-              style={[styles.input, { marginBottom: 16 }]}
+              style={[styles.inputIna, { marginBottom: 16 }]}
             />
             <TouchableOpacity
-              style={[styles.button, (reativando || !confirmarSenha) && styles.buttonDisabled]}
+              style={[styles.buttonIna, (reativando || !confirmarSenha) && styles.buttonDisabled]}
               onPress={handleReativar}
               disabled={reativando || !confirmarSenha}
             >
@@ -196,11 +195,11 @@ export default function LoginScreen() {
           </View>
         </View>
       </Modal>
-
+ 
     </LinearGradient>
   );
 }
-
+ 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -222,7 +221,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 7,
         color: '#BA531B',
-
+ 
   },
   title: {
     fontSize: 26,
@@ -244,6 +243,21 @@ const styles = StyleSheet.create({
   },
   input: {
     width: 320,
+    height: 50,
+    backgroundColor: '#FFF2E4', // Fundo off-white/bege clarinho dos inputs
+    borderRadius: 10,
+    paddingHorizontal: 20,
+    color: '#5C3818',
+    marginBottom: 15,
+    fontSize: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  inputIna: {
+    width: 200,
     height: 50,
     backgroundColor: '#FFF2E4', // Fundo off-white/bege clarinho dos inputs
     borderRadius: 10,
@@ -286,6 +300,19 @@ const styles = StyleSheet.create({
   },
   button: {
     width: 320,
+    height: 50,
+    backgroundColor: '#BA531B', // Laranja terroso escuro do botão principal
+    borderRadius: 20, // Cantos bem arredondados como na foto
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+   buttonIna: {
+    width: 150,
     height: 50,
     backgroundColor: '#BA531B', // Laranja terroso escuro do botão principal
     borderRadius: 20, // Cantos bem arredondados como na foto
@@ -342,7 +369,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderWidth: 1,
     borderColor: '#EFEFEF',
-    
+   
   },
   socialButtonText: {
     fontSize: 13,
@@ -397,3 +424,5 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
 });
+ 
+ 
