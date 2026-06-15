@@ -41,11 +41,11 @@ public class UsuarioService {
     //atualizar usuario
     public Usuario update(long codUser, Usuario usuario) {
         Usuario usuarioExistente = findById(codUser);
-        if (usuario.getNomeCompleto() != null && !usuario.getNomeCompleto().isBlank()) {
-            usuarioExistente.setNomeCompleto(usuario.getNomeCompleto());
+        if (usuario.getNome_completo() != null && !usuario.getNome_completo().isBlank()) {
+            usuarioExistente.setNome_completo(usuario.getNome_completo());
         }
-        if (usuario.getNomeDeUsuario() != null && !usuario.getNomeDeUsuario().isBlank()) {
-            usuarioExistente.setNomeDeUsuario(usuario.getNomeDeUsuario());
+        if (usuario.getNome_de_usuario() != null && !usuario.getNome_de_usuario().isBlank()) {
+            usuarioExistente.setNome_de_usuario(usuario.getNome_de_usuario());
         }
         if (usuario.getGmail() != null && !usuario.getGmail().isBlank()) {
             usuarioExistente.setGmail(usuario.getGmail());
