@@ -282,9 +282,6 @@ if (idade === null) {
         </Text>
       </TouchableOpacity>
  
-      <TouchableOpacity onPress={() => router.push('/home')} style={styles.skipContainer}>
-        <Text style={styles.skipText}>pular</Text>
-      </TouchableOpacity>
     </LinearGradient>
   );
 }

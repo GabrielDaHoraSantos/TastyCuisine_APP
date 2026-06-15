@@ -167,10 +167,7 @@ export default function LoginScreen() {
         <Text style={styles.link}>Não tem uma conta? <Text style={styles.linkBold}>Cadastre-se</Text></Text>
       </TouchableOpacity>
 
-      {/* Pular/Skip no final da tela */}
-      <TouchableOpacity onPress={() => router.push('/home')} style={styles.skipContainer}>
-        <Text style={styles.skipText}>Pular agora</Text>
-      </TouchableOpacity>
+    
 
       {/* Modal conta inativa */}
       <Modal visible={contaInativa} transparent animationType="fade">

@@ -154,7 +154,7 @@ export default function HomeScreen() {
       {/* ── HEADER ── */}
       <View style={s.header}>
         <View>
-          <Text style={s.greeting}>Olá, {userName || 'Gourmet'} </Text>
+          <Text style={s.greeting}>Olá, {(userName || 'Gourmet').split(' ')[0]} </Text>
           <Text style={s.subtitle}>O que vamos cozinhar hoje?</Text>
         </View>
         <View style={s.avatarCircle}>

@@ -29,7 +29,7 @@ export default function RecipeCard({ item, onPress, width = 160 }: Props) {
 }
 
   const styles = StyleSheet.create({
-    card: {borderWidth: 1,borderColor: '#fabf72' , padding:20, width, backgroundColor: theme.background.secondary, borderRadius: 16, marginLeft: 20, overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 10, height: 10 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 3 },
+    card: {borderWidth: 1,borderColor: '#72fa89' , padding:20, width, backgroundColor: theme.background.secondary, borderRadius: 16, marginLeft: 20, overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 10, height: 10 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 3 },
     image: { width: '100%', height: 110, backgroundColor: isDarkMode ? '#333' : '#F5F5F5' },
     info: { padding: 12 },
     nameRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 },
