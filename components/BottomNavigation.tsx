@@ -13,7 +13,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { name: 'home', label: 'Início', icon: 'home', screen: 'home' },
-  { name: 'favorites', label: 'Favoritos', icon: 'heart', screen: 'favorites' },
+  { name: 'favorites', label: 'Receituário', icon: 'book', screen: 'favorites' },
   { name: 'search', label: 'Pesquisar', icon: 'search-outline', screen: 'search' },
   { name: 'profile', label: 'Perfil', icon: 'person', screen: 'profile' },
 ];

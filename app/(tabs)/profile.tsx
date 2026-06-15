@@ -344,10 +344,7 @@ const avatarSource = user?.fotoPerfil
               <Text style={s.chipText}>{user.idade} anos</Text>
             </View>
           ) : null}
-          <View style={s.chip}>
-            <View style={[s.chipDot, { backgroundColor: C.green }]} />
-            <Text style={s.chipText}>Conta ativa</Text>
-          </View>
+          
         </View>
 
         {/* ── RESTRIÇÕES ── */}

@@ -1,77 +1,682 @@
+/**
+ * FavoritesScreen.tsx
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Tela de "Meus Livros de Receitas"
+ *
+ * BACKEND — nada foi alterado. Usa exatamente:
+ *   favoritos, toggleFavorito, loading, userId  →  de useAuth()
+ *   theme, isDarkMode                           →  de useTheme()
+ *
+ * PERSISTÊNCIA LOCAL DOS LIVROS — usa AsyncStorage.
+ *   Instale se ainda não tiver:
+ *     npx expo install @react-native-async-storage/async-storage
+ *
+ * ESTRUTURA DE DADOS salva no AsyncStorage (chave "recipeBooks"):
+ *   RecipeBook[]
+ *   {
+ *     id:        string          // UUID gerado no app
+ *     name:      string          // Nome dado pelo usuário
+ *     recipeIds: string[]        // codReceitas das receitas adicionadas
+ *     cover?:    string          // fotoReceita da primeira receita (auto)
+ *   }
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
+
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
-import { useEffect } from 'react';
-import { ActivityIndicator, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import {
+  Animated,
+  Dimensions,
+  FlatList,
+  Image,
+  Modal,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import BolinhaqGira from '../../components/BolinhaqGira';
 import BottomNavigation from '../../components/BottomNavigation';
 import { useAuth } from '../authContext';
 import { useTheme } from '../themeContext';
 
-export default function FavoritesScreen() {
-  const { theme, isDarkMode } = useTheme();
-  const {  loading, recipes,userId,favoritos,toggleFavorito} = useAuth();
-  const router = useRouter();
-  
-      
-    useEffect(() => {
-      if (!userId && !loading) {
-        router.push('/login')}
-    }, [loading])
-    
-
-  const getName = (f: any) => f.receita?.nomeReceita ?? '';
-  const getChef = (f: any) => f.receita?.chefe?.nomeCompleto ?? '';
-  const getImage = (f: any) => f.receita?.fotoReceita ?? '';
-  const getreceitaId = (f: any) => String(f.receita?.codReceitas ?? '');
-  const getFavId = (f: any) => String(f.codFavoritos ?? '');
-
-  const handleDesfavoritar =  async (item: any) => {
-  await toggleFavorito(getreceitaId(item), item.receita?.codreceitas)
+// ─── Tokens ───────────────────────────────────────────────────────────────────
+const C = {
+  bg:           '#F5EDE3',
+  surface:      '#FFFFFF',
+  surfaceHi:    '#F0E6DA',
+  hero:         '#C4703A',
+  accent:       '#C4703A',
+  accentSoft:   '#FFF0E8',
+  accentBorder: '#F0C8A0',
+  textPrimary:  '#3D2010',
+  textSub:      '#B8906A',
+  textMuted:    '#D4B89A',
+  white:        '#FFFFFF',
+  dashedBorder: '#F0C8A0',
 };
 
-  const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: theme.background.primary, padding: 20, paddingTop: 60 },
-    container2: { flex: 1, backgroundColor: theme.background.primary, padding: 0 },
-    title: { fontSize: 24, fontWeight: 'bold', color: theme.text.primary, marginBottom: 20 },
-    card: { flexDirection: 'row', backgroundColor: theme.background.secondary, borderRadius: 12, padding: 12, marginBottom: 15, alignItems: 'center', borderWidth: 1, borderColor: isDarkMode ? '#333' :'#fcad45' },
-    image: { width: 70, height: 70, borderRadius: 8, backgroundColor: isDarkMode ? '#333' : '#EEE', borderWidth: 0.5,borderColor: '#fabf72' },
-    info: { flex: 1, marginLeft: 15 },
-    name: { fontSize: 16, fontWeight: 'bold', color: theme.text.primary },
-    chef: { fontSize: 14, color: theme.text.secondary, marginTop: 2 },
-    empty: { color: theme.text.secondary, textAlign: 'center', marginTop: 50, fontSize: 16 },
-  });
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const CARD_SIZE = (SCREEN_WIDTH - 20 * 2 - 14) / 2; // 2 colunas, gap 14
 
+const STORAGE_KEY = 'recipeBooks';
+
+// ─── Tipos locais ─────────────────────────────────────────────────────────────
+type RecipeBook = {
+  id:        string;
+  name:      string;
+  recipeIds: string[];
+  cover?:    string;
+};
+
+// ─── Helpers de favorito ──────────────────────────────────────────────────────
+const getFavName     = (f: any): string => f.receita?.nomeReceita ?? '';
+const getFavChef     = (f: any): string => f.receita?.chefe?.nomeCompleto ?? '';
+const getFavImage    = (f: any): string => f.receita?.fotoReceita ?? '';
+const getFavRecipeId = (f: any): string => String(f.receita?.codReceitas ?? '');
+const getFavId       = (f: any): string => String(f.codFavoritos ?? '');
+
+const PLACEHOLDER = 'https://worldfoodtour.co.uk/wp-content/uploads/2013/06/neptune-placeholder-48.jpg';
+
+// ─── Utilitário: ID simples sem dependência externa ───────────────────────────
+const uid = (): string => Date.now().toString(36) + Math.random().toString(36).slice(2);
+
+// ═════════════════════════════════════════════════════════════════════════════
+export default function FavoritesScreen() {
+  const { theme, isDarkMode } = useTheme();
+  const { loading, userId, favoritos, toggleFavorito } = useAuth();
+  const router = useRouter();
+
+  // ── Estado dos livros ──────────────────────────────────────────────────────
+  const [books, setBooks]                     = useState<RecipeBook[]>([]);
+  const [booksLoaded, setBooksLoaded]         = useState(false);
+
+  // ── Estado da busca ────────────────────────────────────────────────────────
+  const [searchVisible, setSearchVisible]     = useState(false);
+  const [searchQuery, setSearchQuery]         = useState('');
+
+  // ── Modais ─────────────────────────────────────────────────────────────────
+  const [createModalVisible, setCreateModalVisible] = useState(false);
+  const [addModalVisible, setAddModalVisible]       = useState(false);
+  const [bookDetailVisible, setBookDetailVisible]   = useState(false);
+
+  // ── Dados temporários ──────────────────────────────────────────────────────
+  const [newBookName, setNewBookName]         = useState('');
+  const [selectedBook, setSelectedBook]       = useState<RecipeBook | null>(null);
+  const [selectedFavIds, setSelectedFavIds]   = useState<string[]>([]);
+
+  // ── Animação do botão "+" ──────────────────────────────────────────────────
+  const plusScale = useRef(new Animated.Value(1)).current;
+  const animatePlus = () => {
+    Animated.sequence([
+      Animated.timing(plusScale, { toValue: 0.88, duration: 80, useNativeDriver: true }),
+      Animated.spring(plusScale,  { toValue: 1,    useNativeDriver: true }),
+    ]).start();
+  };
+
+  useEffect(() => {
+    if (!userId && !loading) router.push('/login');
+  }, [loading]);
+
+  // ── Carregar livros do AsyncStorage ───────────────────────────────────────
+  useEffect(() => {
+    (async () => {
+      try {
+        const raw = await AsyncStorage.getItem(STORAGE_KEY);
+        if (raw) setBooks(JSON.parse(raw));
+      } catch (_) {}
+      setBooksLoaded(true);
+    })();
+  }, []);
+
+  // ── Salvar livros sempre que mudarem ──────────────────────────────────────
+  const saveBooks = async (next: RecipeBook[]) => {
+    setBooks(next);
+    try { await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch (_) {}
+  };
+
+  // ── Criar livro ───────────────────────────────────────────────────────────
+  const handleCreateBook = () => {
+    const name = newBookName.trim();
+    if (!name) return;
+    const book: RecipeBook = { id: uid(), name, recipeIds: [] };
+    saveBooks([...books, book]);
+    setNewBookName('');
+    setCreateModalVisible(false);
+  };
+
+  // ── Abrir modal de adicionar receitas a um livro ──────────────────────────
+  const openAddModal = (book: RecipeBook) => {
+    setSelectedBook(book);
+    setSelectedFavIds([...book.recipeIds]);
+    setAddModalVisible(true);
+  };
+
+  // ── Salvar receitas no livro ──────────────────────────────────────────────
+  const handleSaveRecipes = () => {
+    if (!selectedBook) return;
+    const cover = (() => {
+      const first = favoritos.find(f => selectedFavIds.includes(getFavRecipeId(f)));
+      return first ? getFavImage(first) : undefined;
+    })();
+    const next = books.map(b =>
+      b.id === selectedBook.id ? { ...b, recipeIds: selectedFavIds, cover } : b
+    );
+    saveBooks(next);
+    setAddModalVisible(false);
+    setSelectedBook(null);
+  };
+
+  // ── Excluir livro ─────────────────────────────────────────────────────────
+  const handleDeleteBook = (bookId: string) => {
+    saveBooks(books.filter(b => b.id !== bookId));
+    setBookDetailVisible(false);
+  };
+
+  // ── Toggle receita na seleção ─────────────────────────────────────────────
+  const toggleRecipeSelect = (recipeId: string) => {
+    setSelectedFavIds(prev =>
+      prev.includes(recipeId) ? prev.filter(id => id !== recipeId) : [...prev, recipeId]
+    );
+  };
+
+  // ── Receitas de um livro (para tela de detalhe) ───────────────────────────
+  const getBookRecipes = (book: RecipeBook) =>
+    favoritos.filter(f => book.recipeIds.includes(getFavRecipeId(f)));
+
+  // ── Livros filtrados pela busca ────────────────────────────────────────────
+  const filteredBooks = searchQuery.trim()
+    ? books.filter(b => b.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    : books;
+
+  // ── Toggle da busca ────────────────────────────────────────────────────────
+  const handleToggleSearch = () => {
+    setSearchVisible(v => !v);
+    setSearchQuery('');
+  };
+
+  if (loading || !booksLoaded) return <BolinhaqGira />;
+
+  // ─── Render ────────────────────────────────────────────────────────────────
   return (
-    loading ? (
-              <BolinhaqGira/>
-        ) : 
-    <View style={styles.container2}>
-      <View style={styles.container}>
-      {!loading &&<Text style={styles.title}>Favoritadas</Text>}
-      {loading ? (
-        <ActivityIndicator color={theme.primary} style={{ marginTop: 40, flex: 1, justifyContent: 'center', alignItems: 'center'}} />
-      ) : (
-        <FlatList
-          data={favoritos}
-          keyExtractor={getFavId}
-          contentContainerStyle={{ paddingBottom: 100 }}
-          renderItem={({ item }) => (
-            <TouchableOpacity style={styles.card} onPress={() => router.push({ pathname: '/Sobpo/[id]', params: { id: getreceitaId(item) } })}>
-              <Image source={{ uri: getImage(item) || 'https://worldfoodtour.co.uk/wp-content/uploads/2013/06/neptune-placeholder-48.jpg' }} style={styles.image} />
-              <View style={styles.info}>
-                <Text style={styles.name}>{getName(item)}</Text>
-                <Text style={styles.chef}>{getChef(item)}</Text>
-              </View>
-              <TouchableOpacity onPress={() => handleDesfavoritar(item  )}>
-                <Ionicons name="heart" size={24} color="#e68a00" />
-              </TouchableOpacity>
+    <SafeAreaView style={s.safe}>
+      <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
+
+      {/* ── HEADER ── */}
+      <View style={s.header}>
+        <Text style={s.headerTitle}>Livro de Receitas</Text>
+        <TouchableOpacity style={s.headerSearch} onPress={handleToggleSearch}>
+          <Ionicons
+            name={searchVisible ? 'close-outline' : 'search-outline'}
+            size={22}
+            color={C.textPrimary}
+          />
+        </TouchableOpacity>
+      </View>
+
+      {/* ── BARRA DE BUSCA ── */}
+      {searchVisible && (
+        <View style={s.searchBar}>
+          <Ionicons name="search-outline" size={18} color={C.hero} />
+          <TextInput
+            style={s.searchInput}
+            placeholder="Buscar livro..."
+            placeholderTextColor={C.textMuted}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoFocus
+            returnKeyType="search"
+            onSubmitEditing={() => {}}
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery('')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+              <Ionicons name="close-circle" size={18} color={C.textMuted} />
             </TouchableOpacity>
           )}
-          ListEmptyComponent={<Text style={styles.empty}>Você ainda não favoritou nenhuma recipe.</Text>}
-        />
+        </View>
       )}
-      </View>
-        <BottomNavigation />
-    </View>
+
+      {/* ── GRID DE LIVROS ── */}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={s.grid}
+      >
+        {/* Mensagem de vazio na busca */}
+        {filteredBooks.length === 0 && searchQuery.trim() !== '' && (
+          <View style={s.emptySearch}>
+            <Ionicons name="search-outline" size={40} color={C.textMuted} />
+            <Text style={s.emptySearchText}>Nenhum livro encontrado</Text>
+          </View>
+        )}
+
+        {filteredBooks.map(book => (
+          <BookCard
+            key={book.id}
+            book={book}
+            count={book.recipeIds.length}
+            onPress={() => { setSelectedBook(book); setBookDetailVisible(true); }}
+            onLongPress={() => openAddModal(book)}
+          />
+        ))}
+
+        {/* Card "+ Adicionar novo livro" — oculto durante busca ativa */}
+        {!searchQuery.trim() && (
+          <Animated.View style={{ transform: [{ scale: plusScale }] }}>
+            <TouchableOpacity
+              style={bc.addCard}
+              activeOpacity={0.8}
+              onPress={() => { animatePlus(); setCreateModalVisible(true); }}
+            >
+              <View style={bc.addIconCircle}>
+                <Ionicons name="add" size={28} color={C.hero} />
+              </View>
+              <Text style={bc.addLabel}>Adicionar novo{'\n'}livro</Text>
+            </TouchableOpacity>
+          </Animated.View>
+        )}
+      </ScrollView>
+
+      <BottomNavigation />
+
+      {/* ════ MODAL: CRIAR LIVRO ════ */}
+      <Modal visible={createModalVisible} transparent animationType="fade" onRequestClose={() => setCreateModalVisible(false)}>
+        <View style={m.overlay}>
+          <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => setCreateModalVisible(false)} />
+          <View style={m.sheet}>
+            <Text style={m.sheetTitle}>Novo livro</Text>
+            <TextInput
+              style={m.input}
+              placeholder="Nome do livro..."
+              placeholderTextColor={C.textMuted}
+              value={newBookName}
+              onChangeText={setNewBookName}
+              autoFocus
+              returnKeyType="done"
+              onSubmitEditing={handleCreateBook}
+            />
+            <View style={m.row}>
+              <TouchableOpacity style={m.btnSecondary} onPress={() => { setCreateModalVisible(false); setNewBookName(''); }}>
+                <Text style={m.btnSecondaryText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[m.btnPrimary, !newBookName.trim() && m.btnDisabled]}
+                onPress={handleCreateBook}
+                disabled={!newBookName.trim()}
+              >
+                <Text style={m.btnPrimaryText}>Criar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ════ MODAL: ADICIONAR RECEITAS AO LIVRO ════ */}
+      <Modal visible={addModalVisible} transparent animationType="slide" onRequestClose={() => setAddModalVisible(false)}>
+        <View style={m.overlay}>
+          <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => setAddModalVisible(false)} />
+          <View style={[m.sheet, { maxHeight: '75%' }]}>
+            <Text style={m.sheetTitle}>
+              Adicionar ao "{selectedBook?.name}"
+            </Text>
+            <Text style={m.sheetSub}>Escolha entre seus favoritos</Text>
+
+            {favoritos.length === 0 ? (
+              <Text style={m.emptyText}>Você ainda não tem receitas favoritadas.</Text>
+            ) : (
+              <FlatList
+                data={favoritos}
+                keyExtractor={getFavId}
+                style={{ marginTop: 12 }}
+                contentContainerStyle={{ gap: 10, paddingBottom: 8 }}
+                renderItem={({ item }) => {
+                  const rid = getFavRecipeId(item);
+                  const selected = selectedFavIds.includes(rid);
+                  return (
+                    <TouchableOpacity
+                      style={[m.recipeRow, selected && m.recipeRowSelected]}
+                      onPress={() => toggleRecipeSelect(rid)}
+                      activeOpacity={0.75}
+                    >
+                      <Image
+                        source={{ uri: getFavImage(item) || PLACEHOLDER }}
+                        style={m.recipeThumb}
+                      />
+                      <View style={{ flex: 1 }}>
+                        <Text style={m.recipeName} numberOfLines={1}>{getFavName(item)}</Text>
+                        <Text style={m.recipeChef} numberOfLines={1}>{getFavChef(item)}</Text>
+                      </View>
+                      <View style={[m.checkbox, selected && m.checkboxSelected]}>
+                        {selected && <Ionicons name="checkmark" size={14} color={C.white} />}
+                      </View>
+                    </TouchableOpacity>
+                  );
+                }}
+              />
+            )}
+
+            <View style={[m.row, { marginTop: 16 }]}>
+              <TouchableOpacity style={m.btnSecondary} onPress={() => setAddModalVisible(false)}>
+                <Text style={m.btnSecondaryText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={m.btnPrimary} onPress={handleSaveRecipes}>
+                <Text style={m.btnPrimaryText}>Salvar ({selectedFavIds.length})</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ════ MODAL: DETALHE DO LIVRO ════ */}
+      <Modal visible={bookDetailVisible} transparent animationType="slide" onRequestClose={() => setBookDetailVisible(false)}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
+          {/* Header do detalhe */}
+          <View style={d.header}>
+            <TouchableOpacity onPress={() => setBookDetailVisible(false)} style={d.backBtn}>
+              <Ionicons name="chevron-back" size={22} color={C.textPrimary} />
+            </TouchableOpacity>
+            <Text style={d.title} numberOfLines={1}>{selectedBook?.name}</Text>
+            <View style={d.headerRight}>
+              <TouchableOpacity
+                style={d.iconBtn}
+                onPress={() => { setBookDetailVisible(false); if (selectedBook) openAddModal(selectedBook); }}
+              >
+                <Ionicons name="add-circle-outline" size={24} color={C.hero} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={d.iconBtn}
+                onPress={() => selectedBook && handleDeleteBook(selectedBook.id)}
+              >
+                <Ionicons name="trash-outline" size={22} color="#D04040" />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {selectedBook && getBookRecipes(selectedBook).length === 0 ? (
+            <View style={d.empty}>
+              <Ionicons name="book-outline" size={48} color={C.textMuted} />
+              <Text style={d.emptyText}>Nenhuma receita ainda.</Text>
+              <TouchableOpacity
+                style={d.emptyBtn}
+                onPress={() => { setBookDetailVisible(false); openAddModal(selectedBook); }}
+              >
+                <Text style={d.emptyBtnText}>Adicionar receitas</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <FlatList
+              data={selectedBook ? getBookRecipes(selectedBook) : []}
+              keyExtractor={getFavId}
+              contentContainerStyle={d.list}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={d.card}
+                  activeOpacity={0.85}
+                  onPress={() => {
+                    setBookDetailVisible(false);
+                    router.push({ pathname: '/Sobpo/[id]', params: { id: getFavRecipeId(item) } });
+                  }}
+                >
+                  <Image source={{ uri: getFavImage(item) || PLACEHOLDER }} style={d.cardImg} />
+                  <View style={d.cardInfo}>
+                    <Text style={d.cardName} numberOfLines={2}>{getFavName(item)}</Text>
+                    <Text style={d.cardChef} numberOfLines={1}>por {getFavChef(item)}</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={18} color={C.textMuted} />
+                </TouchableOpacity>
+              )}
+            />
+          )}
+        </SafeAreaView>
+      </Modal>
+    </SafeAreaView>
   );
 }
+
+// ═════════════════════════════════════════════════════════════════════════════
+// BOOK CARD
+// ═════════════════════════════════════════════════════════════════════════════
+function BookCard({
+  book, count, onPress, onLongPress,
+}: {
+  book: RecipeBook;
+  count: number;
+  onPress: () => void;
+  onLongPress: () => void;
+}) {
+  return (
+    <TouchableOpacity
+      style={bc.card}
+      onPress={onPress}
+      onLongPress={onLongPress}
+      activeOpacity={0.85}
+      delayLongPress={400}
+    >
+      {/* Capa com collage 2x2 ou placeholder */}
+      <View style={bc.coverBox}>
+        {book.cover ? (
+          <Image source={{ uri: book.cover }} style={bc.coverImg} resizeMode="cover" />
+        ) : (
+          <View style={bc.coverPlaceholder}>
+            <Ionicons name="book-outline" size={32} color={C.accentBorder} />
+          </View>
+        )}
+        {/* Badge de contagem */}
+        <View style={bc.countBadge}>
+          <Text style={bc.countText}>{count}</Text>
+        </View>
+      </View>
+      <View style={bc.info}>
+        <Text style={bc.name} numberOfLines={2}>{book.name}</Text>
+        <Text style={bc.sub}>{count} {count === 1 ? 'receita' : 'receitas'}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+// ─── Styles: BookCard ─────────────────────────────────────────────────────────
+const bc = StyleSheet.create({
+  card: {
+    width: CARD_SIZE,
+    backgroundColor: C.surface,
+    borderRadius: 18,
+    overflow: 'hidden',
+    borderWidth: 0.5,
+    borderColor: '#EDE0D4',
+    shadowColor: '#3D2010',
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 3,
+  },
+  coverBox:        { width: '100%', height: CARD_SIZE * 0.72, backgroundColor: C.surfaceHi },
+  coverImg:        { width: '100%', height: '100%' },
+  coverPlaceholder:{ flex: 1, alignItems: 'center', justifyContent: 'center' },
+  countBadge: {
+    position: 'absolute', bottom: 8, right: 8,
+    backgroundColor: C.hero,
+    borderRadius: 10, paddingHorizontal: 7, paddingVertical: 3,
+  },
+  countText: { color: C.white, fontSize: 11, fontWeight: '800' },
+  info:      { padding: 11, gap: 2 },
+  name:      { fontSize: 14, fontWeight: '700', color: C.textPrimary, lineHeight: 19 },
+  sub:       { fontSize: 11, color: C.textSub },
+
+  // Card de adicionar novo livro
+  addCard: {
+    width: CARD_SIZE,
+    height: CARD_SIZE * 0.72 + 54,
+    borderRadius: 18,
+    borderWidth: 1.5,
+    borderColor: C.dashedBorder,
+    borderStyle: 'dashed',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    backgroundColor: C.accentSoft,
+  },
+  addIconCircle: {
+    width: 46, height: 46, borderRadius: 23,
+    backgroundColor: C.surface,
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1, borderColor: C.accentBorder,
+    shadowColor: C.hero, shadowOpacity: 0.15,
+    shadowRadius: 6, shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  addLabel: { fontSize: 13, fontWeight: '600', color: C.textSub, textAlign: 'center', lineHeight: 18 },
+});
+
+// ─── Styles: tela principal ───────────────────────────────────────────────────
+const s = StyleSheet.create({
+  safe:   { flex: 1, backgroundColor: C.bg },
+  header: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === 'android' ? 20 : 12,
+    paddingBottom: 16,
+    backgroundColor: C.bg,
+  },
+  headerTitle:  { fontSize: 22, fontWeight: '800', color: C.textPrimary },
+  headerSearch: {
+    width: 38, height: 38, borderRadius: 19,
+    backgroundColor: C.surface, alignItems: 'center', justifyContent: 'center',
+    borderWidth: 0.5, borderColor: '#EDE0D4',
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginHorizontal: 20,
+    marginBottom: 12,
+    backgroundColor: C.surface,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: C.hero,
+    paddingHorizontal: 14,
+    paddingVertical: Platform.OS === 'ios' ? 12 : 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 15,
+    color: C.textPrimary,
+    padding: 0,
+  },
+  emptySearch: {
+    width: '100%',
+    alignItems: 'center',
+    paddingTop: 48,
+    gap: 12,
+  },
+  emptySearchText: {
+    fontSize: 14,
+    color: C.textMuted,
+    fontWeight: '500',
+  },
+  grid: {
+    paddingHorizontal: 20,
+    paddingBottom: 110,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 14,
+  },
+});
+
+// ─── Styles: modais ───────────────────────────────────────────────────────────
+const m = StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
+  sheet: {
+    backgroundColor: C.surface,
+    borderTopLeftRadius: 24, borderTopRightRadius: 24,
+    padding: 24, paddingBottom: Platform.OS === 'ios' ? 36 : 24,
+  },
+  sheetTitle: { fontSize: 20, fontWeight: '800', color: C.textPrimary, marginBottom: 4 },
+  sheetSub:   { fontSize: 13, color: C.textSub, marginBottom: 4 },
+  emptyText:  { fontSize: 14, color: C.textMuted, textAlign: 'center', marginVertical: 20 },
+
+  input: {
+    backgroundColor: C.bg,
+    borderRadius: 14, borderWidth: 1, borderColor: C.accentBorder,
+    paddingHorizontal: 16, paddingVertical: 13,
+    fontSize: 16, color: C.textPrimary,
+    marginVertical: 16,
+  },
+  row:           { flexDirection: 'row', gap: 12 },
+  btnPrimary: {
+    flex: 1, backgroundColor: C.hero,
+    borderRadius: 14, paddingVertical: 14,
+    alignItems: 'center',
+  },
+  btnPrimaryText: { color: C.white, fontWeight: '800', fontSize: 15 },
+  btnSecondary: {
+    flex: 1, backgroundColor: C.accentSoft,
+    borderRadius: 14, paddingVertical: 14,
+    alignItems: 'center', borderWidth: 1, borderColor: C.accentBorder,
+  },
+  btnSecondaryText: { color: C.hero, fontWeight: '700', fontSize: 15 },
+  btnDisabled:      { opacity: 0.45 },
+
+  recipeRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    backgroundColor: C.bg,
+    borderRadius: 14, padding: 10,
+    borderWidth: 1, borderColor: 'transparent',
+  },
+  recipeRowSelected: { borderColor: C.hero, backgroundColor: C.accentSoft },
+  recipeThumb:       { width: 50, height: 50, borderRadius: 12, backgroundColor: C.surfaceHi },
+  recipeName:        { fontSize: 14, fontWeight: '700', color: C.textPrimary },
+  recipeChef:        { fontSize: 12, color: C.textSub, marginTop: 2 },
+  checkbox: {
+    width: 22, height: 22, borderRadius: 11,
+    borderWidth: 1.5, borderColor: C.accentBorder,
+    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: C.surface,
+  },
+  checkboxSelected: { backgroundColor: C.hero, borderColor: C.hero },
+});
+
+// ─── Styles: detalhe do livro ─────────────────────────────────────────────────
+const d = StyleSheet.create({
+  header: {
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === 'android' ? 20 : 12,
+    paddingBottom: 14,
+    backgroundColor: C.bg,
+    gap: 8,
+  },
+  backBtn:    { padding: 4 },
+  title:      { flex: 1, fontSize: 20, fontWeight: '800', color: C.textPrimary },
+  headerRight:{ flexDirection: 'row', gap: 4 },
+  iconBtn:    { padding: 6 },
+
+  list: { paddingHorizontal: 20, paddingBottom: 40, gap: 12, paddingTop: 8 },
+  card: {
+    flexDirection: 'row', alignItems: 'center', gap: 14,
+    backgroundColor: C.surface,
+    borderRadius: 16, padding: 12,
+    borderWidth: 0.5, borderColor: '#EDE0D4',
+    shadowColor: '#3D2010', shadowOpacity: 0.06,
+    shadowRadius: 8, shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  cardImg:    { width: 64, height: 64, borderRadius: 12, backgroundColor: C.surfaceHi },
+  cardInfo:   { flex: 1, gap: 4 },
+  cardName:   { fontSize: 15, fontWeight: '700', color: C.textPrimary, lineHeight: 20 },
+  cardChef:   { fontSize: 12, color: C.textSub },
+
+  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 14 },
+  emptyText:  { fontSize: 16, color: C.textMuted, fontWeight: '500' },
+  emptyBtn: {
+    backgroundColor: C.hero, borderRadius: 14,
+    paddingHorizontal: 24, paddingVertical: 13,
+    marginTop: 4,
+  },
+  emptyBtnText: { color: C.white, fontWeight: '800', fontSize: 15 },
+});
