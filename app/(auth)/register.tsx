@@ -1,6 +1,5 @@
 'use client';
  
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
@@ -148,7 +147,7 @@ if (idade === null) {
         return;
       }
  
-      router.replace('/preferences');
+      router.replace('/home');
     } catch (err) {
       setError('Error connecting to the server');
       console.error('Erro ao cadastrar:', err);
@@ -156,7 +155,7 @@ if (idade === null) {
       setLoading(false);
     }
   };
- 
+ //////////////////////////////////////
   const handleSkip = async () => {
     // Skip without saving - go directly to preferences or home
     router.replace('/preferences');
