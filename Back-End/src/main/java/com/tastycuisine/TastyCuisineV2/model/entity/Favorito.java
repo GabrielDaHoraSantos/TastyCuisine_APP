@@ -19,9 +19,9 @@ public class Favorito {
 
     @ManyToOne
     @JoinColumn(name = "Cod_user", nullable = false)
-    private Usuario usuario;
+    private Usuario Cod_user;
 
     @ManyToOne
     @JoinColumn(name = "Cod_receitas")
-    private Receita receita;
+    private Receita Cod_receitas;
 }

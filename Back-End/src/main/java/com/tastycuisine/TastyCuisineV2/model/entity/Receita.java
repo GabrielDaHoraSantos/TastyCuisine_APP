@@ -18,35 +18,37 @@ public class Receita {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "Cod_receitas")
-    private long codReceitas;
+    private long Cod_receitas;
 
     @Column(name = "Nome_receita", length = 250, nullable = false)
     @NotBlank
-    private String nomeReceita;
+    private String Nome_receita;
 
     @Column(name = "Descricao", length = 250, nullable = false)
     @NotBlank
-    private String descricao;
+    private String Descricao;
 
     @Column(name = "Modo_preparo", nullable = false, columnDefinition = "NVARCHAR(MAX)")
     @NotBlank
-    private String modoPreparo;
+    private String Modo_preparo;
 
-    @Column(name = "Ingredientes", columnDefinition = "NVARCHAR(MAX)")
-    private String ingredientes;
-
-    @ManyToOne
-    @JoinColumn(name = "Cod_chefe", nullable = false)
-    private Chefe chefe;
-
-    @Column(name = "Foto_receita")
-    private String fotoReceita;
+    @Column(name = "Ingredientes", nullable = false, columnDefinition = "NVARCHAR(MAX)")
+    @NotBlank
+    private String Ingredientes;
 
     @ManyToMany
-    @JoinTable(
-        name = "Receitas_Categorias",
-        joinColumns = @JoinColumn(name = "Cod_receitas"),
-        inverseJoinColumns = @JoinColumn(name = "Cod_Categoria")
-    )
-    private List<Categoria> categorias;
+    @Column(name = "Categorias", nullable = false, columnDefinition = "NVARCHAR(MAX)")
+    @NotBlank
+    private List<Categoria> Categorias;
+
+    @Column(name = "Restricao", nullable = false, columnDefinition = "NVARCHAR(MAX)")
+    @NotBlank
+    private String Restricao;
+
+    @ManyToOne
+    @JoinColumn(name = "Cod_usuario", nullable = false)
+    private Usuario Usuario;
+
+    @Column(name = "Foto_receita", nullable = true, columnDefinition = "NVARCHAR(MAX)")
+    private String Foto_receita;
 }
