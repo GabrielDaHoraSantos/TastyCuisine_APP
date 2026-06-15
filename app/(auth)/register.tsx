@@ -1,5 +1,5 @@
 'use client';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+ 
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
@@ -152,7 +152,6 @@ if (idade === null) {
       setError('Error connecting to the server');
       console.error('Erro ao cadastrar:', err);
     } finally {
-      console.log('id de usuario salvo como: ', await AsyncStorage.getItem('usedId'))
       setLoading(false);
     }
   };
@@ -276,7 +275,7 @@ if (idade === null) {
         </TouchableOpacity>
       </View>
  
-      <TouchableOpacity onPress={() => router.push('/home')} style={styles.loginLinkContainer}>
+      <TouchableOpacity onPress={() => router.push('/login')} style={styles.loginLinkContainer}>
         <Text style={styles.link}>
           Já tem uma conta? <Text style={styles.linkBold}>Logar-se</Text>
         </Text>
