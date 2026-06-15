@@ -65,12 +65,17 @@ interface RecipeBook {
 
 // ─── API helpers ──────────────────────────────────────────────────────────────
 async function apiFetch(path: string, options?: RequestInit) {
+  const { headers: extraHeaders, ...restOptions } = options ?? {};
   const res = await fetch(`${API_BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
-    ...options,
+    ...restOptions,
+    headers: {
+      'Content-Type': 'application/json',
+      'bypass-tunnel-reminder': 'true',
+      ...(extraHeaders as Record<string, string> ?? {}),
+    },
   });
   if (!res.ok) throw new Error(`API error ${res.status}`);
-  if (res.status === 204) return null; // DELETE sem corpo
+  if (res.status === 204) return null;
   return res.json();
 }
 

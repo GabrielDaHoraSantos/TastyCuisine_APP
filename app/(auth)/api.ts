@@ -58,12 +58,13 @@ export async function apiCall<T>(
 ): Promise<{ data?: T; error?: string; status: number }> {
   try {
     const response = await fetch(url, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options?.headers,
-      },
-      ...options,
-    })
+  ...options,
+  headers: {
+    'Content-Type': 'application/json',
+    'bypass-tunnel-reminder': 'true',
+    ...options?.headers,
+  },
+})
 
     if (!response.ok) {
       const errorText = await response.text();

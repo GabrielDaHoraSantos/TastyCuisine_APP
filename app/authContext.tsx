@@ -88,8 +88,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   if (res.data) setRecipes(res.data as any[])
 }
 
+// depois — também troca a URL para usar a variável de ambiente
 async function getComentarios(receitaId: string) {
-  const res = await fetch(`http://localhost:8080/comentario/receita/${receitaId}`)
+  const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8080'}/comentario/receita/${receitaId}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      'bypass-tunnel-reminder': 'true',
+    },
+  })
   if (!res.ok) return []
   return await res.json()
 }
