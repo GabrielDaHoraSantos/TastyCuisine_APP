@@ -19,21 +19,25 @@ public class Comentario {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "Cod_comentarios")
-    private long codComentarios;
+    private long Cod_comentarios;
 
     @ManyToOne
     @JoinColumn(name = "Cod_user", nullable = false)
-    private Usuario usuario;
+    private Usuario Cod_user;
 
     @ManyToOne
     @JoinColumn(name = "Cod_receitas")
-    private Receita receita;
+    private Receita Cod_receitas;
+    
+    @Column(name = "Nota", nullable = false)
+    @NotBlank
+    private String Nota;
 
     @Column(name = "Texto", length = 300, nullable = false)
     @NotBlank
-    private String texto;
+    private String Texto;
 
     @CreationTimestamp
     @Column(name = "Data_Comentario", updatable = false)
-    private LocalDateTime dataComentario;
+    private LocalDateTime Data_Comentario;
 }

@@ -32,6 +32,7 @@ public class ComentarioService {
         Comentario existente = findById(codComentarios);
         existente.setUsuario(comentario.getUsuario());
         existente.setReceita(comentario.getReceita());
+        existente.setNota()
         existente.setTexto(comentario.getTexto());
         return comentarioRepository.save(existente);
     }

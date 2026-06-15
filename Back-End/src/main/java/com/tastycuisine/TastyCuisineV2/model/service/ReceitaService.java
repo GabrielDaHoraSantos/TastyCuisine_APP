@@ -24,12 +24,15 @@ public class ReceitaService {
 
     public Receita update(long codReceitas, Receita receita) {
         Receita existente = findById(codReceitas);
-        existente.setNomeReceita(receita.getNomeReceita());
+
+        existente.setNome_receita(receita.getNome_receita());
         existente.setDescricao(receita.getDescricao());
-        existente.setModoPreparo(receita.getModoPreparo());
+        existente.setModo_preparo(receita.getModo_preparo());
         existente.setIngredientes(receita.getIngredientes());
-        existente.setChefe(receita.getChefe());
-        existente.setFotoReceita(receita.getFotoReceita());
+        existente.setCategorias(receita.getCategorias());
+        existente.setUsuario(receita.getUsuario());
+        existente.setFoto_receita(receita.getFoto_receita());
+        existente.setRestricao(receita.getRestricao());
         return receitaRepository.save(existente);
     }
 
