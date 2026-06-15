@@ -51,7 +51,7 @@ const CATEGORIES = [
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 const getRecipeName   = (r: any) => r.nomeReceita ?? r.name ?? '';
-const getRecipeChef   = (r: any) => r.chefe?.nomeChefe ?? r.chefe?.nome ?? r.chef ?? '';
+const getRecipeChef   = (r: any) => r.chefe?.nomeChefe ?? r.chefe?.nomeCompleto ?? r.chef ?? '';
 const getRecipeImage  = (r: any) => r.fotoReceita || 'https://worldfoodtour.co.uk/wp-content/uploads/2013/06/neptune-placeholder-48.jpg';
 const getRecipeTime   = (r: any) => r.prepareTime ?? r.tempoPreparo ?? '';
 const getRecipeId     = (r: any) => String(r.codReceitas ?? r.id ?? '');

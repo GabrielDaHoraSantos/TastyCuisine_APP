@@ -42,10 +42,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     async function carregarUsuario() {
       const id = await AsyncStorage.getItem('userId');
       if (id) {
-        const res = await usuariosAPI.getById(id);
-        if (res.data) setUser(res.data as AuthUser);
         await loadFavoritos(id);
         await loadRecipes() 
+        const res = await usuariosAPI.getById(id);
+        if (res.data) setUser(res.data as AuthUser);
+        console.log(recipes)
       }
       setLoading(false)
     }

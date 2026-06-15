@@ -95,13 +95,13 @@ public class UsuarioService {
     // reativar conta com senha
     public Usuario reativar(String gmail, String senha) {
         Usuario usuario = usuarioRepository.findByGmail(gmail)
-        .orElseThrow(() -> new RuntimeException("EMAIL_OU_SENHA_INCORRETOS"));
-    
-    if (!passwordEncoder.matches(senha, usuario.getSenha())) {
-        throw new RuntimeException("EMAIL_OU_SENHA_INCORRETOS");
+            .orElseThrow(() -> new RuntimeException("EMAIL_OU_SENHA_INCORRETOS"));
+        
+        if (!passwordEncoder.matches(senha, usuario.getSenha())) {
+            throw new RuntimeException("EMAIL_OU_SENHA_INCORRETOS");
+        }
+        
+        usuario.setStatus_Usuario("ATIVO"); // faltava isso!
+        return usuarioRepository.save(usuario); // e isso!
     }
-    return usuario;
-
-
-    
-    }}
+}

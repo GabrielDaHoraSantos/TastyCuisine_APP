@@ -75,6 +75,8 @@ export default function ProfileScreen() {
   const [savingPhoto,  setSavingPhoto]  = useState(false);
   const [stats,        setStats]        = useState<UserStats>({ favoritos: 0, avaliacoes: 0, comentarios: 0 });
   const [loadingStats, setLoadingStats] = useState(true);
+  const [birthDate, setBirthDate] = useState('');
+  
 
 
   const [form, setForm] = useState({
@@ -84,6 +86,7 @@ export default function ProfileScreen() {
     gmail:         user?.gmail         ?? '',
     senha: '',
   });
+  
 
   useEffect(() => {
     if (!userId && !loading) router.push('/login');
@@ -178,7 +181,7 @@ export default function ProfileScreen() {
     const payload: any = {
       nomeCompleto:  form.nomeCompleto,
       nomeDeUsuario: form.nomeDeUsuario,
-      idade:         parseInt(form.idade, 10),
+      idade:         calculateAge(birthDate),
       gmail:         form.gmail,
     };
     if (form.senha.trim()) payload.senha = form.senha;
@@ -215,6 +218,66 @@ export default function ProfileScreen() {
         .map((r: string) => r.trim())
         .filter(Boolean)
     : [];
+
+    
+  
+    const calculateAge = (dateString: string) => {
+      const parts = dateString.split('/');
+     
+      if (parts.length !== 3) return null;
+     
+      const day = Number(parts[0]);
+      const month = Number(parts[1]);
+      const year = Number(parts[2]);
+     
+      if (
+        isNaN(day) ||
+        isNaN(month) ||
+        isNaN(year)
+      ) {
+        return null;
+      }
+     
+      if (
+        day < 1 ||
+        day > 31 ||
+        month < 1 ||
+        month > 12 ||
+        year < 1900
+      ) {
+        return null;
+      }
+      const birth = new Date(year, month - 1, day);
+ 
+  // Verifica se a data realmente existe
+  if (
+    birth.getDate() !== day ||
+    birth.getMonth() !== month - 1 ||
+    birth.getFullYear() !== year
+  ) {
+    return null;
+  }
+ 
+  const today = new Date();
+ 
+  let age =
+    today.getFullYear() -
+    birth.getFullYear();
+ 
+  const monthDiff =
+    today.getMonth() -
+    birth.getMonth();
+ 
+  if (
+    monthDiff < 0 ||
+    (monthDiff === 0 &&
+      today.getDate() < birth.getDate())
+  ) {
+    age--;
+  }
+ 
+  return age;
+};
 
   // Fonte da imagem: base64 do banco ou asset local padrão
 const avatarSource = user?.fotoPerfil
@@ -355,7 +418,7 @@ const avatarSource = user?.fotoPerfil
               {([
                 { label: 'Nome completo',   key: 'nomeCompleto',  placeholder: 'Seu nome completo' },
                 { label: 'Nome de usuário', key: 'nomeDeUsuario', placeholder: 'nome_de_usuario' },
-                { label: 'Idade',           key: 'idade',         placeholder: '0', keyboardType: 'numeric' as const },
+                { label: 'Idade',           key: 'idade',         placeholder: '0', keyboardType: 'birthDate' as const },
                 { label: 'Email',           key: 'gmail',         placeholder: 'voce@email.com', keyboardType: 'email-address' as const },
                 { label: 'Nova senha',      key: 'senha',         placeholder: 'Deixe em branco para manter', secureTextEntry: true },
               ] as const).map(field => (
