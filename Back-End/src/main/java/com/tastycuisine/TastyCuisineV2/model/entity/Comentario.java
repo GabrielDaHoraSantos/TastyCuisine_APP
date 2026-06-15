@@ -23,11 +23,11 @@ public class Comentario {
 
     @ManyToOne
     @JoinColumn(name = "Cod_user", nullable = false)
-    private Usuario Cod_user;
+    private Usuario Usuario;
 
     @ManyToOne
     @JoinColumn(name = "Cod_receitas")
-    private Receita Cod_receitas;
+    private Receita Receita;
     
     @Column(name = "Nota", nullable = false)
     @NotBlank
