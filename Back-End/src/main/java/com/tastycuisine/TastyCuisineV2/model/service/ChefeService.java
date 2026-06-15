@@ -1,21 +1,27 @@
 package com.tastycuisine.TastyCuisineV2.model.service;
 
-import com.tastycuisine.TastyCuisineV2.model.entity.Chefe;
-import com.tastycuisine.TastyCuisineV2.model.repository.ChefeRepository;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import com.tastycuisine.TastyCuisineV2.model.entity.Chefe;
+import com.tastycuisine.TastyCuisineV2.model.repository.ChefeRepository;
 
 @Service
 public class ChefeService {
 
     @Autowired
     private ChefeRepository chefeRepository;
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
 
     public List<Chefe> findAll() { return chefeRepository.findAll(); }
 
-    public Chefe save(Chefe chefe) { return chefeRepository.save(chefe); }
+    public Chefe save(Chefe chefe) {
+        chefe.setSenha(passwordEncoder.encode(chefe.getSenha()));
+        return chefeRepository.save(chefe); }
 
     public Chefe findById(long codChefe) {
         return chefeRepository.findById(codChefe)
@@ -34,8 +40,8 @@ public class ChefeService {
             existente.setIdade(chefe.getIdade());
         }
         if (chefe.getSenha() != null && !chefe.getSenha().isBlank()) {
-            existente.setSenha(chefe.getSenha());
-        }
+    existente.setSenha(passwordEncoder.encode(chefe.getSenha())); // adiciona o encode!
+}
         if (chefe.getGmail() != null && !chefe.getGmail().isBlank()) {
             existente.setGmail(chefe.getGmail());
         }
@@ -58,20 +64,30 @@ public class ChefeService {
     }
 
     public Chefe reativar(String gmail, String senha) {
-        Chefe chefe = chefeRepository.findByGmailAndSenha(gmail, senha)
-                .orElseThrow(() -> new RuntimeException("EMAIL_OU_SENHA_INCORRETOS"));
-        chefe.setStatus_Chefe("ATIVO");
-        return chefeRepository.save(chefe);
+        Chefe chefe = chefeRepository.findByGmail(gmail)
+        .orElseThrow(() -> new RuntimeException("EMAIL_OU_SENHA_INCORRETOS"));
+    
+    if (!passwordEncoder.matches(senha, chefe.getSenha())) {
+        throw new RuntimeException("EMAIL_OU_SENHA_INCORRETOS");
+    }
+    
+    chefe.setStatus_Chefe("ATIVO");
+    return chefeRepository.save(chefe);
     }
 
     public Chefe login(String gmail, String senha) {
-        Chefe chefe = chefeRepository.findByGmailAndSenha(gmail, senha)
-                .orElseThrow(() -> new RuntimeException("EMAIL_OU_SENHA_INCORRETOS"));
-        if ("INATIVO".equals(chefe.getStatus_Chefe())) {
-            throw new RuntimeException("CONTA_INATIVA");
-        }
-        return chefe;
+        Chefe chefe = chefeRepository.findByGmail(gmail)
+            .orElseThrow(() -> new RuntimeException("EMAIL_OU_SENHA_INCORRETOS"));
+    
+    if (!passwordEncoder.matches(senha, chefe.getSenha())) {
+        throw new RuntimeException("EMAIL_OU_SENHA_INCORRETOS");
     }
+    
+    if ("INATIVO".equals(chefe.getStatus_Chefe())) {
+        throw new RuntimeException("CONTA_INATIVA");
+    }
+    return chefe;
+}
 
     public List<Chefe> buscar(String termo) {
         return chefeRepository.findByNomeUsuarioContainingIgnoreCase(termo);

@@ -17,7 +17,7 @@ CREATE TABLE Usuario (
     Gmail NVARCHAR(255) NOT NULL UNIQUE,
     Senha NVARCHAR(250) NOT NULL,
     Status_Usuario NVARCHAR(20) NOT NULL DEfault 'ATIVO',
-    Restricoes_alimentares NVARCHAR(MAX),
+    Restricoes_alimentares NVARCHAR(MAX) default 'lactose',
 );
 -- 3. Tabela de Chefe
 CREATE TABLE Chefe (
@@ -369,6 +369,9 @@ SELECT *
 FROM vw_UsuariosInativos
 ORDER BY Dias_Desde_Ultimo_Acesso DESC;
  
+ go
+ alter table usuario add foto_perfil NVARCHAR(MAX) NULL;
 SELECT * FROM Usuario
 Select * From Chefe
 select * from Receitas
+select * from Favoritos

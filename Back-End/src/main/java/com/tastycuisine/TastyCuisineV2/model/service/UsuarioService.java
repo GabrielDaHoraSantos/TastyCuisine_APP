@@ -3,6 +3,7 @@ package com.tastycuisine.TastyCuisineV2.model.service;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.tastycuisine.TastyCuisineV2.model.entity.Usuario;
@@ -13,13 +14,15 @@ public class UsuarioService {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
 
     // Listar todos os usuários
     public List<Usuario> findAll() { return usuarioRepository.findAll(); }
 
     // Salvar usuario
     public Usuario save(Usuario usuario) {
-        usuario.setStatus_Usuario("ATIVO");
+        usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
         return usuarioRepository.save(usuario);
     }
 
@@ -51,8 +54,8 @@ public class UsuarioService {
             usuarioExistente.setIdade(usuario.getIdade());
         }
         if (usuario.getSenha() != null && !usuario.getSenha().isBlank()) {
-            usuarioExistente.setSenha(usuario.getSenha());
-        }
+    usuarioExistente.setSenha(passwordEncoder.encode(usuario.getSenha()));
+}
         if (usuario.getRestricoesAlimentares() != null) {
             usuarioExistente.setRestricoesAlimentares(usuario.getRestricoesAlimentares());
         }
@@ -76,23 +79,29 @@ public class UsuarioService {
 
     //login de usuario
     public Usuario login(String gmail, String senha) {
-        Usuario usuario = usuarioRepository.findByGmailAndSenha(gmail, senha)
-                .orElseThrow(() -> new RuntimeException("EMAIL_OU_SENHA_INCORRETOS"));
-        if ("INATIVO".equals(usuario.getStatus_Usuario())) {
-            throw new RuntimeException("CONTA_INATIVA");
-        }
-        return usuario;
+    Usuario usuario = usuarioRepository.findByGmail(gmail)
+            .orElseThrow(() -> new RuntimeException("EMAIL_OU_SENHA_INCORRETOS"));
+    
+    if (!passwordEncoder.matches(senha, usuario.getSenha())) {
+        throw new RuntimeException("EMAIL_OU_SENHA_INCORRETOS");
     }
+    
+    if ("INATIVO".equals(usuario.getStatus_Usuario())) {
+        throw new RuntimeException("CONTA_INATIVA");
+    }
+    return usuario;
+}
 
     // reativar conta com senha
     public Usuario reativar(String gmail, String senha) {
-        Usuario usuario = usuarioRepository.findByGmailAndSenha(gmail, senha)
-                .orElseThrow(() -> new RuntimeException("EMAIL_OU_SENHA_INCORRETOS"));
-        usuario.setStatus_Usuario("ATIVO");
-        return usuarioRepository.save(usuario);
+        Usuario usuario = usuarioRepository.findByGmail(gmail)
+        .orElseThrow(() -> new RuntimeException("EMAIL_OU_SENHA_INCORRETOS"));
+    
+    if (!passwordEncoder.matches(senha, usuario.getSenha())) {
+        throw new RuntimeException("EMAIL_OU_SENHA_INCORRETOS");
     }
+    return usuario;
 
 
-
-
-}
+    
+    }}

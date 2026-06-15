@@ -52,7 +52,7 @@ const CATEGORIES = [
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 const getRecipeName   = (r: any) => r.nomeReceita ?? r.name ?? '';
 const getRecipeChef   = (r: any) => r.chefe?.nomeChefe ?? r.chefe?.nome ?? r.chef ?? '';
-const getRecipeImage  = (r: any) => r.fotoReceita ?? r.image ?? '';
+const getRecipeImage  = (r: any) => r.fotoReceita || 'https://worldfoodtour.co.uk/wp-content/uploads/2013/06/neptune-placeholder-48.jpg';
 const getRecipeTime   = (r: any) => r.prepareTime ?? r.tempoPreparo ?? '';
 const getRecipeId     = (r: any) => String(r.codReceitas ?? r.id ?? '');
 const getRecipeRating = (r: any) => parseFloat(r.avaliacao ?? r.rating ?? '0').toFixed(1);
@@ -371,7 +371,7 @@ const w = StyleSheet.create({
     elevation: 3,
     alignItems: 'center',
   },
-  img:   { width: 90, height: 90, backgroundColor: C.surfaceHi },
+  img:   { width: 90, height: 90, backgroundColor: C.surfaceHi, borderRadius: 10,marginLeft:5 },
   info:  { flex: 1, padding: 14, gap: 4 },
   name:  { fontSize: 15, fontWeight: '700', color: C.textPrimary, lineHeight: 20 },
   chef:  { fontSize: 12, color: C.textSub },
