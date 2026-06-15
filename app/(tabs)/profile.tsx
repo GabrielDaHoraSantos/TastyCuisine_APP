@@ -61,12 +61,11 @@ interface UserStats {
 // ─── URL base da API ──────────────────────────────────────────────────────────
 // Ajuste conforme o seu ambiente
 
-//const API_BASE = 'http://SEU_IP:8080';
 const API_BASE = 'http://192.168.1.100:8080';
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { user, userId, login, logout, loading } = useAuth();
+  const { user, userId, login, logout, loading, favoritos, rating,getComentarios } = useAuth();
 
   const [editModalVisible,   setEditModalVisible]   = useState(false);
   const [drawerVisible,      setDrawerVisible]      = useState(false);
@@ -76,6 +75,7 @@ export default function ProfileScreen() {
   const [savingPhoto,  setSavingPhoto]  = useState(false);
   const [stats,        setStats]        = useState<UserStats>({ favoritos: 0, avaliacoes: 0, comentarios: 0 });
   const [loadingStats, setLoadingStats] = useState(true);
+
 
   const [form, setForm] = useState({
     nomeCompleto:  user?.nomeCompleto  ?? '',
@@ -91,29 +91,24 @@ export default function ProfileScreen() {
 
   // Busca stats do usuário
   useEffect(() => {
-    if (!userId) return;
-    const fetchStats = async () => {
-      setLoadingStats(true);
-      try {
-        // TODO: substitua pelo endpoint real → GET /usuario/:id/stats
-        // retornando { favoritos, avaliacoes, comentarios }
-        const res = await fetch(`${API_BASE}/usuario/${userId}/stats`);
-        if (res.ok) {
-          const data = await res.json();
-          setStats({
-            favoritos:   data.favoritos   ?? 0,
-            avaliacoes:  data.avaliacoes  ?? 0,
-            comentarios: data.comentarios ?? 0,
-          });
-        }
-      } catch {
-        // silently fail
-      } finally {
-        setLoadingStats(false);
-      }
-    };
-    fetchStats();
-  }, [userId]);
+  if (!userId) return;
+  
+  async function fetchStats() {
+    setLoadingStats(true);
+    try {
+      const comentarios = await getComentarios(userId!)
+      // busca avaliações se tiver endpoint
+      setStats({
+        favoritos: favoritos.length,
+        avaliacoes: 0, // ajusta quando tiver endpoint
+        comentarios: comentarios.length,
+      });
+    } finally {
+      setLoadingStats(false);
+    }
+  }
+  fetchStats();
+}, [userId, favoritos]);
 
   // ── Seleciona foto da galeria e envia ao backend ──────────────────────────
   const handlePickPhoto = async () => {
@@ -270,11 +265,11 @@ const avatarSource = user?.fotoPerfil
 
           {/* Stats */}
           <View style={s.statsRow}>
-            <StatBox value={loadingStats ? '…' : String(stats.favoritos)}   label="Favoritos" />
+            <StatBox value={!loadingStats ? String(stats.favoritos) : '…'} label="Favoritos" />
             <View style={s.statsDivider} />
-            <StatBox value={loadingStats ? '…' : String(stats.avaliacoes)}  label="Avaliações" />
+            <StatBox value={!loadingStats ? String(stats.avaliacoes) : '…'} label="Avaliações" />
             <View style={s.statsDivider} />
-            <StatBox value={loadingStats ? '…' : String(stats.comentarios)} label="Comentários" />
+            <StatBox value={!loadingStats ? String(stats.comentarios) : '…'} label="Comentários" />
           </View>
         </View>
 
