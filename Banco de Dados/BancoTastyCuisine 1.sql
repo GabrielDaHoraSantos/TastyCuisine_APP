@@ -31,9 +31,11 @@ CREATE TABLE Categorias (
 CREATE TABLE Livros(
     Cod_Livros INT IDENTITY(1,1) PRIMARY KEY,
     Nome_Livro NVARCHAR(50) NOT NULL,
-    Cod_Receitas NVARCHAR(MAX) NULL,
+    Cod_receitas INT NOT NULL,
     Foto_Livro NVARCHAR(MAX) NULL,
     Cod_Usuario INT NOT NULL,
+       
+    FOREIGN KEY (Cod_receitas) REFERENCES Receitas(Cod_receitas),
     FOREIGN KEY (Cod_Usuario) REFERENCES Usuario(Cod_user),
 );
 
@@ -43,14 +45,14 @@ CREATE TABLE Receitas (
     Descricao NVARCHAR(250) NOT NULL,
     Modo_preparo NVARCHAR(MAX) NOT NULL,
     Ingredientes NVARCHAR(MAX) NOT NULL,
-    Categorias NVARCHAR(MAX) NOT NULL,
+    Categoria INT NOT NULL,
     Cod_usuario INT NOT NULL,
     Foto_receita NVARCHAR(MAX),
     Restricao INT NOT NULL,
     FOREIGN KEY (Cod_usuario) REFERENCES Usuario(Cod_user),
     CONSTRAINT chk_ingredientes CHECK (Ingredientes IS NULL OR ISJSON(Ingredientes) = 1),
     CONSTRAINT chk_modo_preparo CHECK (ISJSON(Modo_preparo) = 1),
-    CONSTRAINT chk_categorias CHECK (ISJSON(Categorias) = 1),
+    FOREIGN KEY (Categoria) REFERENCES Categorias(Cod_Categoria)
 );
 
 CREATE TABLE Favoritos (
