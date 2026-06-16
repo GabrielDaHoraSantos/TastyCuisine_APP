@@ -3,11 +3,10 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Image, Linking, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useAuth } from '../authContext';
-import { authAPI, reativarAPI } from './api';
  
 export default function LoginScreen() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, reativar } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     senha: ''
@@ -30,9 +29,9 @@ export default function LoginScreen() {
     setError(null);
  
     try {
-      const response = await authAPI.login({ email: formData.email, senha: formData.senha });
+      const response = await login({ email: formData.email, senha: formData.senha });
  
-      if (response.data) {
+      if (response) {
         await login(response.data);
         router.replace('/home');
       } else if (response.status === 403) {

@@ -1,4 +1,5 @@
 IF EXISTS(select * from sys.databases where name = 'TASTYCUISINE')
+USE master
 DROP DATABASE TASTYCUISINE
 GO
 CREATE DATABASE TASTYCUISINE
@@ -26,17 +27,6 @@ CREATE TABLE Usuario (
 CREATE TABLE Categorias (
     Cod_Categoria INT IDENTITY(1,1) PRIMARY KEY,
     Nome_Categoria NVARCHAR(100) NOT NULL,
-);
-
-CREATE TABLE Livros(
-    Cod_Livros INT IDENTITY(1,1) PRIMARY KEY,
-    Nome_Livro NVARCHAR(50) NOT NULL,
-    Cod_receitas INT NOT NULL,
-    Foto_Livro NVARCHAR(MAX) NULL,
-    Cod_Usuario INT NOT NULL,
-       
-    FOREIGN KEY (Cod_receitas) REFERENCES Receitas(Cod_receitas),
-    FOREIGN KEY (Cod_Usuario) REFERENCES Usuario(Cod_user),
 );
 
 CREATE TABLE Receitas (
@@ -74,6 +64,23 @@ CREATE TABLE Comentarios (
     FOREIGN KEY (Cod_receitas) REFERENCES Receitas(Cod_receitas)
 );
 
+CREATE TABLE Livros(
+    Cod_Livros INT IDENTITY(1,1) PRIMARY KEY,
+    Nome_Livro NVARCHAR(50) NOT NULL,
+    Cod_receitas INT NOT NULL,
+    Foto_Livro NVARCHAR(MAX) NULL,
+    Cod_User INT NOT NULL,
+       
+    FOREIGN KEY (Cod_receitas) REFERENCES Receitas(Cod_receitas),
+    FOREIGN KEY (Cod_User) REFERENCES Usuario(Cod_user),
+);
+
+GO
+
+insert into Usuario(Nome_completo,Nome_de_usuario,Idade,Gmail,Senha,Restricoes_alimentares,funcao)
+VALUES('soso','Sooo','25','gmail@gmail.com','123456','[]','Usuario')
+    
+
 GO
  
 SELECT * FROM Usuario
@@ -81,3 +88,4 @@ Select * From Comentarios
 select * from Categorias
 select * from Receitas
 select * from Favoritos
+select * from Livros    

@@ -38,7 +38,7 @@ public class Receita {
 
     @Column(name = "Descricao", length = 250, nullable = false)
     @NotBlank
-    private String Descricao;
+    private String descricao;
 
     @Column(name = "Modo_preparo", nullable = false, columnDefinition = "NVARCHAR(MAX)")
     @NotBlank

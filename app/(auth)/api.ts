@@ -20,30 +20,20 @@ export const API_ENDPOINTS = {
   USUARIOS: `${API_BASE_URL}/usuario`,
   USUARIO_BY_ID: (id: string | number) => `${API_BASE_URL}/usuario/${id}`,
   
-  // Chefes
-  CHEFES_ALL: `${API_BASE_URL}/chefe/findAll`,
-  CHEFES: `${API_BASE_URL}/chefe`,
-  CHEFE_BY_ID: (id: string | number) => `${API_BASE_URL}/chefe/${id}`,
+  // Livros
+  LIVROS_ALL: `${API_BASE_URL}/livro/findAll`,
+  LIVROS: `${API_BASE_URL}/livro`,
+  LIVRO_BY_ID: (id: string | number) => `${API_BASE_URL}/livro/${id}`,
   
   // Favoritos
   FAVORITOS_ALL: `${API_BASE_URL}/favorito/findAll`,
   FAVORITOS: `${API_BASE_URL}/favorito`,
   FAVORITO_BY_ID: (id: string | number) => `${API_BASE_URL}/favorito/${id}`,
   
-  // Avaliações
-  AVALIACOES_ALL: `${API_BASE_URL}/avaliacao/findAll`,
-  AVALIACOES: `${API_BASE_URL}/avaliacao`,
-  AVALIACAO_BY_ID: (id: string | number) => `${API_BASE_URL}/avaliacao/${id}`,
-  
   // Comentários
   COMENTARIOS_ALL: `${API_BASE_URL}/comentario/findAll`,
   COMENTARIOS: `${API_BASE_URL}/comentario`,
   COMENTARIO_BY_ID: (id: string | number) => `${API_BASE_URL}/comentario/${id}`,
-  
-  // Acesso (CRUD de acessos)
-  ACESSOS_ALL: `${API_BASE_URL}/acesso/findAll`,
-  ACESSOS: `${API_BASE_URL}/acesso`,
-  ACESSO_BY_ID: (id: string | number) => `${API_BASE_URL}/acesso/${id}`,
   
   // Categorias
   CATEGORIAS_ALL: `${API_BASE_URL}/categoria/findAll`,
@@ -153,6 +143,10 @@ export const usuariosAPI = {
     apiCall(`${API_BASE_URL}/usuario/delete/${id}`, {
       method: 'PUT',
     }),
+  ativar: (id: string | number) =>
+    apiCall(`${API_BASE_URL}/usuario/${id}/ativar/`, {
+      method: 'PUT',
+    }),
 }
 
 // Favoritos API
@@ -162,11 +156,18 @@ export const favoritosAPI = {
   delete: (id: string | number) => apiCall(API_ENDPOINTS.FAVORITO_BY_ID(id), { method: 'DELETE' }),
 }
 
+
+export const categoriasAPI = {
+  getAll: () => apiCall(API_ENDPOINTS.CATEGORIAS_ALL),
+  create: (data: any) => apiCall(API_ENDPOINTS.CATEGORIAS, { method: 'POST', body: JSON.stringify(data) }),
+  delete: (id: string | number) => apiCall(API_ENDPOINTS.CATEGORIA_BY_ID(id), { method: 'DELETE' }),
+}
+
 // Avaliações API
-export const avaliacoesAPI = {
-  getAll: () => apiCall(API_ENDPOINTS.AVALIACOES_ALL),
-  create: (data: any) => apiCall(API_ENDPOINTS.AVALIACOES, { method: 'POST', body: JSON.stringify(data) }),
-  delete: (id: string | number) => apiCall(API_ENDPOINTS.AVALIACAO_BY_ID(id), { method: 'DELETE' }),
+export const livrosAPI = {
+  getAll: () => apiCall(API_ENDPOINTS.LIVROS_ALL),
+  create: (data: any) => apiCall(API_ENDPOINTS.LIVROS, { method: 'POST', body: JSON.stringify(data) }),
+  delete: (id: string | number) => apiCall(API_ENDPOINTS.LIVRO_BY_ID(id), { method: 'DELETE' }),
 }
 
 // Comentários API

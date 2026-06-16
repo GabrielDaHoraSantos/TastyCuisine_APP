@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { avaliacoesAPI, comentariosAPI, favoritosAPI, receitasAPI, usuariosAPI } from './(auth)/api';
+import { comentariosAPI, favoritosAPI, receitasAPI, usuariosAPI } from './(auth)/api';
 
 interface AuthUser {
   [x: string]: any;
@@ -26,6 +26,7 @@ interface AuthContextType {
   enviarAvaliacao: (receitaId: number, nota: number, texto: string) => Promise<void>;
   toggleFavorito: (receitaId: string, codReceitas: number) => Promise<void>;
   login: (userData: any) => void;
+  reativar: ()
   logout: () => void;
 }
 
@@ -57,6 +58,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(userData);
     await AsyncStorage.setItem('userId', String(userData.codUser));
     console.log('id de usuario salvo como: ', await AsyncStorage.getItem('usedId'))
+    return setUser(userData);
   };
 
   const logout = async () => {
@@ -101,7 +103,6 @@ async function getComentarios(receitaId: string) {
   return await res.json()
 }
 async function enviarAvaliacao(receitaId: number, nota: number, texto: string) {
-  await avaliacoesAPI.create({ usuario: { codUser: Number(user?.codUser) }, receita: { codReceitas: receitaId }, nota })
   await comentariosAPI.create({ usuario: { codUser: Number(user?.codUser) }, receita: { codReceitas: receitaId }, texto })
 }
 
@@ -125,6 +126,9 @@ async function enviarAvaliacao(receitaId: number, nota: number, texto: string) {
     </AuthContext.Provider>
   );
 };
+async function reactivar(params:type) {
+  
+}
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
