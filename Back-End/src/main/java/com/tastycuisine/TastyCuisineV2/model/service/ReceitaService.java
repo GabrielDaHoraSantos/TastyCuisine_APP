@@ -1,11 +1,12 @@
 package com.tastycuisine.TastyCuisineV2.model.service;
 
-import com.tastycuisine.TastyCuisineV2.model.entity.Receita;
-import com.tastycuisine.TastyCuisineV2.model.repository.ReceitaRepository;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import com.tastycuisine.TastyCuisineV2.model.entity.Receita;
+import com.tastycuisine.TastyCuisineV2.model.repository.ReceitaRepository;
 
 @Service
 public class ReceitaService {
@@ -25,19 +26,19 @@ public class ReceitaService {
     public Receita update(long codReceitas, Receita receita) {
         Receita existente = findById(codReceitas);
 
-        existente.setNome_receita(receita.getNome_receita());
+        existente.setNomeReceita(receita.getNomeReceita());
         existente.setDescricao(receita.getDescricao());
         existente.setModo_preparo(receita.getModo_preparo());
         existente.setIngredientes(receita.getIngredientes());
         existente.setCategorias(receita.getCategorias());
         existente.setUsuario(receita.getUsuario());
-        existente.setFoto_receita(receita.getFoto_receita());
+        existente.setFotoReceita(receita.getFotoReceita());
         existente.setRestricao(receita.getRestricao());
         return receitaRepository.save(existente);
     }
 
     public List<Receita> findByChefe(long codChefe) {
-        return receitaRepository.findByChefeCodChefe(codChefe);
+        return receitaRepository.findByUsuarioCodUser(codChefe);
     }
 
     public List<Receita> buscar(String termo) {

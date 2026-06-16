@@ -1,10 +1,17 @@
 package com.tastycuisine.TastyCuisineV2.model.entity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -19,15 +26,31 @@ import lombok.Setter;
 @NoArgsConstructor
 @Builder
 @Entity
-@Table(name = "Categorias")
+@Table(name = "Livros")
 public class Livro {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "Cod_Categoria")
-    private long codCategoria;
+    @Column(name = "Cod_Livros")
+    private long codLivro;
 
-    @Column(name = "Nome_Categoria", length = 100, nullable = false)
+    @Column(name = "Nome_Livro", length = 50, nullable = false)
     @NotBlank
-    private String nomeCategoria;
+    private String nomeLivro;
+    
+    @Builder.Default
+    @ManyToMany
+    @JoinTable(
+        name = "Livro_Receitas",
+        joinColumns = @JoinColumn(name = "Cod_livro"),
+        inverseJoinColumns = @JoinColumn(name = "Cod_receitas")
+    )
+    private List<Receita> receitas = new ArrayList<>();
+    
+    @Column(name = "Foto_Livro", nullable = true, columnDefinition = "NVARCHAR(MAX)")
+    private String fotoLivro;
+    
+    @ManyToOne
+    @JoinColumn(name = "Cod_user", nullable = false)
+    private Usuario usuario;
 }

@@ -1,10 +1,22 @@
 package com.tastycuisine.TastyCuisineV2.model.entity;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import lombok.*;
-
 import java.util.List;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
 @Setter
@@ -18,11 +30,11 @@ public class Receita {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "Cod_receitas")
-    private long Cod_receitas;
+    private long codReceitas;
 
     @Column(name = "Nome_receita", length = 250, nullable = false)
     @NotBlank
-    private String Nome_receita;
+    private String nomeReceita;
 
     @Column(name = "Descricao", length = 250, nullable = false)
     @NotBlank
@@ -47,8 +59,8 @@ public class Receita {
 
     @ManyToOne
     @JoinColumn(name = "Cod_usuario", nullable = false)
-    private Usuario Usuario;
+    private Usuario usuario;
 
     @Column(name = "Foto_receita", nullable = true, columnDefinition = "NVARCHAR(MAX)")
-    private String Foto_receita;
+    private String fotoReceita;
 }

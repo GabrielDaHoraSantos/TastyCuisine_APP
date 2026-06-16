@@ -27,7 +27,7 @@ public class Usuario {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "Cod_user")
-    private long Cod_user;
+    private long codUser;
 
     @Builder.Default
     @Column(name = "Status_Usuario", length = 20, nullable = false)
