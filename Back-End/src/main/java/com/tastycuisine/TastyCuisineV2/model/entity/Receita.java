@@ -1,14 +1,11 @@
 package com.tastycuisine.TastyCuisineV2.model.entity;
 
-import java.util.List;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
@@ -48,10 +45,9 @@ public class Receita {
     @NotBlank
     private String Ingredientes;
 
-    @ManyToMany
-    @Column(name = "Categorias", nullable = false, columnDefinition = "NVARCHAR(MAX)")
-    @NotBlank
-    private List<Categoria> Categorias;
+        @ManyToOne
+        @JoinColumn(name = "Categoria")
+        private Categoria categoria;
 
     @Column(name = "Restricao", nullable = false, columnDefinition = "NVARCHAR(MAX)")
     @NotBlank

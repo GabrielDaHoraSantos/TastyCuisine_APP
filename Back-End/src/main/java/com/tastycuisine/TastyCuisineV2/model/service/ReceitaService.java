@@ -14,9 +14,13 @@ public class ReceitaService {
     @Autowired
     private ReceitaRepository receitaRepository;
 
-    public List<Receita> findAll() { return receitaRepository.findAll(); }
+    public List<Receita> findAll() {
+        return receitaRepository.findAll();
+    }
 
-    public Receita save(Receita receita) { return receitaRepository.save(receita); }
+    public Receita save(Receita receita) {
+        return receitaRepository.save(receita);
+    }
 
     public Receita findById(long codReceitas) {
         return receitaRepository.findById(codReceitas)
@@ -30,15 +34,15 @@ public class ReceitaService {
         existente.setDescricao(receita.getDescricao());
         existente.setModo_preparo(receita.getModo_preparo());
         existente.setIngredientes(receita.getIngredientes());
-        existente.setCategorias(receita.getCategorias());
+        existente.setCategoria(receita.getCategoria());
         existente.setUsuario(receita.getUsuario());
         existente.setFotoReceita(receita.getFotoReceita());
         existente.setRestricao(receita.getRestricao());
         return receitaRepository.save(existente);
     }
 
-    public List<Receita> findByChefe(long codChefe) {
-        return receitaRepository.findByUsuarioCodUser(codChefe);
+    public List<Receita> findByUsuario(long codUsuario) {
+        return receitaRepository.findByUsuarioCodUser(codUsuario);
     }
 
     public List<Receita> buscar(String termo) {
@@ -53,8 +57,8 @@ public class ReceitaService {
 
     public List<Receita> findByCategoria(long codCategoria) {
         return receitaRepository.findAll().stream()
-                .filter(r -> r.getCategorias().stream()
-                        .anyMatch(c -> c.getCodCategoria() == codCategoria))
+                .filter(r -> r.getCategoria() != null &&
+                        r.getCategoria().getCodCategoria() == codCategoria)
                 .collect(java.util.stream.Collectors.toList());
     }
 
