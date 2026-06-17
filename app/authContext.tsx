@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { comentariosAPI, favoritosAPI, receitasAPI, usuariosAPI } from './(auth)/api';
+import { comentariosAPI, favoritosAPI, livrosAPI, receitasAPI, usuariosAPI } from './(auth)/api';
 
 interface AuthUser {
   [x: string]: any;
@@ -13,6 +13,18 @@ interface AuthUser {
   Status_Usuario?: string;
 }
 
+export interface Livro {
+  codLivro: number;
+  nomeLivro: string;
+  receitas: ReceitaLivro[];
+  fotoLivro: string | null;
+  usuario: AuthUser;
+}
+interface ReceitaLivro {
+  codReceitas: number;
+  nomeReceita: string;
+}
+
 interface AuthContextType {
   user: AuthUser | null;
   isLogged: boolean;
@@ -21,6 +33,14 @@ interface AuthContextType {
   loading: boolean;
   favoritos: any[];      
   recipes: any[];
+  addRecipeToBook: (codLivro:number,codReceita:number)=> Promise<{ok:boolean; error?:string}>;
+  removeRecipeFromBook:(codLivro:number,codReceita:number)=> Promise<{ok:boolean; error?:string}>;
+
+  createBook: (data: any) => Promise<{ ok: boolean; error?: string }>;
+  deleteBook:(id: number) => Promise<{ok:boolean; error?:string}>;
+  getBookbyId: (id: number)  => Promise<{ok:boolean; error?:string; book?:Livro}>;
+  getBookbyUserId: (id:number) => Promise<{ok:boolean; error?:string; livros?:Livro[]}>;
+  updateBook:(data: Livro, id: number) => Promise<{ok:boolean; error?:string}>
   register: (nomeCompleto: string, nomeDeUsuario: string, idade: number, gmail: string, senha: string) => Promise<{ ok: boolean; error?: string }>;
   getComentarios: (receitaId: string) => Promise<any[]>;
   enviarComentario: (receitaId: number, nota: number, texto: string) => Promise<void>;
@@ -150,6 +170,94 @@ async function register(nomeCompleto: string, nomeDeUsuario: string, idade: numb
   return { ok: false, error: res.error }
 }
 
+async function createBook(nome: string) {
+  const result = await livrosAPI.create({
+    nomeLivro: nome,
+    usuario:{codUser: Number(user?.codUser)}})
+  if(result.data){
+    return {ok:true}
+  }
+  return {ok: false, error:result.error}
+}
+
+async function deleteBook(id: number){
+  const result = await livrosAPI.delete(id);
+  if(result.data){
+    return {ok:true}
+  }
+  return {ok:false,error:result.error}
+}
+
+const getBookbyId = async (id: number) => {
+  try {
+    const response = await livrosAPI.getByiD(id);
+
+    return {
+      ok: true,
+      book: response.data as Livro,
+    };
+  } catch (error: any) {
+    return {
+      ok: false,
+      error: error.message,
+    };
+  }
+};
+
+async function getBookbyUserId(id:number){
+  const result = await livrosAPI.getByUserId(id);
+  if(result.data){
+    return {livros: result.data as Livro[], ok: true}
+  }
+  return {ok:false,error:result.error}
+}
+
+async function updateBook(data: Livro, id: number){
+  const result = await livrosAPI.save(data,id);
+  if(result.data){
+    return {ok:true}
+  }
+  return {ok:false,error:result.error}
+}
+
+async function addRecipeToBook(
+  codLivro:number,
+  codReceita:number
+){
+  const result = await livrosAPI.addRecipeToBook(
+    codLivro,
+    codReceita
+  );
+
+  if(result.data){
+    return { ok:true };
+  }
+
+  return {
+    ok:false,
+    error: result.error
+  };
+}
+
+async function removeRecipeFromBook(
+  codLivro:number,
+  codReceita:number
+){
+  const result =
+    await livrosAPI.removeRecipeFromBook(
+      codLivro,
+      codReceita
+    );
+
+  if(result.data){
+    return { ok:true };
+  }
+
+  return {
+    ok:false,
+    error: result.error
+  };
+}
 
   return (
     <AuthContext.Provider value={{
@@ -165,6 +273,13 @@ async function register(nomeCompleto: string, nomeDeUsuario: string, idade: numb
       reativar,
       alterarStatus,
       logout,
+      removeRecipeFromBook,
+      addRecipeToBook,
+      updateBook,
+      createBook,
+      deleteBook,
+      getBookbyId,
+      getBookbyUserId,
       register,
       getComentarios,
       enviarComentario,

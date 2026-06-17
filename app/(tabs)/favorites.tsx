@@ -11,10 +11,10 @@
  *   Instale se ainda não tiver:
  *     npx expo install @react-native-async-storage/async-storage
  *
- * ESTRUTURA DE DADOS salva no AsyncStorage (chave "recipeBooks"):
- *   RecipeBook[]
+ * ESTRUTURA DE DADOS salva no AsyncStorage (chave "Livros"):
+ *   Livro[]
  *   {
- *     id:        string          // UUID gerado no app
+ *     id:        number          // UUID gerado no app
  *     name:      string          // Nome dado pelo usuário
  *     recipeIds: string[]        // codReceitas das receitas adicionadas
  *     cover?:    string          // fotoReceita da primeira receita (auto)
@@ -23,7 +23,7 @@
  */
 
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+//import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -44,7 +44,7 @@ import {
 } from 'react-native';
 import BolinhaqGira from '../../components/BolinhaqGira';
 import BottomNavigation from '../../components/BottomNavigation';
-import { useAuth } from '../authContext';
+import { Livro, useAuth } from '../authContext';
 import { useTheme } from '../themeContext';
 
 // ─── Tokens ───────────────────────────────────────────────────────────────────
@@ -66,15 +66,15 @@ const C = {
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_SIZE = (SCREEN_WIDTH - 20 * 2 - 14) / 2; // 2 colunas, gap 14
 
-const STORAGE_KEY = 'recipeBooks';
+const STORAGE_KEY = 'Livros';
 
 // ─── Tipos locais ─────────────────────────────────────────────────────────────
-type RecipeBook = {
-  id:        string;
+/*type Livro = {
+  id:        number;
   name:      string;
   recipeIds: string[];
   cover?:    string;
-};
+};*/
 
 // ─── Helpers de favorito ──────────────────────────────────────────────────────
 const getFavName     = (f: any): string => f.receita?.nomeReceita ?? '';
@@ -90,12 +90,21 @@ const uid = (): string => Date.now().toString(36) + Math.random().toString(36).s
 
 // ═════════════════════════════════════════════════════════════════════════════
 export default function FavoritesScreen() {
-  const { theme, isDarkMode } = useTheme();
-  const { loading, userId, favoritos, toggleFavorito } = useAuth();
+  const { theme, isDarkMode } = useTheme();const {
+  loading,
+  userId,
+  favoritos,
+  toggleFavorito,
+  createBook,
+  deleteBook,
+  getBookbyUserId,
+  addRecipeToBook,
+  removeRecipeFromBook,
+} = useAuth();
   const router = useRouter();
 
   // ── Estado dos livros ──────────────────────────────────────────────────────
-  const [books, setBooks]                     = useState<RecipeBook[]>([]);
+  const [books, setBooks]                     = useState<Livro[]>([]);
   const [booksLoaded, setBooksLoaded]         = useState(false);
 
   // ── Estado da busca ────────────────────────────────────────────────────────
@@ -109,7 +118,7 @@ export default function FavoritesScreen() {
 
   // ── Dados temporários ──────────────────────────────────────────────────────
   const [newBookName, setNewBookName]         = useState('');
-  const [selectedBook, setSelectedBook]       = useState<RecipeBook | null>(null);
+  const [selectedBook, setSelectedBook]       = useState<Livro | null>(null);
   const [selectedFavIds, setSelectedFavIds]   = useState<string[]>([]);
 
   // ── Animação do botão "+" ──────────────────────────────────────────────────
@@ -125,60 +134,111 @@ export default function FavoritesScreen() {
     if (!userId && !loading) router.push('/login');
   }, [loading]);
 
-  // ── Carregar livros do AsyncStorage ───────────────────────────────────────
+  //Carregar os livros
   useEffect(() => {
-    (async () => {
-      try {
-        const raw = await AsyncStorage.getItem(STORAGE_KEY);
-        if (raw) setBooks(JSON.parse(raw));
-      } catch (_) {}
-      setBooksLoaded(true);
-    })();
-  }, []);
+  async function loadBooks() {
+    if (!userId) return;
 
-  // ── Salvar livros sempre que mudarem ──────────────────────────────────────
-  const saveBooks = async (next: RecipeBook[]) => {
-    setBooks(next);
-    try { await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch (_) {}
-  };
+    const result = await getBookbyUserId(Number(userId));
+
+    if (result.ok && result.livros) {
+      setBooks(result.livros);
+    }
+
+    setBooksLoaded(true);
+  }
+
+  loadBooks();
+}, [userId]);
+
 
   // ── Criar livro ───────────────────────────────────────────────────────────
-  const handleCreateBook = () => {
-    const name = newBookName.trim();
-    if (!name) return;
-    const book: RecipeBook = { id: uid(), name, recipeIds: [] };
-    saveBooks([...books, book]);
-    setNewBookName('');
+  const handleCreateBook = async () => {
+  const name = newBookName.trim();
+
+  if (!name) return;
+
+  const result = await createBook(name);
+
+  if (result.ok && userId) {
+    const livros = await getBookbyUserId(Number(userId));
+
+    if (livros.ok && livros.livros) {
+      setBooks(livros.livros);
+    }
+
     setCreateModalVisible(false);
-  };
+    setNewBookName('');
+  }
+};
 
   // ── Abrir modal de adicionar receitas a um livro ──────────────────────────
-  const openAddModal = (book: RecipeBook) => {
+  const openAddModal = (book: Livro) => {
     setSelectedBook(book);
-    setSelectedFavIds([...book.recipeIds]);
+    setSelectedFavIds(
+  book.receitas.map(r => String(r.codReceitas))
+);
     setAddModalVisible(true);
   };
 
   // ── Salvar receitas no livro ──────────────────────────────────────────────
-  const handleSaveRecipes = () => {
-    if (!selectedBook) return;
-    const cover = (() => {
-      const first = favoritos.find(f => selectedFavIds.includes(getFavRecipeId(f)));
-      return first ? getFavImage(first) : undefined;
-    })();
-    const next = books.map(b =>
-      b.id === selectedBook.id ? { ...b, recipeIds: selectedFavIds, cover } : b
+  const handleSaveRecipes = async () => {
+  if (!selectedBook) return;
+
+  const receitasAtuais =
+    selectedBook.receitas.map(r =>
+      String(r.codReceitas)
     );
-    saveBooks(next);
-    setAddModalVisible(false);
-    setSelectedBook(null);
-  };
+
+  const paraAdicionar =
+    selectedFavIds.filter(
+      id => !receitasAtuais.includes(id)
+    );
+
+  const paraRemover =
+    receitasAtuais.filter(
+      id => !selectedFavIds.includes(id)
+    );
+
+  for (const receitaId of paraAdicionar) {
+    await addRecipeToBook(
+      selectedBook.codLivro,
+      Number(receitaId)
+    );
+  }
+
+  for (const receitaId of paraRemover) {
+    await removeRecipeFromBook(
+      selectedBook.codLivro,
+      Number(receitaId)
+    );
+  }
+
+  if (userId) {
+    const result =
+      await getBookbyUserId(Number(userId));
+
+    if (result.ok && result.livros) {
+      setBooks(result.livros);
+    }
+  }
+
+  setAddModalVisible(false);
+  setSelectedBook(null);
+};
 
   // ── Excluir livro ─────────────────────────────────────────────────────────
-  const handleDeleteBook = (bookId: string) => {
-    saveBooks(books.filter(b => b.id !== bookId));
+  const handleDeleteBook = async (bookId: number) => {
+  const result = await deleteBook(bookId);
+
+  if (result.ok) {
+    setBooks(prev =>
+      prev.filter(book => book.codLivro !== bookId)
+    );
+
     setBookDetailVisible(false);
-  };
+  }
+};
 
   // ── Toggle receita na seleção ─────────────────────────────────────────────
   const toggleRecipeSelect = (recipeId: string) => {
@@ -188,12 +248,18 @@ export default function FavoritesScreen() {
   };
 
   // ── Receitas de um livro (para tela de detalhe) ───────────────────────────
-  const getBookRecipes = (book: RecipeBook) =>
-    favoritos.filter(f => book.recipeIds.includes(getFavRecipeId(f)));
+  const getBookRecipes = (book: Livro) =>
+  favoritos.filter(f =>
+    book.receitas.some(
+      r => String(r.codReceitas) === getFavRecipeId(f)
+    )
+  );
 
   // ── Livros filtrados pela busca ────────────────────────────────────────────
   const filteredBooks = searchQuery.trim()
-    ? books.filter(b => b.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    ? books.filter(b =>
+  b.nomeLivro.toLowerCase().includes(searchQuery.toLowerCase())
+)
     : books;
 
   // ── Toggle da busca ────────────────────────────────────────────────────────
@@ -258,9 +324,9 @@ export default function FavoritesScreen() {
 
         {filteredBooks.map(book => (
           <BookCard
-            key={book.id}
+            key={book.codLivro}
             book={book}
-            count={book.recipeIds.length}
+            count={book.receitas?.length ?? 0}
             onPress={() => { setSelectedBook(book); setBookDetailVisible(true); }}
             onLongPress={() => openAddModal(book)}
           />
@@ -323,7 +389,7 @@ export default function FavoritesScreen() {
           <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => setAddModalVisible(false)} />
           <View style={[m.sheet, { maxHeight: '75%' }]}>
             <Text style={m.sheetTitle}>
-              Adicionar ao "{selectedBook?.name}"
+              Adicionar ao "{selectedBook?.nomeLivro}"
             </Text>
             <Text style={m.sheetSub}>Escolha entre seus favoritos</Text>
 
@@ -381,7 +447,7 @@ export default function FavoritesScreen() {
             <TouchableOpacity onPress={() => setBookDetailVisible(false)} style={d.backBtn}>
               <Ionicons name="chevron-back" size={22} color={C.textPrimary} />
             </TouchableOpacity>
-            <Text style={d.title} numberOfLines={1}>{selectedBook?.name}</Text>
+            <Text style={d.title} numberOfLines={1}>{selectedBook?.nomeLivro}</Text>
             <View style={d.headerRight}>
               <TouchableOpacity
                 style={d.iconBtn}
@@ -391,7 +457,7 @@ export default function FavoritesScreen() {
               </TouchableOpacity>
               <TouchableOpacity
                 style={d.iconBtn}
-                onPress={() => selectedBook && handleDeleteBook(selectedBook.id)}
+                onPress={() => selectedBook && handleDeleteBook(selectedBook.codLivro)}
               >
                 <Ionicons name="trash-outline" size={22} color="#D04040" />
               </TouchableOpacity>
@@ -445,7 +511,7 @@ export default function FavoritesScreen() {
 function BookCard({
   book, count, onPress, onLongPress,
 }: {
-  book: RecipeBook;
+  book: Livro;
   count: number;
   onPress: () => void;
   onLongPress: () => void;
@@ -460,8 +526,8 @@ function BookCard({
     >
       {/* Capa com collage 2x2 ou placeholder */}
       <View style={bc.coverBox}>
-        {book.cover ? (
-          <Image source={{ uri: book.cover }} style={bc.coverImg} resizeMode="cover" />
+        {book.fotoLivro ? (
+          <Image source={{ uri:book.fotoLivro }} style={bc.coverImg} resizeMode="cover" />
         ) : (
           <View style={bc.coverPlaceholder}>
             <Ionicons name="book-outline" size={32} color={C.accentBorder} />
@@ -473,7 +539,7 @@ function BookCard({
         </View>
       </View>
       <View style={bc.info}>
-        <Text style={bc.name} numberOfLines={2}>{book.name}</Text>
+        <Text style={bc.name} numberOfLines={2}>{book.nomeLivro}</Text>
         <Text style={bc.sub}>{count} {count === 1 ? 'receita' : 'receitas'}</Text>
       </View>
     </TouchableOpacity>

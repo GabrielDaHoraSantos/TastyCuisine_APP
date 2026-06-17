@@ -51,6 +51,6 @@ public class Livro {
     private String fotoLivro;
     
     @ManyToOne
-    @JoinColumn(name = "Cod_user", nullable = false)
+    @JoinColumn(name = "Cod_User", nullable = false)
     private Usuario usuario;
 }

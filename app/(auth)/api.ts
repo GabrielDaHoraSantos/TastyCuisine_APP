@@ -25,6 +25,7 @@ export const API_ENDPOINTS = {
   LIVROS_ALL: `${API_BASE_URL}/livro/findAll`,
   LIVROS: `${API_BASE_URL}/livro`,
   LIVRO_BY_ID: (id: string | number) => `${API_BASE_URL}/livro/${id}`,
+  LIVRO_BY_USER_ID: (id: string | number) => `${API_BASE_URL}/livro/usuario/${id}`,
   
   // Favoritos
   FAVORITOS_ALL: `${API_BASE_URL}/favorito/findAll`,
@@ -178,6 +179,11 @@ export const livrosAPI = {
   getAll: () => apiCall(API_ENDPOINTS.LIVROS_ALL),
   create: (data: any) => apiCall(API_ENDPOINTS.LIVROS, { method: 'POST', body: JSON.stringify(data) }),
   delete: (id: string | number) => apiCall(API_ENDPOINTS.LIVRO_BY_ID(id), { method: 'DELETE' }),
+  getByiD:(id: number | string) => apiCall(API_ENDPOINTS.LIVRO_BY_ID(id), { method: 'GET' }),
+  getByUserId:(id:number)=>apiCall(API_ENDPOINTS.LIVRO_BY_USER_ID(id), { method: 'GET' }),
+  save:(data:any, id:number) => apiCall(API_ENDPOINTS.LIVRO_BY_ID(id), {method: 'PUT',body: JSON.stringify(data),}),
+  addRecipeToBook: (codLivro:number, codReceita:number) =>apiCall(`${API_ENDPOINTS.LIVROS}/${codLivro}/receita/${codReceita}`,{ method: 'POST' }),
+  removeRecipeFromBook: (codLivro:number, codReceita:number) =>apiCall(`${API_ENDPOINTS.LIVROS}/${codLivro}/receita/${codReceita}`,{ method: 'DELETE' }),
 }
 
 // Comentários API

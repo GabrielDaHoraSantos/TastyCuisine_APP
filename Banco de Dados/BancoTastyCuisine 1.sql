@@ -66,11 +66,9 @@ CREATE TABLE Comentarios (
 CREATE TABLE Livros(
     Cod_Livros INT IDENTITY(1,1) PRIMARY KEY,
     Nome_Livro NVARCHAR(50) NOT NULL,
-    Cod_receitas INT NOT NULL,
     Foto_Livro NVARCHAR(MAX) NULL,
     Cod_User INT NOT NULL,
        
-    FOREIGN KEY (Cod_receitas) REFERENCES Receitas(Cod_receitas),
     FOREIGN KEY (Cod_User) REFERENCES Usuario(Cod_user),
 );
 
@@ -78,7 +76,16 @@ GO
 
 insert into Usuario(Nome_completo,Nome_de_usuario,Idade,Gmail,Senha,Restricoes_alimentares,funcao)
 VALUES('soso','Sooo','25','gmail@gmail.com','123456','[]','Usuario')
-    
+
+insert into Categorias(Nome_Categoria)
+values('almoco')
+
+insert into Receitas(Nome_receita,Descricao,Ingredientes,Modo_preparo,Categoria,Restricao,Cod_usuario)
+values('arroz','arroz cozido','["Farinha", "Ovo", "Leite"]','["Misture os ingredientes","Coloque na forma","Asse por 40 minutos"]',1,15,1)
+
+insert into livros(Nome_Livro,Cod_User)
+values('edurado',1)
+
 
 GO
  
@@ -88,3 +95,15 @@ select * from Categorias
 select * from Receitas
 select * from Favoritos
 select * from Livros    
+
+SELECT COLUMN_NAME
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_NAME = 'Livros';
+
+SELECT COLUMN_NAME
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_NAME = 'Receitas';
+
+SELECT * FROM Livro_Receitas;
+insert into livro_receitas(cod_livro,cod_receitas)
+values(3,2)
