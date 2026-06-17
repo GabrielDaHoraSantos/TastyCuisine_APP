@@ -5,8 +5,8 @@ import { comentariosAPI, favoritosAPI, livrosAPI, receitasAPI, usuariosAPI } fro
 interface AuthUser {
   [x: string]: any;
   codUser: number;
-  nomeCompleto: string;
-  nomeDeUsuario: string;
+  nome_completo: string;
+  nome_de_usuario: string;
   gmail: string;
   idade: number;
   restricoesAlimentares?: string;
@@ -32,7 +32,8 @@ interface AuthContextType {
   userId: string | null;
   loading: boolean;
   favoritos: any[];      
-  recipes: any[];
+  recipes: AuthUser;
+  updateUserData: void;
   addRecipeToBook: (codLivro:number,codReceita:number)=> Promise<{ok:boolean; error?:string}>;
   removeRecipeFromBook:(codLivro:number,codReceita:number)=> Promise<{ok:boolean; error?:string}>;
 
@@ -93,6 +94,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { ok: false, error: 'ERRO_CONEXAO' }
   }
 }
+const updateUserData = (updatedUser: AuthUser) => {
+  setUser(updatedUser);
+}
 
   const logout = async () => {
     setUser(null);
@@ -152,10 +156,10 @@ async function reativar (email: string, senha:string) {
   }
   return { ok: false }
 }
-async function register(nomeCompleto: string, nomeDeUsuario: string, idade: number, gmail: string, senha: string) {
+async function register(nome_completo: string, nome_de_usuario: string, idade: number, gmail: string, senha: string) {
   const res = await usuariosAPI.create({
-    nomeCompleto,
-    nomeDeUsuario,
+    nome_completo,
+    nome_de_usuario,
     idade,
     gmail,
     senha,
@@ -283,6 +287,7 @@ async function removeRecipeFromBook(
       register,
       getComentarios,
       enviarComentario,
+      updateUserData,
     }}>
       {children}
     </AuthContext.Provider>

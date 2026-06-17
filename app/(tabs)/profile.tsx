@@ -65,7 +65,7 @@ const API_BASE = 'http://192.168.1.100:8080';
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { user, userId, login, logout, loading, favoritos, rating,getComentarios } = useAuth();
+  const { user, userId, login, logout, loading, favoritos, getComentarios } = useAuth();
 
   const [editModalVisible,   setEditModalVisible]   = useState(false);
   const [drawerVisible,      setDrawerVisible]      = useState(false);
@@ -80,8 +80,8 @@ export default function ProfileScreen() {
 
 
   const [form, setForm] = useState({
-    nomeCompleto:  user?.nomeCompleto  ?? '',
-    nomeDeUsuario: user?.nomeDeUsuario ?? '',
+    nome_completo:  user?.nome_completo  ?? '',
+    nome_de_usuario: user?.nome_de_usuario ?? '',
     idade:         String(user?.idade  ?? ''),
     gmail:         user?.gmail         ?? '',
     senha: '',
@@ -166,8 +166,8 @@ export default function ProfileScreen() {
 
   const openEdit = () => {
     setForm({
-      nomeCompleto:  user?.nomeCompleto  ?? '',
-      nomeDeUsuario: user?.nomeDeUsuario ?? '',
+      nome_completo:  user?.nome_completo  ?? '',
+      nome_de_usuario: user?.nome_de_usuario ?? '',
       idade:         String(user?.idade  ?? ''),
       gmail:         user?.gmail         ?? '',
       senha: '',
@@ -179,21 +179,22 @@ export default function ProfileScreen() {
     if (!userId) return;
     setSaving(true);
     const payload: any = {
-      nomeCompleto:  form.nomeCompleto,
-      nomeDeUsuario: form.nomeDeUsuario,
-      idade:         calculateAge(birthDate),
+      nome_completo:  form.nome_completo,
+      nome_de_usuario: form.nome_de_usuario,
+      idade:          calculateAge(birthDate),
       gmail:         form.gmail,
     };
     if (form.senha.trim()) payload.senha = form.senha;
     const res = await usuariosAPI.update(userId, payload);
     setSaving(false);
+    
     if (res.data) {
-      login(res.data);
+      updateUserData(res.data as AuthUser); // ✅ Atualiza o estado com os dados novos
       setEditModalVisible(false);
     } else {
       Alert.alert('Erro', res.error ?? 'Não foi possível salvar as alterações.');
     }
-  };
+};
 
   const handleDelete = async () => {
     if (!userId) return;
@@ -282,7 +283,7 @@ export default function ProfileScreen() {
   // Fonte da imagem: base64 do banco ou asset local padrão
 const avatarSource = user?.fotoPerfil
   ? { uri: user.fotoPerfil }
-  : { uri: `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.nomeCompleto ?? 'U')}&background=C4703A&color=fff&size=200` };
+  : { uri: `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.nome_completo ?? 'U')}&background=C4703A&color=fff&size=200` };
   return (
     <SafeAreaView style={s.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor={C.hero} />
@@ -322,8 +323,8 @@ const avatarSource = user?.fotoPerfil
             {!savingPhoto && <View style={s.statusDot} />}
           </TouchableOpacity>
 
-          <Text style={s.heroName}>{user?.nomeCompleto ?? 'Usuário'}</Text>
-          <Text style={s.heroHandle}>@{user?.nomeDeUsuario ?? ''}</Text>
+          <Text style={s.heroName}>{user?.nome_completo ?? 'Usuário'}</Text>
+          <Text style={s.heroHandle}>@{user?.nome_de_usuario ?? ''}</Text>
           <Text style={s.heroEmail}>{user?.gmail ?? ''}</Text>
 
           {/* Stats */}
@@ -413,8 +414,8 @@ const avatarSource = user?.fotoPerfil
 
             <ScrollView showsVerticalScrollIndicator={false} style={{ marginBottom: 8 }}>
               {([
-                { label: 'Nome completo',   key: 'nomeCompleto',  placeholder: 'Seu nome completo' },
-                { label: 'Nome de usuário', key: 'nomeDeUsuario', placeholder: 'nome_de_usuario' },
+                { label: 'Nome completo',   key: 'nome_completo',  placeholder: 'Seu nome completo' },
+                { label: 'Nome de usuário', key: 'nome_de_usuario', placeholder: 'nome_de_usuario' },
                 { label: 'Idade',           key: 'idade',         placeholder: '0', keyboardType: 'birthDate' as const },
                 { label: 'Email',           key: 'gmail',         placeholder: 'voce@email.com', keyboardType: 'email-address' as const },
                 { label: 'Nova senha',      key: 'senha',         placeholder: 'Deixe em branco para manter', secureTextEntry: true },
