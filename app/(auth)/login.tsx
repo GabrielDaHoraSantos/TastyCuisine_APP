@@ -29,22 +29,24 @@ export default function LoginScreen() {
     setError(null);
  
     try {
-      const response = await login({ email: formData.email, senha: formData.senha });
+      const result = await login(formData.email,formData.senha );
  
-      if (response) {
-        await login(response.data);
+      if (result.ok) {
         router.replace('/home');
-      } else if (response.status === 403) {
+      } else if (result.error === 'CONTA_INATIVA') {
         setContaInativa(true);
-      } else {
-        setError(response.error || 'Email ou senha incorretos');
+      } else if(result.error === 'ACESSO_NEGADO'){
+        setError('Apenas usuários podem acessar o app mobile.');
+      } 
+        else {
+        setError(result.error || 'Email ou senha incorretos');
       }
     } catch (err) {
       setError('Erro ao conectar com o servidor');
       console.error('Erro ao fazer login:', err);
     } finally {
       setLoading(false);
-    }
+    } 
   };
  
   const handleChange = (name: string, value: string) => {
@@ -61,10 +63,9 @@ export default function LoginScreen() {
       return;
     }
     setReativando(true);
-    const res = await reativarAPI.reativar(formData.email, formData.senha);
+    const res = await reativar(formData.email, formData.senha);
     setReativando(false);
-    if (res.data) {
-      await login(res.data);
+    if (res) {
       setContaInativa(false);
       setConfirmarSenha('');
       router.replace('/home');

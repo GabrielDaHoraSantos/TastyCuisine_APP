@@ -21,12 +21,12 @@ interface AuthContextType {
   loading: boolean;
   favoritos: any[];      
   recipes: any[];
-  rating: string,
   getComentarios: (receitaId: string) => Promise<any[]>;
-  enviarAvaliacao: (receitaId: number, nota: number, texto: string) => Promise<void>;
+  enviarComentario: (receitaId: number, nota: number, texto: string) => Promise<void>;
   toggleFavorito: (receitaId: string, codReceitas: number) => Promise<void>;
-  login: (userData: any) => void;
-  reativar: ()
+  login: (email: string, senha: string) => Promise<{ ok: boolean; error?: string }>;
+  alterarStatus: (usuarioId:number) =>Promise<void>;
+  reativar:(email: string, senha:string) =>Promise<{ ok: boolean }>;
   logout: () => void;
 }
 
@@ -37,7 +37,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true)
   const [favoritos, setFavoritos] = useState<any[]>([])
   const [recipes, setRecipes] = useState<any[]>([])
-  const [rating, setRating] = useState<string>("")
 
   useEffect(() => {
     async function carregarUsuario() {
@@ -54,12 +53,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     carregarUsuario();
   }, []);
 
-  const login = async (userData: any) => {
-    setUser(userData);
-    await AsyncStorage.setItem('userId', String(userData.codUser));
-    console.log('id de usuario salvo como: ', await AsyncStorage.getItem('usedId'))
-    return setUser(userData);
-  };
+  const login = async (email: string, senha: string) => {
+  try {
+    const res = await usuariosAPI.login(email, senha)
+    if (res.data) {
+      const userData = res.data as AuthUser
+      if (userData.funcao !== 'Usuario') {
+        return { ok: false, error: 'ACESSO_NEGADO' }
+      }
+      setUser(userData)
+      await AsyncStorage.setItem('userId', String(userData.codUser))
+      await loadFavoritos(String(userData.codUser))
+      return { ok: true }
+    }
+    if (res.status === 403) return { ok: false, error: 'CONTA_INATIVA' }
+    return { ok: false, error: 'EMAIL_OU_SENHA_INCORRETOS' }
+  } catch {
+    return { ok: false, error: 'ERRO_CONEXAO' }
+  }
+}
 
   const logout = async () => {
     setUser(null);
@@ -102,9 +114,24 @@ async function getComentarios(receitaId: string) {
   if (!res.ok) return []
   return await res.json()
 }
-async function enviarAvaliacao(receitaId: number, nota: number, texto: string) {
-  await comentariosAPI.create({ usuario: { codUser: Number(user?.codUser) }, receita: { codReceitas: receitaId }, texto })
+async function enviarComentario(receitaId: number, nota: number, texto: string) {
+  await comentariosAPI.create({ usuario: { codUser: Number(user?.codUser) }, receita: { codReceitas: receitaId }, texto, nota })
 }
+
+async function alterarStatus(usuarioId: number) {
+  await usuariosAPI.inativar(String(usuarioId))
+  logout()
+}
+async function reativar (email: string, senha:string) {
+  const res = await usuariosAPI.reativar(email, senha);
+  if (res.data) {
+    setUser(res.data as AuthUser)
+    await AsyncStorage.setItem('userId', String((res.data as AuthUser).codUser))
+    return { ok: true }
+  }
+  return { ok: false }
+}
+
 
   return (
     <AuthContext.Provider value={{
@@ -116,20 +143,17 @@ async function enviarAvaliacao(receitaId: number, nota: number, texto: string) {
       favoritos,           
       toggleFavorito,
       recipes,
-      rating,
       login,
+      reativar,
+      alterarStatus,
       logout,
       getComentarios,
-      enviarAvaliacao,
+      enviarComentario,
     }}>
       {children}
     </AuthContext.Provider>
   );
 };
-async function reactivar(params:type) {
-  
-}
-
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) throw new Error('useAuth must be used within an AuthProvider');

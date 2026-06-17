@@ -9,6 +9,7 @@ export const API_ENDPOINTS = {
   // Auth
   LOGIN: `${API_BASE_URL}/usuario/login`,
   REGISTER: `${API_BASE_URL}/usuario`,
+  USUARIO_LOGIN: `${API_BASE_URL}/usuario/login`,
 
   // Receitas
   RECEITAS_ALL: `${API_BASE_URL}/receita/findAll`,
@@ -147,8 +148,17 @@ export const usuariosAPI = {
     apiCall(`${API_BASE_URL}/usuario/${id}/ativar/`, {
       method: 'PUT',
     }),
+    login: (email: string, senha: string) =>
+    apiCall(API_ENDPOINTS.USUARIO_LOGIN, {
+      method: 'POST',
+      body: JSON.stringify({ email, senha }),
+    }),
+  reativar: (email: string, senha:string) =>
+    apiCall(`${API_BASE_URL}/usuario/reativar`, {
+      method: 'POST',
+      body: JSON.stringify({ email, senha }),
+    }),
 }
-
 // Favoritos API
 export const favoritosAPI = {
   getAll: () => apiCall(API_ENDPOINTS.FAVORITOS_ALL),
