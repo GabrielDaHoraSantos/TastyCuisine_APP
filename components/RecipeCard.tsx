@@ -19,6 +19,7 @@ export default function RecipeCard({ item, onPress, width = 160 }: Props) {
   const descricao = typeof item.descricao === 'string' ? item.descricao : '';
   const imagem = item.fotoReceita || 'https://worldfoodtour.co.uk/wp-content/uploads/2013/06/neptune-placeholder-48.jpg';
   const receitaId = item.codReceitas ?? item.id;
+  const chefeName = item.usuario?.nome_completo
   const fav = favoritos.find(f => String(f.receita?.codReceitas) === String(receitaId))
   const favoritoId = fav ? String(fav.codFavoritos) : null
 

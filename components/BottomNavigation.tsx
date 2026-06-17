@@ -28,7 +28,11 @@ export default function BottomNavigation() {
   };
 
   const handleNavigate = (screen: string) => {
+    if(screen != "search"){
     router.push(`/(tabs)/${screen}` as any);
+  } else if(screen === "search"){
+    router.push(`/${screen}` as any);
+  }
   };
 
   const styles = StyleSheet.create({

@@ -65,7 +65,7 @@ const API_BASE = 'http://192.168.1.100:8080';
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { user, userId, login, logout, loading, favoritos, getComentarios } = useAuth();
+  const { user, userId, login, logout, loading, favoritos, getComentarios,updateUser } = useAuth();
 
   const [editModalVisible,   setEditModalVisible]   = useState(false);
   const [drawerVisible,      setDrawerVisible]      = useState(false);
@@ -153,8 +153,8 @@ export default function ProfileScreen() {
 
       if (!res.ok) throw new Error('Falha ao salvar foto');
   const usuarioAtualizado = await res.json();
-  console.log('fotoPerfil recebida:', usuarioAtualizado?.fotoPerfil?.slice(0, 50)); // ✅ aqui
-  login(usuarioAtualizado);
+  console.log('fotoPerfil recebida:', usuarioAtualizado?.foto_perfil?.slice(0, 50)); // ✅ aqui
+  updateUser(usuarioAtualizado);
      
     } catch {
       Alert.alert('Erro', 'Não foi possível salvar a foto. Tente novamente.');
@@ -189,7 +189,7 @@ export default function ProfileScreen() {
     setSaving(false);
     
     if (res.data) {
-      updateUserData(res.data as AuthUser); // ✅ Atualiza o estado com os dados novos
+      //login(user?.gmail ?? '', user?.senha ?? ''); // ✅ Atualiza o estado com os dados novos
       setEditModalVisible(false);
     } else {
       Alert.alert('Erro', res.error ?? 'Não foi possível salvar as alterações.');

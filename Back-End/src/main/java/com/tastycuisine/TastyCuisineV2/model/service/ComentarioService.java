@@ -35,4 +35,7 @@ public class ComentarioService {
     public void delete(long codComentarios) {
         comentarioRepository.delete(findById(codComentarios));
     }
+    public List<Comentario> buscarPorReceita(Long codReceita) {
+    return comentarioRepository.findByReceitaCodReceitas(codReceita);
+}
 }

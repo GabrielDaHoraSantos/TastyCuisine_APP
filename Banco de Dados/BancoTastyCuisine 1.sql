@@ -95,6 +95,7 @@ select * from Categorias
 select * from Receitas
 select * from Favoritos
 select * from Livros    
+SELECT * FROM Livro_Receitas;
 
 SELECT COLUMN_NAME
 FROM INFORMATION_SCHEMA.COLUMNS
@@ -104,6 +105,5 @@ SELECT COLUMN_NAME
 FROM INFORMATION_SCHEMA.COLUMNS
 WHERE TABLE_NAME = 'Receitas';
 
-SELECT * FROM Livro_Receitas;
 insert into livro_receitas(cod_livro,cod_receitas)
 values(3,2)

@@ -32,17 +32,18 @@ interface AuthContextType {
   userId: string | null;
   loading: boolean;
   favoritos: any[];      
-  recipes: AuthUser;
-  updateUserData: void;
+  recipes: any[];
+  updateUser: (novoUsuario: AuthUser) => void;
   addRecipeToBook: (codLivro:number,codReceita:number)=> Promise<{ok:boolean; error?:string}>;
   removeRecipeFromBook:(codLivro:number,codReceita:number)=> Promise<{ok:boolean; error?:string}>;
-
   createBook: (data: any) => Promise<{ ok: boolean; error?: string }>;
   deleteBook:(id: number) => Promise<{ok:boolean; error?:string}>;
   getBookbyId: (id: number)  => Promise<{ok:boolean; error?:string; book?:Livro}>;
   getBookbyUserId: (id:number) => Promise<{ok:boolean; error?:string; livros?:Livro[]}>;
   updateBook:(data: Livro, id: number) => Promise<{ok:boolean; error?:string}>
   register: (nomeCompleto: string, nomeDeUsuario: string, idade: number, gmail: string, senha: string) => Promise<{ ok: boolean; error?: string }>;
+
+  updateUserData: (user: AuthUser) => void;
   getComentarios: (receitaId: string) => Promise<any[]>;
   enviarComentario: (receitaId: number, nota: number, texto: string) => Promise<void>;
   toggleFavorito: (receitaId: string, codReceitas: number) => Promise<void>;
@@ -147,6 +148,10 @@ async function alterarStatus(usuarioId: number) {
   await usuariosAPI.inativar(String(usuarioId))
   logout()
 }
+
+const updateUser = (novoUsuario: AuthUser) => {
+  setUser(novoUsuario);
+};
 async function reativar (email: string, senha:string) {
   const res = await usuariosAPI.reativar(email, senha);
   if (res.data) {
@@ -288,6 +293,7 @@ async function removeRecipeFromBook(
       getComentarios,
       enviarComentario,
       updateUserData,
+      updateUser,
     }}>
       {children}
     </AuthContext.Provider>

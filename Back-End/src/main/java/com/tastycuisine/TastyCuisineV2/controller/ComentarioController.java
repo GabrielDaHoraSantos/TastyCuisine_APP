@@ -70,4 +70,10 @@ public class ComentarioController {
             return ResponseEntity.status(404).body(Map.of("status", 404, "error", "not found", "message", "comentário não encontrado com o id: " + codComentarios));
         }
     }
+    @GetMapping("/receita/{codReceita}")
+    public ResponseEntity<List<Comentario>> buscarPorReceita(@PathVariable Long codReceita) {
+        return ResponseEntity.ok(
+            comentarioService.buscarPorReceita(codReceita)
+        );
+    }
 }
