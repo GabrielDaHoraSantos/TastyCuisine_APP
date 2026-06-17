@@ -21,6 +21,7 @@ interface AuthContextType {
   loading: boolean;
   favoritos: any[];      
   recipes: any[];
+  register: (nomeCompleto: string, nomeDeUsuario: string, idade: number, gmail: string, senha: string) => Promise<{ ok: boolean; error?: string }>;
   getComentarios: (receitaId: string) => Promise<any[]>;
   enviarComentario: (receitaId: number, nota: number, texto: string) => Promise<void>;
   toggleFavorito: (receitaId: string, codReceitas: number) => Promise<void>;
@@ -131,6 +132,23 @@ async function reativar (email: string, senha:string) {
   }
   return { ok: false }
 }
+async function register(nomeCompleto: string, nomeDeUsuario: string, idade: number, gmail: string, senha: string) {
+  const res = await usuariosAPI.create({
+    nomeCompleto,
+    nomeDeUsuario,
+    idade,
+    gmail,
+    senha,
+    funcao: 'Usuario',
+    status_Usuario: 'ATIVO'
+  })
+  if (res.data) {
+    setUser(res.data as AuthUser)
+    await AsyncStorage.setItem('userId', String((res.data as AuthUser).codUser))
+    return { ok: true }
+  }
+  return { ok: false, error: res.error }
+}
 
 
   return (
@@ -147,6 +165,7 @@ async function reativar (email: string, senha:string) {
       reativar,
       alterarStatus,
       logout,
+      register,
       getComentarios,
       enviarComentario,
     }}>

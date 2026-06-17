@@ -12,11 +12,12 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import { useAuth } from '../authContext';
  
-import { authAPI } from './api';
  
 export default function RegisterScreen() {
   const router = useRouter();
+  const { login, register } = useAuth();
   const formatBirthDate = (text: string) => {
     const numbers = text.replace(/\D/g, '');
  
@@ -100,6 +101,7 @@ export default function RegisterScreen() {
     email: '',
     senha: '',
     confirmarSenha: '',
+    funcao:'Usuario'
   });
  
   const [error, setError] = useState<string | null>(null);
@@ -111,7 +113,8 @@ export default function RegisterScreen() {
       !formData.nomeUsuario ||
       !birthDate.trim() ||
       !formData.email ||
-      !formData.senha
+      !formData.senha ||
+      !formData.funcao
     ) {
       setError('Please fill in all required fields');
       return;
@@ -134,19 +137,18 @@ if (idade === null) {
     setError(null);
  
     try {
-      const response = await authAPI.register({
-        nomeCompleto: formData.nomeCompleto.trim(),
-        nomeDeUsuario: formData.nomeUsuario.trim(),
+      const response = await register(
+        formData.nomeCompleto.trim(),
+        formData.nomeUsuario.trim(),
         idade,
-        gmail: formData.email.trim(),
-        senha: formData.senha,
-      });
+        formData.email.trim(),
+        formData.senha,
+      );
  
-      if (!response.data) {
+      if (!response.ok) {
         setError(response.error || 'Could not create your account');
         return;
       }
- 
       router.replace('/home');
     } catch (err) {
       setError('Error connecting to the server');
@@ -154,11 +156,6 @@ if (idade === null) {
     } finally {
       setLoading(false);
     }
-  };
- //////////////////////////////////////
-  const handleSkip = async () => {
-    // Skip without saving - go directly to preferences or home
-    router.replace('/preferences');
   };
  
   const handleChange = (name: string, value: string) => {
