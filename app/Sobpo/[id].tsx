@@ -49,7 +49,7 @@ export default function DishDetailScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const { theme, isDarkMode } = useTheme();
-  const { userId, recipes, loading, favoritos, toggleFavorito,getComentarios, enviarAvaliacao  } = useAuth();
+  const { userId, recipes, loading, favoritos, toggleFavorito,getComentarios, enviarComentario  } = useAuth();
 
   const [servings, setServings] = useState(1);
   const [rating, setRating] = useState(0);
@@ -78,7 +78,7 @@ export default function DishDetailScreen() {
   if (rating === 0) { Alert.alert('Atenção', 'Selecione uma nota de 1 a 5.'); return; }
   if (commentText.trim() === '') { Alert.alert('Atenção', 'Escreva um comentário.'); return; }
   setSending(true);
-  await enviarAvaliacao(Number(id), rating, commentText.trim())
+  await enviarComentario(Number(id), rating, commentText.trim())
   setSending(false);
   const atualizados = await getComentarios(String(id))
   setComentarios(atualizados)
