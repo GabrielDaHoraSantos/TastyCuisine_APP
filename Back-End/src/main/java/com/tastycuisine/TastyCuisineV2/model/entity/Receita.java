@@ -1,11 +1,16 @@
 package com.tastycuisine.TastyCuisineV2.model.entity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
@@ -39,19 +44,24 @@ public class Receita {
 
     @Column(name = "Modo_preparo", nullable = false, columnDefinition = "NVARCHAR(MAX)")
     @NotBlank
-    private String Modo_preparo;
+    private String modo_preparo;
 
     @Column(name = "Ingredientes", nullable = false, columnDefinition = "NVARCHAR(MAX)")
     @NotBlank
-    private String Ingredientes;
+    private String ingredientes;
 
-        @ManyToOne
-        @JoinColumn(name = "Categoria")
-        private Categoria categoria;
+    @Column(name = "Restricao", nullable = false)
+    private int restricao;
 
-    @Column(name = "Restricao", nullable = false, columnDefinition = "NVARCHAR(MAX)")
-    @NotBlank
-    private String Restricao;
+    
+    @Builder.Default
+    @ManyToMany
+    @JoinTable(
+        name = "Receitas_Categorias",
+        joinColumns = @JoinColumn(name = "Cod_receita"),
+        inverseJoinColumns = @JoinColumn(name = "Cod_Categoria")
+    )
+    private List<Categoria> categoria = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "Cod_usuario", nullable = false)

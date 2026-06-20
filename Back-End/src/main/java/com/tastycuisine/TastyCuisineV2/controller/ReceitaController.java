@@ -15,10 +15,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.tastycuisine.TastyCuisineV2.model.entity.Receita;
 import com.tastycuisine.TastyCuisineV2.model.service.ReceitaService;
-
+import com.tastycuisine.TastyCuisineV2.model.entity.Receita;
 import jakarta.validation.Valid;
 
 @RestController
@@ -35,7 +33,7 @@ public class ReceitaController {
 
     @PostMapping
     public ResponseEntity<Receita> save(@Valid @RequestBody Receita receita) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(receitaService.save(receita));
+        return ResponseEntity.status(HttpStatus.CREATED).body(receitaService.salvar(receita));
     }
 
     @GetMapping("/{codReceita}")
@@ -77,6 +75,16 @@ public class ReceitaController {
     @GetMapping("/populares")
     public ResponseEntity<List<Receita>> populares() {
         return ResponseEntity.ok(receitaService.populares());
+    }
+
+    @PutMapping("/categoria/adicionar/{codCategoria}/{receita}")
+    public ResponseEntity<Object> adicionarCategoria(@PathVariable Receita receita,@PathVariable long codCategoria){
+        return ResponseEntity.ok(receitaService.adicionarCategoria(codCategoria, receita.getCodReceitas()));
+    }
+
+    @PutMapping("/categoria/remover/{codCategoria}/{receita}")
+    public ResponseEntity<Object> removerCategoria(@PathVariable Receita receita,@PathVariable long codCategoria){
+        return ResponseEntity.ok(receitaService.removerCategoria(codCategoria, receita.getCodReceitas()));
     }
 
     @GetMapping("/categoria/{codCategoria}")

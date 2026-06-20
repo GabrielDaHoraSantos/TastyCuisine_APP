@@ -1,8 +1,3 @@
-IF EXISTS(select * from sys.databases where name = 'TASTYCUISINE')
-USE master
-go
-DROP DATABASE TASTYCUISINE
-GO
 CREATE DATABASE TASTYCUISINE
 GO
 USE TASTYCUISINE
@@ -34,14 +29,12 @@ CREATE TABLE Receitas (
     Descricao NVARCHAR(250) NOT NULL,
     Modo_preparo NVARCHAR(MAX) NOT NULL,
     Ingredientes NVARCHAR(MAX) NOT NULL,
-    Categoria INT NOT NULL,
     Cod_usuario INT NOT NULL,
     Foto_receita NVARCHAR(MAX),
     Restricao INT NOT NULL,
     FOREIGN KEY (Cod_usuario) REFERENCES Usuario(Cod_user),
     CONSTRAINT chk_ingredientes CHECK (Ingredientes IS NULL OR ISJSON(Ingredientes) = 1),
-    CONSTRAINT chk_modo_preparo CHECK (ISJSON(Modo_preparo) = 1),
-    FOREIGN KEY (Categoria) REFERENCES Categorias(Cod_Categoria)
+    CONSTRAINT chk_modo_preparo CHECK (ISJSON(Modo_preparo) = 1)
 );
 
 CREATE TABLE Favoritos (
@@ -72,26 +65,40 @@ CREATE TABLE Livros(
     FOREIGN KEY (Cod_User) REFERENCES Usuario(Cod_user),
 );
 
+CREATE TABLE Livro_Receitas(
+    Cod_Livros INT NOT NULL,
+    Cod_Receita INT NOT NULL
+)
+
+CREATE TABLE Receitas_Categorias(
+    Cod_Categoria INT NOT NULL,
+    Cod_Receita INT NOT NULL
+)
+
 GO
 
 insert into Usuario(Nome_completo,Nome_de_usuario,Idade,Gmail,Senha,Restricoes_alimentares,funcao)
 VALUES('soso','Sooo','25','gmail@gmail.com','123456','[]','Usuario')
 
 insert into Categorias(Nome_Categoria)
-values('almoco')
+values('Massas')
 
-insert into Receitas(Nome_receita,Descricao,Ingredientes,Modo_preparo,Categoria,Restricao,Cod_usuario)
-values('arroz','arroz cozido','["Farinha", "Ovo", "Leite"]','["Misture os ingredientes","Coloque na forma","Asse por 40 minutos"]',1,15,1)
+insert into Receitas(Nome_receita,Descricao,Ingredientes,Modo_preparo,Restricao,Cod_usuario)
+values('arroz','arroz cozido','["Farinha", "Ovo", "Leite"]','["Misture os ingredientes","Coloque na forma","Asse por 40 minutos"]',15,1)
 
 insert into livros(Nome_Livro,Cod_User)
 values('edurado',1)
 
+insert into Livro_Receitas(Cod_Livros,Cod_Receita)
+values(1,1)
 
+insert into Receitas_Categorias(Cod_Categoria,Cod_Receita)
+values(1,1)
 GO
  
 SELECT * FROM Usuario
-Select * From Comentarios
-select * from Categorias
+    Select * From Comentarios
+    select * from Categorias
 select * from Receitas
 select * from Favoritos
 select * from Livros    
