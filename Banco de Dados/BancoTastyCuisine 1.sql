@@ -76,6 +76,7 @@ GO
 
 insert into Usuario(Nome_completo,Nome_de_usuario,Idade,Gmail,Senha,Restricoes_alimentares,funcao)
 VALUES('soso','Sooo','25','gmail@gmail.com','123456','[]','Usuario')
+VALUES('soseo','Sooeeeo','25','gmail2@gmail.com','123456','[]','Chefe')
 
 insert into Categorias(Nome_Categoria)
 values('almoco')
