@@ -73,13 +73,18 @@ CREATE TABLE Livro_Receitas(
 CREATE TABLE Receitas_Categorias(
     Cod_Categoria INT NOT NULL,
     Cod_Receita INT NOT NULL
+    
+    FOREIGN KEY (Cod_receita)
+        REFERENCES Receitas(Cod_receitas),
+
+    FOREIGN KEY (Cod_Categoria)
+        REFERENCES Categorias(Cod_Categoria)
 )
 
 GO
 
 insert into Usuario(Nome_completo,Nome_de_usuario,Idade,Gmail,Senha,Restricoes_alimentares,funcao)
 VALUES('soso','Sooo','25','gmail@gmail.com','123456','[]','Usuario')
-VALUES('soseo','Sooeeeo','25','gmail2@gmail.com','123456','[]','Chefe')
 
 insert into Categorias(Nome_Categoria)
 values('Massas')
@@ -104,6 +109,7 @@ select * from Receitas
 select * from Favoritos
 select * from Livros    
 SELECT * FROM Livro_Receitas;
+select * from Receitas_Categorias
 
 SELECT COLUMN_NAME
 FROM INFORMATION_SCHEMA.COLUMNS
@@ -113,5 +119,10 @@ SELECT COLUMN_NAME
 FROM INFORMATION_SCHEMA.COLUMNS
 WHERE TABLE_NAME = 'Receitas';
 
-insert into livro_receitas(cod_livro,cod_receitas)
-values(3,2)
+SELECT COLUMN_NAME
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_NAME = 'Receitas';
+
+SELECT *
+FROM INFORMATION_SCHEMA.TABLES
+WHERE TABLE_NAME = 'Receitas_Categorias'
