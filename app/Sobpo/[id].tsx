@@ -27,7 +27,7 @@ const parseIngredientes = (raw: any): Ingrediente[] => {
         nome: str(item?.nome),
       }));
     }
-  } catch {}
+  } catch { }
   return [];
 };
 
@@ -35,7 +35,7 @@ const parsePassos = (raw: any): string[] => {
   try {
     const arr = typeof raw === 'string' ? JSON.parse(raw) : raw;
     if (Array.isArray(arr)) return arr.map((item: any) => str(item));
-  } catch {}
+  } catch { }
   if (typeof raw === 'string') return raw.split('\n').filter(Boolean);
   return [];
 };
@@ -49,7 +49,7 @@ export default function DishDetailScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const { theme, isDarkMode } = useTheme();
-  const { userId, recipes, loading, favoritos, toggleFavorito,getComentarios, enviarComentario  } = useAuth();
+  const { userId, recipes, loading, favoritos, toggleFavorito, getComentarios, enviarComentario } = useAuth();
 
   const [servings, setServings] = useState(1);
   const [rating, setRating] = useState(0);
@@ -60,32 +60,32 @@ export default function DishDetailScreen() {
   const recipe = recipes.find(r => String(r.codReceitas ?? r.id) === String(id))
   const fav = favoritos.find(f => String(f.receita?.codReceitas) === String(id))
   const favoritoId = fav ? String(fav.codFavoritos) : null
-  
-    
-    useEffect(() => {
+
+
+  useEffect(() => {
     if (!userId && !loading) router.push('/login')
   }, [loading])
 
   useEffect(() => {
-  getComentarios(String(id)).then(setComentarios)
-}, [id]);
+    getComentarios(String(id)).then(setComentarios)
+  }, [id]);
   const handleToggleFavorito = async () => {
     await toggleFavorito(String(id), Number(id))
   }
 
   const handleEnviarAvaliacao = async () => {
-  if (!userId) { Alert.alert('Atenção', 'Você precisa estar logado para avaliar.'); return; }
-  if (rating === 0) { Alert.alert('Atenção', 'Selecione uma nota de 1 a 5.'); return; }
-  if (commentText.trim() === '') { Alert.alert('Atenção', 'Escreva um comentário.'); return; }
-  setSending(true);
-  await enviarComentario(Number(id), rating, commentText.trim())
-  setSending(false);
-  const atualizados = await getComentarios(String(id))
-  setComentarios(atualizados)
-  Alert.alert('Obrigado!', 'Avaliação enviada com sucesso.');
-  setRating(0);
-  setCommentText('');
-}
+    if (!userId) { Alert.alert('Atenção', 'Você precisa estar logado para avaliar.'); return; }
+    if (rating === 0) { Alert.alert('Atenção', 'Selecione uma nota de 1 a 5.'); return; }
+    if (commentText.trim() === '') { Alert.alert('Atenção', 'Escreva um comentário.'); return; }
+    setSending(true);
+    await enviarComentario(Number(id), rating, commentText.trim())
+    setSending(false);
+    const atualizados = await getComentarios(String(id))
+    setComentarios(atualizados)
+    Alert.alert('Obrigado!', 'Avaliação enviada com sucesso.');
+    setRating(0);
+    setCommentText('');
+  }
   const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: theme.background.primary },
     header: { position: 'absolute', top: 50, left: 20, right: 20, zIndex: 10, flexDirection: 'row', justifyContent: 'space-between' },
@@ -130,7 +130,7 @@ export default function DishDetailScreen() {
       </View>
     );
   }
-  
+
   const nomeReceita = str(recipe.nomeReceita ?? recipe.name);
   const nomeChefe = str(recipe.chefe?.nomeCompleto);
   const descricao = str(recipe.descricao);
@@ -147,114 +147,132 @@ export default function DishDetailScreen() {
     return { quantidade: scaled, unidade: ing.unidade, nome: ing.nome };
   });
 
+  function StarsDisplay({ nota }: { nota: number }) {
+    return (
+      <View style={{ flexDirection: 'row', gap: 1 }}>
+        {[1, 2, 3, 4, 5].map(n => (
+          <Ionicons
+            key={n}
+            name={n <= nota ? 'star' : 'star-outline'}
+            size={13}
+            color={n <= nota ? '#FFD700' : theme.text.secondary}
+          />
+        ))}
+      </View>
+    )
+  }
+
   return (
     loading ? (
-              <BolinhaqGira/>
-        ) : 
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn}>
-          <Ionicons name="arrow-back" size={24} color="#fff" />
-        </TouchableOpacity>
-      </View>
+      <BolinhaqGira />
+    ) :
+      <View style={styles.container}>
+        <StatusBar barStyle="light-content" />
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn}>
+            <Ionicons name="arrow-back" size={24} color="#fff" />
+          </TouchableOpacity>
+        </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {fotoReceita ? (
-          <Image source={{ uri: fotoReceita }} style={styles.image} />
-        ) : (
-          <View style={[styles.image, { backgroundColor: isDarkMode ? '#333' : '#E0E0E0', justifyContent: 'center', alignItems: 'center' }]}>
-            <Ionicons name="image-outline" size={48} color={isDarkMode ? '#666' : '#AAA'} />
-          </View>
-        )}
-
-        <View style={styles.content}>
-          <View style={styles.titleRow}>
-            <Text style={styles.title}>{nomeReceita}</Text>
-            <TouchableOpacity onPress={handleToggleFavorito} style={{ paddingTop: 4 }}>
-                <Ionicons name={favoritoId ? 'heart' : 'heart-outline'} size={28} color={favoritoId ? '#E53935' : theme.text.secondary} />
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.chef}>por {nomeChefe}</Text>
-          {descricao ? <Text style={styles.descricao}>{descricao}</Text> : null}
-
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Text style={styles.sectionTitle}>Ingredientes</Text>
-            <View style={styles.servingSelector}>
-              <TouchableOpacity onPress={() => setServings(Math.max(1, servings - 1))} style={styles.servingBtn}>
-                <Ionicons name="remove" size={20} color={theme.accent} />
-              </TouchableOpacity>
-              <Text style={styles.servingText}>{servings} {servings === 1 ? 'pessoa' : 'pessoas'}</Text>
-              <TouchableOpacity onPress={() => setServings(Math.min(10, servings + 1))} style={styles.servingBtn}>
-                <Ionicons name="add" size={20} color={theme.accent} />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {scaledIngredients.map((item, i) => (
-            <View key={i} style={styles.ingredientItem}>
-              <Text style={styles.ingredientBullet}>•</Text>
-              <Text style={styles.ingredientText}>{item.quantidade} {item.unidade} {item.nome}</Text>
-            </View>
-          ))}
-
-          <Text style={styles.sectionTitle}>Modo de Preparo</Text>
-          {passos.map((step, i) => (
-            <View key={i} style={styles.stepItem}>
-              <View style={styles.stepNumber}>
-                <Text style={styles.stepNumberText}>{i + 1}</Text>
-              </View>
-              <Text style={styles.stepText}>{step}</Text>
-            </View>
-          ))}
-
-          <Text style={styles.sectionTitle}>Avalie esta receita</Text>
-          <View style={styles.ratingBox}>
-            <Text style={{ color: theme.text.primary, textAlign: 'center', marginBottom: 10, fontWeight: 'bold' }}>O que achou?</Text>
-            <View style={styles.starsRow}>
-              {[1, 2, 3, 4, 5].map(s => (
-                <TouchableOpacity key={s} onPress={() => setRating(s)}>
-                  <Ionicons name={s <= rating ? 'star' : 'star-outline'} size={32} color={s <= rating ? '#FFD700' : theme.text.secondary} style={{ marginHorizontal: 5 }} />
-                </TouchableOpacity>
-              ))}
-            </View>
-            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-              <TextInput
-                style={styles.input}
-                placeholder="Escreva seu comentário..."
-                placeholderTextColor={theme.text.secondary}
-                multiline
-                value={commentText}
-                onChangeText={setCommentText}
-              />
-              <TouchableOpacity
-                style={[styles.sendBtn, (rating === 0 || commentText.trim() === '' || sending) && styles.sendBtnDisabled]}
-                onPress={handleEnviarAvaliacao}
-                disabled={rating === 0 || commentText.trim() === '' || sending}
-              >
-                {sending ? <ActivityIndicator color="#fff" /> : <Text style={styles.sendBtnText}>Enviar Avaliação</Text>}
-              </TouchableOpacity>
-            </KeyboardAvoidingView>
-          </View>
-
-          <Text style={styles.sectionTitle}>Comentários</Text>
-          {comentarios.length === 0 ? (
-            <Text style={{ color: theme.text.secondary, marginBottom: 20 }}>Nenhum comentário ainda. Seja o primeiro!</Text>
+        <ScrollView showsVerticalScrollIndicator={false}>
+          {fotoReceita ? (
+            <Image source={{ uri: fotoReceita }} style={styles.image} />
           ) : (
-            comentarios.map((c, i) => (
-              <View key={i} style={styles.commentItem}>
-                <View style={styles.commentHeader}>
-                  <Text style={styles.commentUser}>{str(c.usuario?.nomeCompleto ?? c.usuario?.nomeDeUsuario)}</Text>
-                  <Text style={styles.commentDate}>{formatDate(c.dataComentario)}</Text>
-                </View>
-                <Text style={styles.commentText}>{str(c.texto)}</Text>
-              </View>
-            ))
+            <View style={[styles.image, { backgroundColor: isDarkMode ? '#333' : '#E0E0E0', justifyContent: 'center', alignItems: 'center' }]}>
+              <Ionicons name="image-outline" size={48} color={isDarkMode ? '#666' : '#AAA'} />
+            </View>
           )}
 
-          <View style={{ height: 50 }} />
-        </View>
-      </ScrollView>
-    </View>
+          <View style={styles.content}>
+            <View style={styles.titleRow}>
+              <Text style={styles.title}>{nomeReceita}</Text>
+              <TouchableOpacity onPress={handleToggleFavorito} style={{ paddingTop: 4 }}>
+                <Ionicons name={favoritoId ? 'heart' : 'heart-outline'} size={28} color={favoritoId ? '#E53935' : theme.text.secondary} />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.chef}>por {nomeChefe}</Text>
+            {descricao ? <Text style={styles.descricao}>{descricao}</Text> : null}
+
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Text style={styles.sectionTitle}>Ingredientes</Text>
+              <View style={styles.servingSelector}>
+                <TouchableOpacity onPress={() => setServings(Math.max(1, servings - 1))} style={styles.servingBtn}>
+                  <Ionicons name="remove" size={20} color={theme.accent} />
+                </TouchableOpacity>
+                <Text style={styles.servingText}>{servings} {servings === 1 ? 'pessoa' : 'pessoas'}</Text>
+                <TouchableOpacity onPress={() => setServings(Math.min(10, servings + 1))} style={styles.servingBtn}>
+                  <Ionicons name="add" size={20} color={theme.accent} />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {scaledIngredients.map((item, i) => (
+              <View key={i} style={styles.ingredientItem}>
+                <Text style={styles.ingredientBullet}>•</Text>
+                <Text style={styles.ingredientText}>{item.quantidade} {item.unidade} {item.nome}</Text>
+              </View>
+            ))}
+
+            <Text style={styles.sectionTitle}>Modo de Preparo</Text>
+            {passos.map((step, i) => (
+              <View key={i} style={styles.stepItem}>
+                <View style={styles.stepNumber}>
+                  <Text style={styles.stepNumberText}>{i + 1}</Text>
+                </View>
+                <Text style={styles.stepText}>{step}</Text>
+              </View>
+            ))}
+
+            <Text style={styles.sectionTitle}>Avalie esta receita</Text>
+            <View style={styles.ratingBox}>
+              <Text style={{ color: theme.text.primary, textAlign: 'center', marginBottom: 10, fontWeight: 'bold' }}>O que achou?</Text>
+              <View style={styles.starsRow}>
+                {[1, 2, 3, 4, 5].map(s => (
+                  <TouchableOpacity key={s} onPress={() => setRating(s)}>
+                    <Ionicons name={s <= rating ? 'star' : 'star-outline'} size={32} color={s <= rating ? '#FFD700' : theme.text.secondary} style={{ marginHorizontal: 5 }} />
+                  </TouchableOpacity>
+                ))}
+              </View>
+              <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Escreva seu comentário..."
+                  placeholderTextColor={theme.text.secondary}
+                  multiline
+                  value={commentText}
+                  onChangeText={setCommentText}
+                />
+                <TouchableOpacity
+                  style={[styles.sendBtn, (rating === 0 || commentText.trim() === '' || sending) && styles.sendBtnDisabled]}
+                  onPress={handleEnviarAvaliacao}
+                  disabled={rating === 0 || commentText.trim() === '' || sending}
+                >
+                  {sending ? <ActivityIndicator color="#fff" /> : <Text style={styles.sendBtnText}>Enviar Avaliação</Text>}
+                </TouchableOpacity>
+              </KeyboardAvoidingView>
+            </View>
+
+            <Text style={styles.sectionTitle}>Comentários</Text>
+            {comentarios.length === 0 ? (
+              <Text style={{ color: theme.text.secondary, marginBottom: 20 }}>Nenhum comentário ainda. Seja o primeiro!</Text>
+            ) : (
+              comentarios.map((c, i) => (
+                <View key={i} style={styles.commentItem}>
+                  <View style={styles.commentHeader}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      <Text style={styles.commentUser}>{str(c.usuario?.nome_completo ?? c.usuario?.nome_de_usuario)}</Text>
+                      <StarsDisplay nota={Number(c.nota)} />
+                    </View>
+                    <Text style={styles.commentDate}>{formatDate(c.data_Comentario)}</Text>
+                  </View>
+                  <Text style={styles.commentText}>{str(c.texto)}</Text>
+                </View>
+              ))
+            )}
+
+            <View style={{ height: 50 }} />
+          </View>
+        </ScrollView>
+      </View>
   );
 }
