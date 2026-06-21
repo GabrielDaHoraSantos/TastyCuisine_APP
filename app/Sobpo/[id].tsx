@@ -136,7 +136,7 @@ export default function DishDetailScreen() {
   const descricao = str(recipe.descricao);
   const fotoReceita = str(recipe.fotoReceita ?? recipe.image);
   const ingredientes = parseIngredientes(recipe.ingredientes);
-  const passos = parsePassos(recipe.modoPreparo);
+  const passos = parsePassos(recipe.modo_preparo);
 
 
   const scaledIngredients = ingredientes.map(ing => {
