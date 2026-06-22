@@ -123,25 +123,59 @@ const updateUserData = (updatedUser: AuthUser) => {
     await loadFavoritos(String(user.codUser)) // recarrega tudo do banco!
   }
 }
+async function loadRecipes() {
+  try {
+    const receitas = await receitasAPI.getAll(); 
+    
+    if (receitas.status === 200 && Array.isArray(receitas.data)){
+      const listaCompleta = receitas.data as any[];
+      
+      // 1. Filtra a lista para manter APENAS as que estão 'ATIVO'
+      const receitasAtivas = listaCompleta.filter((receita: any) => {
+        if (receita.status_receita === 'ATIVO') {
+          return true; // Mantém na lista
+        } else {
+          console.log(`A receita ${receita.nomeReceita} está inativa.`);
+          return false; // Remove da lista
+        }
+      });
 
-  async function loadRecipes() {
-  const res = await receitasAPI.getAll()
-  if (res.data) setRecipes(res.data as any[])
+      // 2. Salva no estado apenas as receitas filtradas (ativas)
+      setRecipes(receitasAtivas);
+    };
+  } catch (error) {
+    console.error("Erro ao buscar receitas:", error);
+  }
 }
 
-// depois — também troca a URL para usar a variável de ambiente
 async function getComentarios(receitaId: string) {
-  const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8080'}/comentario/receita/${receitaId}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      'bypass-tunnel-reminder': 'true',
-    },
-  })
-  if (!res.ok) return []
-  return await res.json()
+  try {
+    // 1. Chama a API padronizada
+    const resposta = await comentariosAPI.getByReceitaId(receitaId);
+    
+    // 2. Verifica se a resposta deu certo (status 200) e se os dados existem
+    if (resposta.status === 200 && resposta.data){
+      const comentarios = resposta.data as any[];
+      const comentariosAtivos = comentarios.filter((comentario: any) => {
+        if (comentario.status_comentarios === 'ATIVO') {
+          return true; // Mantém na lista
+        } else {
+          console.log(`O comentario está inativa.`);
+          return false; // Remove da lista
+        }
+      });
+      return comentariosAtivos as any[]; 
+    }
+    
+    return [];
+  } catch (error) {
+    console.error("Erro ao buscar comentários:", error);
+    return []; 
+  }
 }
+
 async function enviarComentario(receitaId: number, nota: number, texto: string) {
-  await comentariosAPI.create({ usuario: { codUser: Number(user?.codUser) }, receita: { codReceitas: receitaId }, texto, nota })
+  await comentariosAPI.create({ usuario: { codUser: Number(user?.codUser) }, receita: { codReceitas: receitaId }, texto, nota,status_comentarios: 'ATIVO' })
 }
 
 async function alterarStatus(usuarioId: number) {

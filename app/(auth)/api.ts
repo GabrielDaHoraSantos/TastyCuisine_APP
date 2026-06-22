@@ -36,6 +36,7 @@ export const API_ENDPOINTS = {
   COMENTARIOS_ALL: `${API_BASE_URL}/comentario/findAll`,
   COMENTARIOS: `${API_BASE_URL}/comentario`,
   COMENTARIO_BY_ID: (id: string | number) => `${API_BASE_URL}/comentario/${id}`,
+  COMENTARIOS_BY_RECEITA: (id: string | number) => `${API_BASE_URL}/comentario/receita/${id}`,
   
   // Categorias
   CATEGORIAS_ALL: `${API_BASE_URL}/categoria/findAll`,
@@ -189,6 +190,7 @@ export const livrosAPI = {
 // Comentários API
 export const comentariosAPI = {
   getAll: () => apiCall(API_ENDPOINTS.COMENTARIOS_ALL),
+  getByReceitaId: (receitaId: string | number) => apiCall(`${API_ENDPOINTS.COMENTARIOS_BY_RECEITA(receitaId)}`),
   create: (data: any) => apiCall(API_ENDPOINTS.COMENTARIOS, { method: 'POST', body: JSON.stringify(data) }),
   delete: (id: string | number) => apiCall(API_ENDPOINTS.COMENTARIO_BY_ID(id), { method: 'DELETE' }),
 }
