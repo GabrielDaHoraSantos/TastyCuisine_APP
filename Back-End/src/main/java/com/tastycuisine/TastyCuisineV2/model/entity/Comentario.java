@@ -45,6 +45,10 @@ public class Comentario {
     @NotBlank
     private String Nota;
 
+    @Builder.Default
+    @Column(name = "Status_Comentarios",length =  20,nullable = false)
+    private String status_comentarios = "ATIVO";
+
     @Column(name = "Texto", length = 300, nullable = false)
     @NotBlank
     private String Texto;

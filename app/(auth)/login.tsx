@@ -13,6 +13,7 @@ export default function LoginScreen() {
   });
   const [rememberMe, setRememberMe] = useState(false);
   const [contaInativa, setContaInativa] = useState(false);
+  const [contaBloqueada, setContaBloqueada] = useState(false); // 💡 Novo estado para controle do modal de bloqueio
   const [reativando, setReativando] = useState(false);
   const [confirmarSenha, setConfirmarSenha] = useState('');
  
@@ -29,16 +30,18 @@ export default function LoginScreen() {
     setError(null);
  
     try {
-      const result = await login(formData.email,formData.senha );
+      const result = await login(formData.email, formData.senha);
  
       if (result.ok) {
         router.replace('/home');
+      } else if (result.error === 'CONTA_BLOQUEADA') {
+        // 💡 Verificação prioritária disparada antes do status de inatividade comum
+        setContaBloqueada(true);
       } else if (result.error === 'CONTA_INATIVA') {
         setContaInativa(true);
-      } else if(result.error === 'ACESSO_NEGADO'){
+      } else if (result.error === 'ACESSO_NEGADO') {
         setError('Apenas usuários podem acessar o app mobile.');
-      } 
-        else {
+      } else {
         setError(result.error || 'Email ou senha incorretos');
       }
     } catch (err) {
@@ -77,13 +80,12 @@ export default function LoginScreen() {
   };
  
   return (
-    // Degradê suave de fundo em tons pastel/laranja
     <LinearGradient colors={['#FCEAD2', '#F3A973']} style={styles.container}>
-     
+       
       {/* Logotipo Sanremo */}
       <View style={styles.logoContainer}>
         <Image
-          source={require('../../assets/images/T.png')} // Substitua pela imagem do logo escrito "Sanremo"
+          source={require('../../assets/images/T.png')} 
           style={styles.logo}
           resizeMode="contain"
         />
@@ -96,8 +98,8 @@ export default function LoginScreen() {
           <Text style={styles.errorText}>{error}</Text>
         </View>
       )}
-        <Text style = {styles.text}> Email </Text>
-      {/* Inputs */}
+
+      <Text style={styles.text}> Email </Text>
       <TextInput
         value={formData.email}
         onChangeText={(value) => handleChange('email', value)}
@@ -106,7 +108,8 @@ export default function LoginScreen() {
         placeholderTextColor="#A0A0A0"
         autoCapitalize="none"
       />
-        <Text style = {styles.text}> Senha </Text>
+
+      <Text style={styles.text}> Senha </Text>
       <TextInput
         value={formData.senha}
         onChangeText={(value) => handleChange('senha', value)}
@@ -124,8 +127,8 @@ export default function LoginScreen() {
         </TouchableOpacity>
  
         <TouchableOpacity onPress={() => Linking.openURL('https://accounts.google.com/signin/recovery')}>
-  <Text style={styles.optionText}>esqueceu sua senha?</Text>
-</TouchableOpacity>
+          <Text style={styles.optionText}>esqueceu sua senha?</Text>
+        </TouchableOpacity>
       </View>
  
       {/* Botão de Entrar Principal */}
@@ -151,14 +154,13 @@ export default function LoginScreen() {
       {/* Botões Sociais */}
       <View style={styles.socialContainer}>
         <TouchableOpacity style={styles.socialButton}>
-         <Image
-                 source={require('../../assets/images/google.png')}
-                 style={styles.image}
-                 resizeMode="cover"/>
+          <Image
+            source={require('../../assets/images/google.png')}
+            style={styles.image}
+            resizeMode="cover"
+          />
           <Text style={styles.socialButtonText}>Google</Text>
         </TouchableOpacity>
- 
-       
       </View>
  
       {/* Link de Cadastro */}
@@ -166,7 +168,24 @@ export default function LoginScreen() {
         <Text style={styles.link}>Não tem uma conta? <Text style={styles.linkBold}>Cadastre-se</Text></Text>
       </TouchableOpacity>
  
-   
+      {/* 💡 MODAL DE CONTA BLOQUEADA PELO ADMINISTRADOR */}
+      <Modal visible={contaBloqueada} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={[styles.modalTitle, { color: '#D32F2F' }]}>Acesso Suspenso</Text>
+            <Text style={styles.modalDesc}>
+              Esta conta foi bloqueada por um administrador do sistema devido à violação dos termos de uso da nossa comunidade.
+            </Text>
+            
+            <TouchableOpacity
+              style={[styles.buttonIna, { width: 180, backgroundColor: '#D32F2F' }]}
+              onPress={() => setContaBloqueada(false)}
+            >
+              <Text style={styles.buttonText}>Confirmar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
  
       {/* Modal conta inativa */}
       <Modal visible={contaInativa} transparent animationType="fade">

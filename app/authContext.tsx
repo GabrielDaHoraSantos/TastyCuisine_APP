@@ -11,6 +11,7 @@ interface AuthUser {
   idade: number;
   restricoesAlimentares?: string;
   Status_Usuario?: string;
+  bloqueado:number;
 }
 
 export interface Livro {
@@ -79,16 +80,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, senha: string) => {
   try {
     const res = await usuariosAPI.login(email, senha)
+
     if (res.data) {
       const userData = res.data as AuthUser
+      
       if (userData.funcao !== 'Usuario') {
         return { ok: false, error: 'ACESSO_NEGADO' }
       }
+      
+      // 💡 CORRIGIDO: Agora retorna a string de identificação correta!
+      if (userData.bloqueado) {
+        console.error("Bloqueado pelo Admin")
+        return { ok: false, error: 'CONTA_BLOQUEADA' } 
+      }
+      
       setUser(userData)
       await AsyncStorage.setItem('userId', String(userData.codUser))
       await loadFavoritos(String(userData.codUser))
+      await loadRecipes()
       return { ok: true }
     }
+    
     if (res.status === 403) return { ok: false, error: 'CONTA_INATIVA' }
     return { ok: false, error: 'EMAIL_OU_SENHA_INCORRETOS' }
   } catch {
