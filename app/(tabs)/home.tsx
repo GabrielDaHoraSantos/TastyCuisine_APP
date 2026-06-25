@@ -159,11 +159,9 @@ export default function HomeScreen() {
           <Text style={s.subtitle}>O que vamos cozinhar hoje?</Text>
         </View>
         <View style={s.avatarCircle}>
-          <button>
-          <TouchableOpacity onPress={() => router.push('/profile')}>         
+          <TouchableOpacity style={w.perfil} onPress={() => router.push('/profile')}>         
              <Text style={s.avatarInitial}>{(userName || 'G').charAt(0).toUpperCase()}</Text>
           </TouchableOpacity>
-          </button>
         </View>
       </View>
 
@@ -362,6 +360,11 @@ const g = StyleSheet.create({
 
 // ─── Wide card styles ─────────────────────────────────────────────────────────
 const w = StyleSheet.create({
+
+  perfil:{
+    opacity: 100,
+    backgroundColor: 'transparent',
+  },
   card: {
     flexDirection: 'row',
     backgroundColor: C.surface,
