@@ -547,7 +547,6 @@ const s = StyleSheet.create({
     borderRadius: 16,
     paddingHorizontal: 14,
     paddingVertical: Platform.OS === 'ios' ? 13 : 10,
-    borderWidth: 1,
     borderColor: '#EDE0D4',
     shadowColor: '#3D2010',
     shadowOpacity: 0.04,
@@ -556,7 +555,6 @@ const s = StyleSheet.create({
     elevation: 2,
   },
   searchBarFocused: {
-    borderColor: C.hero,
     shadowOpacity: 0.1,
   },
   searchInput: {
