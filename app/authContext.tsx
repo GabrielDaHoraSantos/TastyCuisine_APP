@@ -43,7 +43,6 @@ interface AuthContextType {
   getBookbyUserId: (id:number) => Promise<{ok:boolean; error?:string; livros?:Livro[]}>;
   updateBook:(data: Livro, id: number) => Promise<{ok:boolean; error?:string}>
   register: (nomeCompleto: string, nomeDeUsuario: string, idade: number, gmail: string, senha: string) => Promise<{ ok: boolean; error?: string }>;
-
   updateUserData: (user: AuthUser) => void;
   getComentarios: (receitaId: string) => Promise<any[]>;
   enviarComentario: (receitaId: number, nota: number, texto: string) => Promise<void>;
