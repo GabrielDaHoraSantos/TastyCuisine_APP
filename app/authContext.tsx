@@ -318,7 +318,7 @@ async function removeRecipeFromBook(
     <AuthContext.Provider value={{
       user,
       isLogged: !!user,
-      userName: user?.nomeCompleto ?? null,
+      userName: user?.nome_completo ?? null,
       userId: user ? String(user.codUser) : null,
       loading,
       favoritos,           

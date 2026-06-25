@@ -158,7 +158,11 @@ export default function HomeScreen() {
           <Text style={s.subtitle}>O que vamos cozinhar hoje?</Text>
         </View>
         <View style={s.avatarCircle}>
-          <Text style={s.avatarInitial}>{(userName || 'G').charAt(0).toUpperCase()}</Text>
+          <button>
+          <TouchableOpacity onPress={() => router.push('/profile')}>         
+             <Text style={s.avatarInitial}>{(userName || 'G').charAt(0).toUpperCase()}</Text>
+          </TouchableOpacity>
+          </button>
         </View>
       </View>
 
@@ -389,6 +393,7 @@ const w = StyleSheet.create({
 const s = StyleSheet.create({
   safeArea:      { flex: 1, backgroundColor: C.bg },
   scrollContent: { paddingBottom: 100 },
+
 
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
