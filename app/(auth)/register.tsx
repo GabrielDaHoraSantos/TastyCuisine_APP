@@ -213,7 +213,7 @@ export default function RegisterScreen() {
 
         <TextInput
           style={styles.input}
-          placeholder="Gabriel da Hora Santos"
+          placeholder="Digite seu nome completo"
           placeholderTextColor={C.textMuted}
           value={formData.nomeCompleto}
           onChangeText={(v) => handleChange('nomeCompleto', v)}
@@ -223,7 +223,7 @@ export default function RegisterScreen() {
 
         <TextInput
           style={styles.input}
-          placeholder="gabs"
+          placeholder="Digite seu nome de usuario"
           placeholderTextColor={C.textMuted}
           autoCapitalize="none"
           value={formData.nomeUsuario}
@@ -248,7 +248,7 @@ export default function RegisterScreen() {
 
         <TextInput
           style={styles.input}
-          placeholder="teste@email.com"
+          placeholder="exemplo@exemplo.com"
           keyboardType="email-address"
           autoCapitalize="none"
           placeholderTextColor={C.textMuted}
@@ -260,7 +260,7 @@ export default function RegisterScreen() {
 
         <TextInput
           style={styles.input}
-          placeholder="********"
+          placeholder="Digite sua senha"
           secureTextEntry
           placeholderTextColor={C.textMuted}
           value={formData.senha}
