@@ -1,4 +1,4 @@
-
+import React from 'react';
 import {
   View,
   Text,
@@ -8,156 +8,229 @@ import {
   StatusBar,
 } from 'react-native';
 
-import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
+
+const C = {
+  bg: '#F5EDE3',
+  surface: '#FFFFFF',
+  hero: '#C4703A',
+  accent: '#C4703A',
+  accentSoft: '#FFF0E8',
+  accentBorder: '#F0C8A0',
+  textPrimary: '#3D2010',
+  textSub: '#B8906A',
+  white: '#FFFFFF',
+};
 
 export default function WelcomeScreen() {
   const router = useRouter();
 
   return (
-   <LinearGradient colors={['#FCEAD2', '#F3A973']} style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" />
 
-      {/* Parte escura atrás da imagem */}
-      <View style={styles.imageBackground} />
-
-      {/* Imagem */}
-      <Image
-        source={require('../../assets/images/T.png')}
-        style={styles.image}
-        resizeMode="cover"
-      />
-
-
-      {/* Logo */}
-      <Text style={styles.title}>TastyCuisine</Text>
-      <Text style={styles.subtitle}>Todas as receitas à sua mão</Text>
-
-      {/* Botão Login */}
-      <TouchableOpacity
-        style={styles.loginButton}
-        onPress={() => router.push('/(auth)/login')}
+      {/* HERO */}
+      <LinearGradient
+        colors={['#C4703A', '#A0522D', '#7A3B1E']}
+        style={styles.hero}
       >
-        <Text style={styles.loginText}>Logar</Text>
-      </TouchableOpacity>
+        <View style={styles.blob1} />
+        <View style={styles.blob2} />
+        <View style={styles.blob3} />
 
-      {/* Botão Cadastro */}
-      <TouchableOpacity
-        style={styles.signupButton}
-        onPress={() => router.push('/(auth)/register')}
-      >
-        <Text style={styles.signupText}>Cadastrar-se</Text>
-      </TouchableOpacity>
+        <Image
+          source={require('../../assets/images/T.png')}
+          style={styles.image}
+          resizeMode="contain"
+        />
+      </LinearGradient>
 
-      {/* Skip */}
-      <TouchableOpacity
-        style={styles.skipContainer}
-        onPress={() => router.push('/home')}
-      >
-        <Text style={styles.skipText}>pular</Text>
-      </TouchableOpacity>
-    </LinearGradient>
+      {/* CARD */}
+      <View style={styles.card}>
+
+        <Text style={styles.label}>
+          BEM-VINDO
+        </Text>
+
+        <Text style={styles.title}>
+          TastyCuisine
+        </Text>
+
+        <Text style={styles.subtitle}>
+          Todas as receitas na palma da sua mão.
+        </Text>
+
+        <TouchableOpacity
+          style={styles.loginButton}
+          activeOpacity={0.8}
+          onPress={() => router.push('/(auth)/login')}
+        >
+          <Text style={styles.loginText}>
+            Entrar
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.signupButton}
+          activeOpacity={0.8}
+          onPress={() => router.push('/(auth)/register')}
+        >
+          <Text style={styles.signupText}>
+            Criar Conta
+          </Text>
+        </TouchableOpacity>
+
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 30,
+    backgroundColor: C.bg,
   },
 
-  /* Parte mais escura atrás */
-  imageBackground: {
+  hero: {
+    height: '48%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderBottomLeftRadius: 40,
+    borderBottomRightRadius: 40,
+    overflow: 'hidden',
+  },
+
+  blob1: {
     position: 'absolute',
-    top: -100,
-    width: '72%',
-    height: 375,
-    backgroundColor: '#ffbb6e',
-    borderRadius: 28,
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    top: -60,
+    right: -40,
+  },
+
+  blob2: {
+    position: 'absolute',
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    backgroundColor: 'rgba(255,180,100,0.12)',
+    bottom: -50,
+    left: -30,
+  },
+
+  blob3: {
+    position: 'absolute',
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    top: 70,
+    left: 50,
   },
 
   image: {
-    top: -100,
-    width: '72%',
-    height: 255,
-    borderRadius: 28,
-    marginTop: -40,
+    width: 270,
+    height: 270,
+    borderRadius: 30,
+
+    shadowColor: '#000',
+    shadowOpacity: 0.28,
+    shadowRadius: 18,
+    shadowOffset: {
+      width: 0,
+      height: 10,
+    },
+
+    elevation: 12,
   },
 
-  dotsContainer: {
-    flexDirection: 'row',
-    marginTop: 12,
-    marginBottom: 25,
+  card: {
+    flex: 1,
+    marginTop: -35,
+    backgroundColor: C.surface,
+    borderTopLeftRadius: 35,
+    borderTopRightRadius: 35,
+    paddingHorizontal: 30,
+    paddingTop: 35,
+    alignItems: 'center',
+
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 15,
+    shadowOffset: {
+      width: 0,
+      height: -4,
+    },
+
+    elevation: 10,
   },
 
-  dot: {
-    width: 5,
-    height: 5,
-    borderRadius: 20,
-    backgroundColor: 'rgb(255, 3, 3)',
-    marginHorizontal: 4,
-  },
-
-  activeDot: {
-    backgroundColor: '#8D4B24',
-    width: 6,
-    height: 6,
+  label: {
+    color: C.textSub,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 4,
+    marginBottom: 16,
   },
 
   title: {
-    fontSize: 48,
-    color: '#9D4F23',
-    fontStyle: 'italic',
-    fontWeight: '300',
-    marginBottom: -6,
+    fontSize: 20,
+    fontWeight: '800',
+    color: C.textPrimary,
+    marginBottom: 10,
   },
 
   subtitle: {
-    fontSize: 11,
-    color: '#9D4F23',
-    letterSpacing: 1,
-    marginBottom: 55,
+    fontSize: 15,
+    color: C.textSub,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 45,
+    paddingHorizontal: 10,
   },
 
   loginButton: {
-    width: '68%',
-    backgroundColor: '#C45E20',
-    paddingVertical: 14,
-    borderRadius: 12,
+    width: '100%',
+    backgroundColor: C.accent,
+    paddingVertical: 17,
+    borderRadius: 18,
     alignItems: 'center',
-    marginBottom: 14,
+
+    shadowColor: C.accent,
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    shadowOffset: {
+      width: 0,
+      height: 5,
+    },
+
+    elevation: 8,
   },
 
   loginText: {
-    color: '#FFF',
-    fontWeight: '600',
-    fontSize: 13,
+    color: C.white,
+    fontWeight: '700',
+    fontSize: 16,
   },
 
   signupButton: {
-    width: '68%',
-    backgroundColor: '#FFF5EC',
-    paddingVertical: 14,
-    borderRadius: 12,
+    width: '100%',
+    marginTop: 18,
+    backgroundColor: C.accentSoft,
+    borderWidth: 1,
+    borderColor: C.accentBorder,
+    paddingVertical: 17,
+    borderRadius: 18,
     alignItems: 'center',
   },
 
   signupText: {
-    color: '#8D4B24',
-    fontWeight: '600',
-    fontSize: 13,
-  },
-
-  skipContainer: {
-    position: 'absolute',
-    bottom: 28,
-  },
-
-  skipText: {
-    color: '#FFF',
-    fontSize: 11,
-    opacity: 0.9,
+    color: C.accent,
+    fontWeight: '700',
+    fontSize: 16,
   },
 });

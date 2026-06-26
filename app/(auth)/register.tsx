@@ -1,99 +1,104 @@
 'use client';
- 
+
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
   ActivityIndicator,
   Image,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from 'react-native';
 import { useAuth } from '../authContext';
- 
- 
+
+// Paleta de cores (mesma do Perfil)
+const C = {
+  bg: '#F5EDE3',
+  surface: '#FFFFFF',
+  hero: '#C4703A',
+  accent: '#C4703A',
+  accentSoft: '#FFF0E8',
+  accentBorder: '#F0C8A0',
+  white: '#FFFFFF',
+  textPrimary: '#3D2010',
+  textSub: '#B8906A',
+  textMuted: '#D4B89A',
+  textOnHero: '#FFFFFF',
+  textOnHeroSub: 'rgba(255,230,200,0.85)',
+};
+
 export default function RegisterScreen() {
   const router = useRouter();
-  const { login, register } = useAuth();
+  const { register } = useAuth();
+
   const formatBirthDate = (text: string) => {
     const numbers = text.replace(/\D/g, '');
- 
+
     if (numbers.length <= 2) return numbers;
- 
+
     if (numbers.length <= 4) {
       return `${numbers.slice(0, 2)}/${numbers.slice(2)}`;
     }
- 
-    return `${numbers.slice(0, 2)}/${numbers.slice(
-      2,
-      4
-    )}/${numbers.slice(4, 8)}`;
+
+    return `${numbers.slice(0, 2)}/${numbers.slice(2, 4)}/${numbers.slice(4, 8)}`;
   };
- 
+
   const calculateAge = (dateString: string) => {
-  const parts = dateString.split('/');
- 
-  if (parts.length !== 3) return null;
- 
-  const day = Number(parts[0]);
-  const month = Number(parts[1]);
-  const year = Number(parts[2]);
- 
-  if (
-    isNaN(day) ||
-    isNaN(month) ||
-    isNaN(year)
-  ) {
-    return null;
-  }
- 
-  if (
-    day < 1 ||
-    day > 31 ||
-    month < 1 ||
-    month > 12 ||
-    year < 1900
-  ) {
-    return null;
-  }
- 
-  const birth = new Date(year, month - 1, day);
- 
-  // Verifica se a data realmente existe
-  if (
-    birth.getDate() !== day ||
-    birth.getMonth() !== month - 1 ||
-    birth.getFullYear() !== year
-  ) {
-    return null;
-  }
- 
-  const today = new Date();
- 
-  let age =
-    today.getFullYear() -
-    birth.getFullYear();
- 
-  const monthDiff =
-    today.getMonth() -
-    birth.getMonth();
- 
-  if (
-    monthDiff < 0 ||
-    (monthDiff === 0 &&
-      today.getDate() < birth.getDate())
-  ) {
-    age--;
-  }
- 
-  return age;
-};
+    const parts = dateString.split('/');
+
+    if (parts.length !== 3) return null;
+
+    const day = Number(parts[0]);
+    const month = Number(parts[1]);
+    const year = Number(parts[2]);
+
+    if (
+      isNaN(day) ||
+      isNaN(month) ||
+      isNaN(year) ||
+      day < 1 ||
+      day > 31 ||
+      month < 1 ||
+      month > 12 ||
+      year < 1900
+    ) {
+      return null;
+    }
+
+    const birth = new Date(year, month - 1, day);
+
+    if (
+      birth.getDate() !== day ||
+      birth.getMonth() !== month - 1 ||
+      birth.getFullYear() !== year
+    ) {
+      return null;
+    }
+
+    const today = new Date();
+
+    let age = today.getFullYear() - birth.getFullYear();
+
+    const monthDiff = today.getMonth() - birth.getMonth();
+
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birth.getDate())
+    ) {
+      age--;
+    }
+
+    return age;
+  };
+
   const [birthDate, setBirthDate] = useState('');
- 
- 
+
   const [formData, setFormData] = useState({
     nomeCompleto: '',
     nomeUsuario: '',
@@ -101,12 +106,12 @@ export default function RegisterScreen() {
     email: '',
     senha: '',
     confirmarSenha: '',
-    funcao:'Usuario'
+    funcao: 'Usuario',
   });
- 
+
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
- 
+
   const handleRegister = async () => {
     if (
       !formData.nomeCompleto ||
@@ -116,312 +121,380 @@ export default function RegisterScreen() {
       !formData.senha ||
       !formData.funcao
     ) {
-      setError('Please fill in all required fields');
+      setError('Preencha todos os campos.');
       return;
     }
- 
-    // Calcula idade a partir da data de nascimento
+
     const idade = calculateAge(birthDate);
- 
-if (idade === null) {
-  setError('Data de nascimento inválida');
-  return;
-}
- 
-    if (idade < 14 || idade > 100) {
-      setError('You must be between 14 and 100 years old');
+
+    if (idade === null) {
+      setError('Data de nascimento inválida.');
       return;
     }
- 
+
+    if (idade < 14 || idade > 100) {
+      setError('Você deve ter entre 14 e 100 anos.');
+      return;
+    }
+
     setLoading(true);
     setError(null);
- 
+
     try {
       const response = await register(
         formData.nomeCompleto.trim(),
         formData.nomeUsuario.trim(),
         idade,
         formData.email.trim(),
-        formData.senha,
+        formData.senha
       );
- 
+
       if (!response.ok) {
-        setError(response.error || 'Could not create your account');
+        setError(response.error || 'Erro ao criar conta.');
         return;
       }
+
       router.replace('/home');
     } catch (err) {
-      setError('Error connecting to the server');
-      console.error('Erro ao cadastrar:', err);
+      console.error(err);
+      setError('Erro ao conectar com o servidor.');
     } finally {
       setLoading(false);
     }
   };
- 
+
   const handleChange = (name: string, value: string) => {
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [name]: value,
-    });
+    }));
   };
- 
   return (
-    <LinearGradient colors={['#FCEAD2', '#F3A973']} style={styles.container}>
-      <View style={styles.logoContainer}>
+  <SafeAreaView style={{ flex: 1, backgroundColor: C.hero }}>
+    <StatusBar barStyle="light-content" />
+
+    <ScrollView
+      style={{ flex: 1, backgroundColor: C.bg }}
+      contentContainerStyle={{ paddingBottom: 40 }}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* HERO */}
+      <LinearGradient
+        colors={['#C4703A', '#A95C2C', '#7A3B1E']}
+        style={styles.hero}
+      >
+        <View style={styles.blob1} />
+        <View style={styles.blob2} />
+        <View style={styles.blob3} />
+
         <Image
           source={require('../../assets/images/T.png')}
           style={styles.logo}
           resizeMode="contain"
         />
-      </View>
- 
-      <Text style={styles.title}>Cadastro</Text>
- 
-      {error && (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{error}</Text>
-        </View>
-      )}
- 
-      <View style={styles.inputContainer}>
-        
-        <Text style = {styles.text}> Nome Completo </Text>
+
+        <Text style={styles.heroTitle}>Criar Conta</Text>
+
+        <Text style={styles.heroSubtitle}>
+          Cadastre-se e descubra milhares de receitas.
+        </Text>
+      </LinearGradient>
+
+      {/* CARD */}
+      <View style={styles.card}>
+
+        {error && (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        )}
+
+        <Text style={styles.label}>Nome Completo</Text>
 
         <TextInput
           style={styles.input}
           placeholder="Gabriel da Hora Santos"
-          placeholderTextColor="#A0A0A0"
+          placeholderTextColor={C.textMuted}
           value={formData.nomeCompleto}
           onChangeText={(v) => handleChange('nomeCompleto', v)}
         />
 
-         <Text style = {styles.text}> Nome de Usuario </Text>
- 
+        <Text style={styles.label}>Nome de Usuário</Text>
+
         <TextInput
           style={styles.input}
-          placeholder="Gabs"
-          placeholderTextColor="#A0A0A0"
+          placeholder="gabs"
+          placeholderTextColor={C.textMuted}
           autoCapitalize="none"
           value={formData.nomeUsuario}
           onChangeText={(v) => handleChange('nomeUsuario', v)}
         />
 
-          <Text style = {styles.text}> Data de Nascimento </Text>
-
-        <TextInput
-  style={styles.input}
-  placeholder="(DD/MM/AAAA)"
-  placeholderTextColor="#A0A0A0"
-  keyboardType="number-pad"
-  maxLength={10}
-  value={birthDate}
-  onChangeText={(text) =>
-    setBirthDate(formatBirthDate(text))
-  }
-/>
- 
-          <Text style = {styles.text}> Email </Text>
+        <Text style={styles.label}>Data de Nascimento</Text>
 
         <TextInput
           style={styles.input}
-          placeholder="test@exemplo.com"
+          placeholder="DD/MM/AAAA"
+          placeholderTextColor={C.textMuted}
+          keyboardType="number-pad"
+          maxLength={10}
+          value={birthDate}
+          onChangeText={(text) =>
+            setBirthDate(formatBirthDate(text))
+          }
+        />
+
+        <Text style={styles.label}>Email</Text>
+
+        <TextInput
+          style={styles.input}
+          placeholder="teste@email.com"
           keyboardType="email-address"
-          placeholderTextColor="#A0A0A0"
           autoCapitalize="none"
+          placeholderTextColor={C.textMuted}
           value={formData.email}
           onChangeText={(v) => handleChange('email', v)}
         />
 
-        <Text style = {styles.text}> Senha </Text>
- 
+        <Text style={styles.label}>Senha</Text>
+
         <TextInput
           style={styles.input}
-          placeholder="12345678"
+          placeholder="********"
           secureTextEntry
-          placeholderTextColor="#A0A0A0"
+          placeholderTextColor={C.textMuted}
           value={formData.senha}
           onChangeText={(v) => handleChange('senha', v)}
         />
- 
- 
-      </View>
- 
-      <TouchableOpacity
-        style={[styles.button, loading && styles.buttonDisabled]}
-        onPress={handleRegister}
-        disabled={loading}
-      >
-        {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>Entrar</Text>}
-      </TouchableOpacity>
- 
-      <View style={styles.dividerContainer}>
-        <View style={styles.line} />
-        <Text style={styles.dividerText}>ou logar com</Text>
-        <View style={styles.line} />
-      </View>
- 
-      <View style={styles.socialContainer}>
-        <TouchableOpacity style={styles.socialButton}>
+
+        <TouchableOpacity
+          style={[
+            styles.primaryButton,
+            loading && { opacity: 0.6 },
+          ]}
+          onPress={handleRegister}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#FFF" />
+          ) : (
+            <Text style={styles.primaryButtonText}>
+              Criar Conta
+            </Text>
+          )}
+        </TouchableOpacity>
+
+        <View style={styles.dividerContainer}>
+          <View style={styles.line} />
+          <Text style={styles.dividerText}>
+            ou continue com
+          </Text>
+          <View style={styles.line} />
+        </View>
+
+        <TouchableOpacity style={styles.googleButton}>
           <Image
             source={require('../../assets/images/google.png')}
-            style={styles.image}
-            resizeMode="contain"
+            style={styles.googleIcon}
           />
- 
-          <Text style={styles.socialButtonText}>Google</Text>
-        </TouchableOpacity>
-      </View>
- 
-      <TouchableOpacity onPress={() => router.push('/login')} style={styles.loginLinkContainer}>
-        <Text style={styles.link}>
-          Já tem uma conta? <Text style={styles.linkBold}>Logar-se</Text>
-        </Text>
-      </TouchableOpacity>
- 
-    </LinearGradient>
-  );
-}
- 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    paddingHorizontal: 25,
-    justifyContent: 'center',
-  },
-  logoContainer: {
-    marginBottom: 14,
-    marginTop: 20,
-    alignItems: 'center',
-  },
-  logo: {
-    width: 190,
-    height: 62,
-  },
-  text: {
-    textAlign: 'center',
-    fontSize: 10,
-    fontWeight: 'bold',
-    marginBottom: 7,
-    color: '#BA531B',
 
+          <Text style={styles.googleText}>
+            Google
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => router.push('/login')}
+          style={styles.loginLinkContainer}
+        >
+          <Text style={styles.link}>
+            Já possui uma conta?{' '}
+            <Text style={styles.linkBold}>
+              Entrar
+            </Text>
+          </Text>
+        </TouchableOpacity>
+
+      </View>
+    </ScrollView>
+  </SafeAreaView>
+);
+}
+const styles = StyleSheet.create({
+  hero: {
+    height: 280,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+    overflow: 'hidden',
   },
-  title: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    color: '#BA531B',
+
+  blob1: {
+    position: 'absolute',
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    top: -70,
+    left: -60,
+  },
+
+  blob2: {
+    position: 'absolute',
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    right: -40,
+    top: 40,
+  },
+
+  blob3: {
+    position: 'absolute',
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    bottom: -30,
+    left: 100,
+  },
+
+  logo: {
+    width: 170,
+    height: 70,
     marginBottom: 16,
   },
-  errorContainer: {
-    backgroundColor: 'rgba(211, 47, 47, 0.2)',
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 12,
-     width: 320,
+
+  heroTitle: {
+    fontSize: 30,
+    fontWeight: '800',
+    color: '#FFF',
   },
+
+  heroSubtitle: {
+    marginTop: 8,
+    color: 'rgba(255,255,255,0.85)',
+    textAlign: 'center',
+    fontSize: 15,
+    paddingHorizontal: 35,
+  },
+
+  card: {
+    marginHorizontal: 18,
+    marginTop: -35,
+    backgroundColor: '#FFF',
+    borderRadius: 28,
+    padding: 22,
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    shadowOffset: {
+      width: 0,
+      height: 5,
+    },
+  },
+
+  errorContainer: {
+    backgroundColor: '#FDECEC',
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 18,
+  },
+
   errorText: {
     color: '#D32F2F',
     textAlign: 'center',
-    fontSize: 14,
-  },
-  inputContainer: {
-    width: 320,
+    fontWeight: '600',
   },
 
-   input: {
-     width: 320,
-    height: 50,
-    backgroundColor: '#FFF2E4', // Fundo off-white/bege clarinho dos inputs
-    borderRadius: 10,
-    paddingHorizontal: 20,
-    color: '#5C3818',
-    marginBottom: 15,
-    fontSize: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+  label: {
+    color: C.textPrimary,
+    fontWeight: '700',
+    marginBottom: 8,
+    marginTop: 12,
   },
-  button: {
-     width: 320,
-    height: 50,
-    backgroundColor: '#BA531B',
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 8,
-  },
-  buttonDisabled: {
-    opacity: 0.7,
-  },
-  buttonText: {
-    color: '#FFF',
-    fontWeight: 'bold',
+
+  input: {
+    backgroundColor: '#F8F2EC',
+    borderRadius: 14,
+    paddingHorizontal: 18,
+    height: 54,
     fontSize: 16,
+    color: C.textPrimary,
+    borderWidth: 1,
+    borderColor: '#EFE3D8',
   },
+
+  primaryButton: {
+    backgroundColor: C.accent,
+    height: 56,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 28,
+  },
+
+  primaryButtonText: {
+    color: '#FFF',
+    fontSize: 17,
+    fontWeight: '700',
+  },
+
   dividerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 16,
-    width: '100%',
+    marginVertical: 24,
   },
+
   line: {
     flex: 1,
     height: 1,
-    backgroundColor: 'rgba(107, 64, 27, 0.2)',
+    backgroundColor: '#E5D5C6',
   },
+
   dividerText: {
-    marginHorizontal: 10,
-    fontSize: 12,
-    color: '#6B401B',
+    marginHorizontal: 12,
+    color: C.textSub,
+    fontSize: 13,
   },
-  socialContainer: {
+
+  googleButton: {
     flexDirection: 'row',
-    justifyContent: 'center',
-     width: 320,
-    marginBottom: 16,
-  },
-  socialButton: {
-    flex: 0.47,
-    height: 40,
-    backgroundColor: '#FFF',
-    borderRadius: 5,
     justifyContent: 'center',
     alignItems: 'center',
-    flexDirection: 'row',
     borderWidth: 1,
-    borderColor: '#EFEFEF',
+    borderColor: '#E5D5C6',
+    borderRadius: 16,
+    height: 54,
+    backgroundColor: '#FFF',
   },
-  image: {
-    width: 20,
-    height: 20,
-    marginRight: 8,
+
+  googleIcon: {
+    width: 22,
+    height: 22,
+    marginRight: 10,
   },
-  socialButtonText: {
-    fontSize: 13,
+
+  googleText: {
     fontWeight: '600',
-    color: '#555',
+    color: C.textPrimary,
+    fontSize: 16,
   },
+
   loginLinkContainer: {
-    marginBottom: 40,
+    marginTop: 26,
+    alignItems: 'center',
   },
+
   link: {
-    color: '#6B401B',
-    fontSize: 13,
+    color: C.textSub,
+    fontSize: 15,
   },
+
   linkBold: {
-    fontWeight: 'bold',
-    color: '#BA531B',
-  },
-  skipContainer: {
-    position: 'absolute',
-    bottom: 25,
-  },
-  skipText: {
-    fontSize: 13,
-    color: '#6B401B',
-    fontWeight: '500',
+    color: C.accent,
+    fontWeight: '700',
   },
 });
- 

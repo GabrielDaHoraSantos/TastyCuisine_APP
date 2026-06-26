@@ -227,20 +227,7 @@ export default function HomeScreen() {
                 <Ionicons name="chevron-forward" size={18} color={C.hero} />
               </TouchableOpacity>
             </View>
-
-            {/* Thumbnails */}
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingTop: 12 }}>
-              {featuredRecipes.map((item, i) => (
-                <TouchableOpacity
-                  key={getRecipeId(item)}
-                  onPress={() => setActiveIndex(i)}
-                  activeOpacity={0.8}
-                  style={[s.thumb, i === activeIndex && s.thumbActive]}
-                >
-                  <Image source={{ uri: getRecipeImage(item) }} style={s.thumbImg} resizeMode="cover" />
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+          
           </View>
         )}
 

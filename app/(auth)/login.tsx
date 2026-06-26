@@ -1,73 +1,119 @@
+'use client';
+
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Image, Linking, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Image,
+  Linking,
+  Modal,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { useAuth } from '../authContext';
- 
+
+// Paleta de cores
+const C = {
+  bg: '#F5EDE3',
+  surface: '#FFFFFF',
+  hero: '#C4703A',
+  accent: '#C4703A',
+  accentSoft: '#FFF0E8',
+  accentBorder: '#F0C8A0',
+
+  white: '#FFFFFF',
+
+  textPrimary: '#3D2010',
+  textSub: '#B8906A',
+  textMuted: '#D4B89A',
+
+  textOnHero: '#FFFFFF',
+  textOnHeroSub: 'rgba(255,235,220,0.9)',
+
+  error: '#D32F2F',
+};
+
 export default function LoginScreen() {
   const router = useRouter();
   const { login, reativar } = useAuth();
+
   const [formData, setFormData] = useState({
     email: '',
-    senha: ''
+    senha: '',
   });
+
   const [rememberMe, setRememberMe] = useState(false);
+
   const [contaInativa, setContaInativa] = useState(false);
-  const [contaBloqueada, setContaBloqueada] = useState(false); // 💡 Novo estado para controle do modal de bloqueio
+  const [contaBloqueada, setContaBloqueada] = useState(false);
+
   const [reativando, setReativando] = useState(false);
   const [confirmarSenha, setConfirmarSenha] = useState('');
- 
+
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
- 
+
   const handleSubmit = async () => {
     if (!formData.email || !formData.senha) {
-      setError('Por favor, preencha todos os campos');
+      setError('Por favor, preencha todos os campos.');
       return;
     }
- 
+
     setLoading(true);
     setError(null);
- 
+
     try {
-      const result = await login(formData.email, formData.senha);
- 
+      const result = await login(
+        formData.email,
+        formData.senha
+      );
+
       if (result.ok) {
         router.replace('/home');
       } else if (result.error === 'CONTA_BLOQUEADA') {
-        // 💡 Verificação prioritária disparada antes do status de inatividade comum
         setContaBloqueada(true);
       } else if (result.error === 'CONTA_INATIVA') {
         setContaInativa(true);
       } else if (result.error === 'ACESSO_NEGADO') {
-        setError('Apenas usuários podem acessar o app mobile.');
+        setError(
+          'Apenas usuários podem acessar o aplicativo.'
+        );
       } else {
-        setError(result.error || 'Email ou senha incorretos');
+        setError(
+          result.error || 'Email ou senha incorretos.'
+        );
       }
     } catch (err) {
-      setError('Erro ao conectar com o servidor');
-      console.error('Erro ao fazer login:', err);
+      console.error(err);
+      setError('Erro ao conectar com o servidor.');
     } finally {
       setLoading(false);
-    } 
+    }
   };
- 
-  const handleChange = (name: string, value: string) => {
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-  };
- 
+
   const handleReativar = async () => {
     if (confirmarSenha !== formData.senha) {
       setError('As senhas não coincidem.');
       setContaInativa(false);
       return;
     }
+
     setReativando(true);
-    const res = await reativar(formData.email, formData.senha);
+
+    const res = await reativar(
+      formData.email,
+      formData.senha
+    );
+
     setReativando(false);
+
     if (res) {
       setContaInativa(false);
       setConfirmarSenha('');
@@ -78,370 +124,520 @@ export default function LoginScreen() {
       setConfirmarSenha('');
     }
   };
- 
+
+  const handleChange = (
+    name: string,
+    value: string
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
   return (
-    <LinearGradient colors={['#FCEAD2', '#F3A973']} style={styles.container}>
-       
-      {/* Logotipo Sanremo */}
-      <View style={styles.logoContainer}>
-        <Image
-          source={require('../../assets/images/T.png')} 
-          style={styles.logo}
-          resizeMode="contain"
-        />
-      </View>
- 
-      <Text style={styles.title}>Logar</Text>
- 
-      {error && (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{error}</Text>
-        </View>
-      )}
+    <SafeAreaView style={{ flex: 1, backgroundColor: C.hero }}>
+      <StatusBar barStyle="light-content" />
 
-      <Text style={styles.text}> Email </Text>
-      <TextInput
-        value={formData.email}
-        onChangeText={(value) => handleChange('email', value)}
-        style={styles.input}
-        placeholder="test@exemplo.com"
-        placeholderTextColor="#A0A0A0"
-        autoCapitalize="none"
-      />
-
-      <Text style={styles.text}> Senha </Text>
-      <TextInput
-        value={formData.senha}
-        onChangeText={(value) => handleChange('senha', value)}
-        style={styles.input}
-        placeholder="12345678"
-        placeholderTextColor="#A0A0A0"
-        secureTextEntry={!rememberMe}
-      />
- 
-      {/* Remember me & Forgot Password */}
-      <View style={styles.rowOptions}>
-        <TouchableOpacity style={styles.checkboxContainer} onPress={() => setRememberMe(!rememberMe)}>
-          <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]} />
-          <Text style={styles.optionText}>mostrar senha</Text>
-        </TouchableOpacity>
- 
-        <TouchableOpacity onPress={() => Linking.openURL('https://accounts.google.com/signin/recovery')}>
-          <Text style={styles.optionText}>esqueceu sua senha?</Text>
-        </TouchableOpacity>
-      </View>
- 
-      {/* Botão de Entrar Principal */}
-      <TouchableOpacity
-        onPress={handleSubmit}
-        style={[styles.button, loading && styles.buttonDisabled]}
-        disabled={loading}
+      <ScrollView
+        style={{ flex: 1, backgroundColor: C.bg }}
+        contentContainerStyle={{ paddingBottom: 40 }}
+        showsVerticalScrollIndicator={false}
       >
-        {loading ? (
-          <ActivityIndicator color="#FFF" />
-        ) : (
-          <Text style={styles.buttonText}>Entrar</Text>
-        )}
-      </TouchableOpacity>
- 
-      {/* Divisor "Or Sign in with" */}
-      <View style={styles.dividerContainer}>
-        <View style={styles.line} />
-        <Text style={styles.dividerText}>Ou entre com</Text>
-        <View style={styles.line} />
-      </View>
- 
-      {/* Botões Sociais */}
-      <View style={styles.socialContainer}>
-        <TouchableOpacity style={styles.socialButton}>
+        {/* HERO */}
+        <LinearGradient
+          colors={['#C4703A', '#A95C2C', '#7A3B1E']}
+          style={styles.hero}
+        >
+          <View style={styles.blob1} />
+          <View style={styles.blob2} />
+          <View style={styles.blob3} />
+
           <Image
-            source={require('../../assets/images/google.png')}
-            style={styles.image}
-            resizeMode="cover"
+            source={require('../../assets/images/T.png')}
+            style={styles.logo}
+            resizeMode="contain"
           />
-          <Text style={styles.socialButtonText}>Google</Text>
-        </TouchableOpacity>
-      </View>
- 
-      {/* Link de Cadastro */}
-      <TouchableOpacity onPress={() => router.push('/register')} style={styles.registerContainer}>
-        <Text style={styles.link}>Não tem uma conta? <Text style={styles.linkBold}>Cadastre-se</Text></Text>
-      </TouchableOpacity>
- 
-      {/* 💡 MODAL DE CONTA BLOQUEADA PELO ADMINISTRADOR */}
-      <Modal visible={contaBloqueada} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalBox}>
-            <Text style={[styles.modalTitle, { color: '#D32F2F' }]}>Acesso Suspenso</Text>
-            <Text style={styles.modalDesc}>
-              Esta conta foi bloqueada por um administrador do sistema devido à violação dos termos de uso da nossa comunidade.
+
+          <Text style={styles.heroTitle}>Bem-vindo!</Text>
+
+          <Text style={styles.heroSubtitle}>
+            Entre em sua conta e continue descobrindo milhares de receitas.
+          </Text>
+        </LinearGradient>
+
+        {/* CARD */}
+        <View style={styles.card}>
+
+          {error && (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          )}
+
+          <Text style={styles.label}>Email</Text>
+
+          <TextInput
+            value={formData.email}
+            onChangeText={(v) => handleChange('email', v)}
+            style={styles.input}
+            placeholder="teste@email.com"
+            placeholderTextColor={C.textMuted}
+            autoCapitalize="none"
+            keyboardType="email-address"
+          />
+
+          <Text style={styles.label}>Senha</Text>
+
+          <TextInput
+            value={formData.senha}
+            onChangeText={(v) => handleChange('senha', v)}
+            style={styles.input}
+            placeholder="********"
+            placeholderTextColor={C.textMuted}
+            secureTextEntry={!rememberMe}
+          />
+
+          {/* Mostrar senha */}
+          <View style={styles.optionsRow}>
+
+            <TouchableOpacity
+              style={styles.checkboxContainer}
+              onPress={() => setRememberMe(!rememberMe)}
+            >
+              <View
+                style={[
+                  styles.checkbox,
+                  rememberMe && styles.checkboxChecked,
+                ]}
+              />
+
+              <Text style={styles.optionText}>
+                Mostrar senha
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() =>
+                Linking.openURL(
+                  'https://accounts.google.com/signin/recovery'
+                )
+              }
+            >
+              <Text style={styles.optionText}>
+                Esqueceu?
+              </Text>
+            </TouchableOpacity>
+
+          </View>
+
+          {/* Botão */}
+          <TouchableOpacity
+            style={[
+              styles.primaryButton,
+              loading && { opacity: 0.6 },
+            ]}
+            disabled={loading}
+            onPress={handleSubmit}
+          >
+            {loading ? (
+              <ActivityIndicator color="#FFF" />
+            ) : (
+              <Text style={styles.primaryButtonText}>
+                Entrar
+              </Text>
+            )}
+          </TouchableOpacity>
+
+          {/* Divisor */}
+          <View style={styles.dividerContainer}>
+            <View style={styles.line} />
+            <Text style={styles.dividerText}>
+              ou continue com
             </Text>
-            
-            <TouchableOpacity
-              style={[styles.buttonIna, { width: 180, backgroundColor: '#D32F2F' }]}
-              onPress={() => setContaBloqueada(false)}
-            >
-              <Text style={styles.buttonText}>Confirmar</Text>
-            </TouchableOpacity>
+            <View style={styles.line} />
           </View>
-        </View>
-      </Modal>
- 
-      {/* Modal conta inativa */}
-      <Modal visible={contaInativa} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalBox}>
-            <Text style={styles.modalTitle}>Conta Inativa</Text>
-            <Text style={styles.modalDesc}>Sua conta está inativa. Confirme sua senha para reativá-la.</Text>
-            <TextInput
-              value={confirmarSenha}
-              onChangeText={setConfirmarSenha}
-              placeholder="Confirme sua senha"
-              placeholderTextColor="#A0A0A0"
-              secureTextEntry
-              style={[styles.inputIna, { marginBottom: 16 }]}
+
+          {/* Google */}
+          <TouchableOpacity style={styles.googleButton}>
+            <Image
+              source={require('../../assets/images/google.png')}
+              style={styles.googleIcon}
             />
-            <TouchableOpacity
-              style={[styles.buttonIna, (reativando || !confirmarSenha) && styles.buttonDisabled]}
-              onPress={handleReativar}
-              disabled={reativando || !confirmarSenha}
-            >
-              {reativando ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>Reativar conta</Text>}
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => setContaInativa(false)} style={{ marginTop: 14 }}>
-              <Text style={{ color: '#BA531B', fontWeight: '600' }}>Cancelar</Text>
-            </TouchableOpacity>
-          </View>
+
+            <Text style={styles.googleText}>
+              Google
+            </Text>
+          </TouchableOpacity>
+
+          {/* Cadastro */}
+          <TouchableOpacity
+            onPress={() => router.push('/register')}
+            style={styles.registerContainer}
+          >
+            <Text style={styles.link}>
+              Não possui uma conta?{' '}
+              <Text style={styles.linkBold}>
+                Cadastre-se
+              </Text>
+            </Text>
+          </TouchableOpacity>
+
         </View>
-      </Modal>
- 
-    </LinearGradient>
+
+        {/* MODAL BLOQUEADA */}
+        <Modal
+          visible={contaBloqueada}
+          transparent
+          animationType="fade"
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalBox}>
+
+              <Text
+                style={[
+                  styles.modalTitle,
+                  { color: '#D32F2F' },
+                ]}
+              >
+                Acesso Suspenso
+              </Text>
+
+              <Text style={styles.modalDesc}>
+                Esta conta foi bloqueada por um administrador
+                devido à violação das regras da comunidade.
+              </Text>
+
+              <TouchableOpacity
+                style={[
+                  styles.modalButton,
+                  { backgroundColor: '#D32F2F' },
+                ]}
+                onPress={() => setContaBloqueada(false)}
+              >
+                <Text style={styles.primaryButtonText}>
+                  Confirmar
+                </Text>
+              </TouchableOpacity>
+
+            </View>
+          </View>
+        </Modal>
+
+        {/* MODAL REATIVAR */}
+        <Modal
+          visible={contaInativa}
+          transparent
+          animationType="fade"
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalBox}>
+
+              <Text style={styles.modalTitle}>
+                Conta Inativa
+              </Text>
+
+              <Text style={styles.modalDesc}>
+                Confirme sua senha para reativar sua conta.
+              </Text>
+
+              <TextInput
+                value={confirmarSenha}
+                onChangeText={setConfirmarSenha}
+                style={styles.input}
+                secureTextEntry
+                placeholder="Confirme sua senha"
+                placeholderTextColor={C.textMuted}
+              />
+
+              <TouchableOpacity
+                style={[
+                  styles.modalButton,
+                  (reativando || !confirmarSenha) && {
+                    opacity: 0.6,
+                  },
+                ]}
+                disabled={reativando || !confirmarSenha}
+                onPress={handleReativar}
+              >
+                {reativando ? (
+                  <ActivityIndicator color="#FFF" />
+                ) : (
+                  <Text style={styles.primaryButtonText}>
+                    Reativar Conta
+                  </Text>
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={{ marginTop: 18 }}
+                onPress={() => setContaInativa(false)}
+              >
+                <Text style={styles.linkBold}>
+                  Cancelar
+                </Text>
+              </TouchableOpacity>
+
+            </View>
+          </View>
+        </Modal>
+
+      </ScrollView>
+    </SafeAreaView>
   );
 }
- 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    paddingHorizontal: 25,
+  hero: {
+    height: 300,
     justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 30,
+    borderBottomLeftRadius: 40,
+    borderBottomRightRadius: 40,
+    overflow: 'hidden',
   },
-  logoContainer: {
-    marginBottom: 30,
-    marginTop: 40,
+
+  blob1: {
+    position: 'absolute',
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    top: -40,
+    right: -20,
+  },
+
+  blob2: {
+    position: 'absolute',
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    bottom: 30,
+    left: -20,
+  },
+
+  blob3: {
+    position: 'absolute',
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    bottom: 70,
+    right: 40,
+  },
+
+  logo: {
+    width: 170,
+    height: 70,
+    marginBottom: 20,
+  },
+
+  heroTitle: {
+    fontSize: 30,
+    fontWeight: '800',
+    color: '#FFF',
+  },
+
+  heroSubtitle: {
+    marginTop: 10,
+    textAlign: 'center',
+    color: 'rgba(255,240,225,.92)',
+    fontSize: 15,
+    lineHeight: 22,
+    paddingHorizontal: 20,
+  },
+
+  card: {
+    marginHorizontal: 20,
+    marginTop: -35,
+    backgroundColor: '#FFF',
+    borderRadius: 28,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
+    shadowOffset: {
+      width: 0,
+      height: 6,
+    },
+    elevation: 10,
+  },
+
+  label: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#8A5A35',
+    marginBottom: 8,
+    marginTop: 12,
+  },
+
+  input: {
+    height: 55,
+    backgroundColor: '#FFF8F3',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#F0D7C0',
+    paddingHorizontal: 18,
+    color: '#3D2010',
+    fontSize: 15,
+    marginBottom: 8,
+  },
+
+  optionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginVertical: 18,
+  },
+
+  checkboxContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
-  logo: {
-    width: 200,
-    height: 80,
+
+  checkbox: {
+    width: 18,
+    height: 18,
+    borderRadius: 5,
+    borderWidth: 1.5,
+    borderColor: '#C4703A',
+    marginRight: 8,
+    backgroundColor: '#FFF',
   },
-  text: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    marginBottom: 7,
-        color: '#BA531B',
- 
+
+  checkboxChecked: {
+    backgroundColor: '#C4703A',
   },
-  title: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    marginBottom: 25,
-    color: '#BA531B', // Marrom/Laranja escuro da foto
+
+  optionText: {
+    color: '#9A714B',
+    fontSize: 13,
   },
+
+  primaryButton: {
+    height: 56,
+    borderRadius: 18,
+    backgroundColor: '#C4703A',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 5,
+  },
+
+  primaryButtonText: {
+    color: '#FFF',
+    fontWeight: '700',
+    fontSize: 16,
+  },
+
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 25,
+  },
+
+  line: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#ECD8C7',
+  },
+
+  dividerText: {
+    marginHorizontal: 12,
+    color: '#B18B69',
+    fontSize: 12,
+  },
+
+  googleButton: {
+    height: 55,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#ECECEC',
+    backgroundColor: '#FFF',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  googleIcon: {
+    width: 22,
+    height: 22,
+    marginRight: 10,
+  },
+
+  googleText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#555',
+  },
+
+  registerContainer: {
+    alignItems: 'center',
+    marginTop: 24,
+  },
+
+  link: {
+    color: '#86664B',
+    fontSize: 14,
+  },
+
+  linkBold: {
+    color: '#C4703A',
+    fontWeight: '700',
+  },
+
   errorContainer: {
-    backgroundColor: 'rgba(211, 47, 47, 0.2)',
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 15,
-    width: '100%',
+    backgroundColor: '#FDECEC',
+    borderWidth: 1,
+    borderColor: '#F3C7C7',
+    padding: 14,
+    borderRadius: 14,
+    marginBottom: 12,
   },
+
   errorText: {
     color: '#D32F2F',
     textAlign: 'center',
     fontSize: 14,
   },
-  input: {
-    width: 320,
-    height: 50,
-    backgroundColor: '#FFF2E4', // Fundo off-white/bege clarinho dos inputs
-    borderRadius: 10,
-    paddingHorizontal: 20,
-    color: '#5C3818',
-    marginBottom: 15,
-    fontSize: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  inputIna: {
-    width: 200,
-    height: 50,
-    backgroundColor: '#FFF2E4', // Fundo off-white/bege clarinho dos inputs
-    borderRadius: 10,
-    paddingHorizontal: 20,
-    color: '#5C3818',
-    marginBottom: 15,
-    fontSize: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  rowOptions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: 320,
-    marginBottom: 25,
-    paddingHorizontal: 2,
-  },
-  checkboxContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  checkbox: {
-    width: 14,
-    height: 14,
-    borderWidth: 1,
-    borderColor: '#BA531B',
-    borderRadius: 3,
-    marginRight: 6,
-    backgroundColor: '#FFF',
-  },
-  checkboxChecked: {
-    backgroundColor: '#BA531B',
-  },
-  optionText: {
-    fontSize: 12,
-    color: '#6B401B',
-  },
-  button: {
-    width: 320,
-    height: 50,
-    backgroundColor: '#BA531B', // Laranja terroso escuro do botão principal
-    borderRadius: 20, // Cantos bem arredondados como na foto
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-   buttonIna: {
-    width: 150,
-    height: 50,
-    backgroundColor: '#BA531B', // Laranja terroso escuro do botão principal
-    borderRadius: 20, // Cantos bem arredondados como na foto
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  buttonDisabled: {
-    opacity: 0.7,
-  },
-  buttonText: {
-    fontSize: 16,
-    color: '#FFF',
-    fontWeight: 'bold',
-  },
-  dividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 25,
-    width: '100%',
-  },
-  line: {
-    flex: 1,
-    height: 1,
-    backgroundColor: 'rgba(107, 64, 27, 0.2)',
-  },
-  dividerText: {
-    marginHorizontal: 10,
-    fontSize: 12,
-    color: '#6B401B',
-  },
-  image:{
-    width: 20,
-    height: 20,
-    marginRight: 8,
-    },
-  socialContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    width: 320,
-    marginBottom: 25,
-  },
-  socialButton: {
-    flex: 0.47,
-    height: 40,
-    backgroundColor: '#FFF',
-    borderRadius: 5,
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexDirection: 'row',
-    borderWidth: 1,
-    borderColor: '#EFEFEF',
-   
-  },
-  socialButtonText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#555',
-  },
-  registerContainer: {
-    marginBottom: 40,
-  },
-  link: {
-    color: '#6B401B',
-    fontSize: 13,
-  },
-  linkBold: {
-    fontWeight: 'bold',
-    color: '#BA531B',
-  },
-  skipContainer: {
-    position: 'absolute',
-    bottom: 30,
-  },
-  skipText: {
-    fontSize: 13,
-    color: '#6B401B',
-    fontWeight: '500',
-  },
+
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,.45)',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 30,
+    paddingHorizontal: 28,
   },
+
   modalBox: {
-    backgroundColor: '#FFF',
-    borderRadius: 20,
-    padding: 28,
     width: '100%',
+    backgroundColor: '#FFF',
+    borderRadius: 24,
+    padding: 26,
     alignItems: 'center',
   },
+
   modalTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '800',
-    color: '#BA531B',
-    marginBottom: 10,
+    color: '#C4703A',
+    marginBottom: 12,
   },
+
   modalDesc: {
     fontSize: 14,
-    color: '#6B401B',
+    color: '#755338',
     textAlign: 'center',
+    lineHeight: 22,
     marginBottom: 20,
-    lineHeight: 20,
+  },
+
+  modalButton: {
+    width: '100%',
+    height: 52,
+    borderRadius: 16,
+    backgroundColor: '#C4703A',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 10,
   },
 });
- 
- 
