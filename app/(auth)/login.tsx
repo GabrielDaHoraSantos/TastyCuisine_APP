@@ -180,7 +180,7 @@ export default function LoginScreen() {
             value={formData.email}
             onChangeText={(v) => handleChange('email', v)}
             style={styles.input}
-            placeholder="teste@email.com"
+            placeholder="exemplo@exemplo.com"
             placeholderTextColor={C.textMuted}
             autoCapitalize="none"
             keyboardType="email-address"
@@ -192,7 +192,7 @@ export default function LoginScreen() {
             value={formData.senha}
             onChangeText={(v) => handleChange('senha', v)}
             style={styles.input}
-            placeholder="********"
+            placeholder="Digite sua senha"
             placeholderTextColor={C.textMuted}
             secureTextEntry={!rememberMe}
           />
