@@ -24,32 +24,32 @@ public class ReceitaService {
         return receitaRepository.findAll();
     }
 
-public Receita salvar(Receita dto) {
+    public Receita salvar(Receita dto) {
 
-    Receita receita = new Receita();
+        Receita receita = new Receita();
 
-    receita.setNomeReceita(dto.getNomeReceita());
-    receita.setDescricao(dto.getDescricao());
+        receita.setNomeReceita(dto.getNomeReceita());
+        receita.setDescricao(dto.getDescricao());
 
-    receita.setModo_preparo(dto.getModo_preparo());
-    receita.setIngredientes(dto.getIngredientes());
-    System.out.println("INGREDIENTES RECEBIDOS:");
-    System.out.println(dto.getIngredientes());
+        receita.setModo_preparo(dto.getModo_preparo());
+        receita.setIngredientes(dto.getIngredientes());
+        System.out.println("INGREDIENTES RECEBIDOS:");
+        System.out.println(dto.getIngredientes());
 
-    System.out.println("MODO PREPARO RECEBIDO:");
-    System.out.println(dto.getModo_preparo());
+        System.out.println("MODO PREPARO RECEBIDO:");
+        System.out.println(dto.getModo_preparo());
 
-    receita.setRestricao(dto.getRestricao());
-    receita.setFotoReceita(dto.getFotoReceita());
+        receita.setRestricao(dto.getRestricao());
+        receita.setFotoReceita(dto.getFotoReceita());
 
-    Usuario usuario = usuarioRepository
-        .findById(dto.getUsuario().getCodUser())
-        .orElseThrow();
+        Usuario usuario = usuarioRepository
+            .findById(dto.getUsuario().getCodUser())
+            .orElseThrow();
 
-    receita.setUsuario(usuario);
+        receita.setUsuario(usuario);
 
-    return receitaRepository.save(receita);
-}
+        return receitaRepository.save(receita);
+    }
 
     public Receita findById(long codReceitas) {
         return receitaRepository.findById(codReceitas)
