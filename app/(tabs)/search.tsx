@@ -9,7 +9,7 @@ import {
   Image,
   Modal,
   Platform,
-  SafeAreaView,
+  SafeAreaView, 
   ScrollView,
   StatusBar,
   StyleSheet,
