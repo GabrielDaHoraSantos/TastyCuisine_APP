@@ -76,7 +76,6 @@ export default function DishDetailScreen() {
   const handleEnviarAvaliacao = async () => {
     if (!userId) { Alert.alert('Atenção', 'Você precisa estar logado para avaliar.'); return; }
     if (rating === 0) { Alert.alert('Atenção', 'Selecione uma nota de 1 a 5.'); return; }
-    if (commentText.trim() === '') { Alert.alert('Atenção', 'Escreva um comentário.'); return; }
     setSending(true);
     await enviarComentario(Number(id), rating, commentText.trim())
     setSending(false);
@@ -241,7 +240,7 @@ export default function DishDetailScreen() {
                   multiline
                   value={commentText}
                   onChangeText={setCommentText}
-                />
+                />  
                 <TouchableOpacity
                   style={[styles.sendBtn, (rating === 0 || commentText.trim() === '' || sending) && styles.sendBtnDisabled]}
                   onPress={handleEnviarAvaliacao}
