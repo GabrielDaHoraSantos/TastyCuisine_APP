@@ -2,7 +2,7 @@
  * API Configuration
  */
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8080';
+const API_BASE_URL = 'http://localhost:8080';
 
 // Endpoints
 export const API_ENDPOINTS = {
@@ -37,6 +37,7 @@ export const API_ENDPOINTS = {
   COMENTARIOS: `${API_BASE_URL}/comentario`,
   COMENTARIO_BY_ID: (id: string | number) => `${API_BASE_URL}/comentario/${id}`,
   COMENTARIOS_BY_RECEITA: (id: string | number) => `${API_BASE_URL}/comentario/receita/${id}`,
+  COMENTARIOS_GET_MEDIA : (id: string | number)=> `${API_BASE_URL}/comentario/media/${id}`,
   
   // Categorias
   CATEGORIAS_ALL: `${API_BASE_URL}/categoria/findAll`,
@@ -193,4 +194,5 @@ export const comentariosAPI = {
   getByReceitaId: (receitaId: string | number) => apiCall(`${API_ENDPOINTS.COMENTARIOS_BY_RECEITA(receitaId)}`),
   create: (data: any) => apiCall(API_ENDPOINTS.COMENTARIOS, { method: 'POST', body: JSON.stringify(data) }),
   delete: (id: string | number) => apiCall(API_ENDPOINTS.COMENTARIO_BY_ID(id), { method: 'DELETE' }),
+  getMedia: (id: number | string) => apiCall(API_ENDPOINTS.COMENTARIOS_GET_MEDIA(id), {method: 'GET'}), // 👈 Apenas a rota relativa!
 }

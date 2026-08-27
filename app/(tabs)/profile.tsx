@@ -22,15 +22,6 @@ import BolinhaqGira from '../../components/BolinhaqGira';
 import BottomNavigation from '../../components/BottomNavigation';
 import { useAuth } from '../authContext';
 
-// NOTE: Install expo-linear-gradient and replace hero View with:
-// import { LinearGradient } from 'expo-linear-gradient';
-// <LinearGradient colors={['#C4703A', '#A0522D', '#7A3B1E']} style={s.hero}>
-
-// NOTE: Instale expo-image-picker:
-//   npx expo install expo-image-picker
-
-const avatarDefault = require('../../assets/images/profile.png');
-
 // ─── Design tokens ────────────────────────────────────────────────────────────
 const C = {
   bg:              '#F5EDE3',
@@ -59,25 +50,20 @@ interface UserStats {
 }
 
 // ─── URL base da API ──────────────────────────────────────────────────────────
-// Ajuste conforme o seu ambiente
-
 const API_BASE = 'http://192.168.1.100:8080';
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { user, userId, login, logout, loading, favoritos, getComentarios,updateUser } = useAuth();
+  const { user, userId, logout, loading, favoritos, getComentarios, updateUser } = useAuth();
 
   const [editModalVisible,   setEditModalVisible]   = useState(false);
-  const [drawerVisible,      setDrawerVisible]      = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [deleting,     setDeleting]     = useState(false);
   const [saving,       setSaving]       = useState(false);
   const [savingPhoto,  setSavingPhoto]  = useState(false);
   const [stats,        setStats]        = useState<UserStats>({ favoritos: 0, avaliacoes: 0, comentarios: 0 });
   const [loadingStats, setLoadingStats] = useState(true);
-  const [birthDate, setBirthDate] = useState('');
-  
-
+  const [birthDate,    setBirthDate]    = useState('');
 
   const [form, setForm] = useState({
     nome_completo:  user?.nome_completo  ?? '',
@@ -86,7 +72,6 @@ export default function ProfileScreen() {
     gmail:         user?.gmail         ?? '',
     senha: '',
   });
-  
 
   useEffect(() => {
     if (!userId && !loading) router.push('/login');
@@ -94,29 +79,26 @@ export default function ProfileScreen() {
 
   // Busca stats do usuário
   useEffect(() => {
-  if (!userId) return;
-  
-  async function fetchStats() {
-    setLoadingStats(true);
-    try {
-      const comentarios = await getComentarios(userId!)
-      // busca avaliações se tiver endpoint
-      setStats({
-        favoritos: favoritos.length,
-        avaliacoes: 0, // ajusta quando tiver endpoint
-        comentarios: comentarios.length,
-      });
-    } finally {
-      setLoadingStats(false);
+    if (!userId) return;
+    
+    async function fetchStats() {
+      setLoadingStats(true);
+      try {
+        const comentarios = await getComentarios(userId!);
+        setStats({
+          favoritos: favoritos.length,
+          avaliacoes: 0,
+          comentarios: comentarios.length,
+        });
+      } finally {
+        setLoadingStats(false);
+      }
     }
-  }
-  fetchStats();
-}, [userId, favoritos]);
+    fetchStats();
+  }, [userId, favoritos]);
 
   // ── Seleciona foto da galeria e envia ao backend ──────────────────────────
   const handlePickPhoto = async () => {
-    // 1. Pede permissão
-
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert(
@@ -126,23 +108,20 @@ export default function ProfileScreen() {
       return;
     }
 
-    // 2. Abre o picker
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'], // permite recorte
-      allowsEditing: true,   // permite recorte
-      aspect: [1, 1],        // recorte quadrado (igual ao avatar circular)
-      quality: 0.6,          // reduz tamanho sem perder qualidade visível
-      base64: true,          // retorna string base64
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.6,
+      base64: true,
     });
 
     if (result.canceled || !result.assets?.[0]?.base64) return;
 
     const asset = result.assets[0];
-    // Monta o data URI — o backend salva essa string inteira no campo foto_perfil
     const mimeType = asset.mimeType ?? 'image/jpeg';
     const base64String = `data:${mimeType};base64,${asset.base64}`;
 
-    // 3. Envia ao backend: PATCH /usuario/:id/foto
     setSavingPhoto(true);
     try {
       const res = await fetch(`${API_BASE}/usuario/${userId}/foto`, {
@@ -152,49 +131,85 @@ export default function ProfileScreen() {
       });
 
       if (!res.ok) throw new Error('Falha ao salvar foto');
-  const usuarioAtualizado = await res.json();
-  console.log('fotoPerfil recebida:', usuarioAtualizado?.foto_perfil?.slice(0, 50)); // ✅ aqui
-  updateUser(usuarioAtualizado);
-     
+      const usuarioAtualizado = await res.json();
+      updateUser(usuarioAtualizado);
     } catch {
       Alert.alert('Erro', 'Não foi possível salvar a foto. Tente novamente.');
     } finally {
       setSavingPhoto(false);
     }
   };
-  // ─────────────────────────────────────────────────────────────────────────
 
-  const openEdit = () => {
+    const openEdit = () => {
+      console.log(user)
     setForm({
-      nome_completo:  user?.nome_completo  ?? '',
+      nome_completo:   user?.nome_completo   ?? '',
       nome_de_usuario: user?.nome_de_usuario ?? '',
-      idade:         String(user?.idade  ?? ''),
-      gmail:         user?.gmail         ?? '',
+      idade:          String(user?.idade   ?? ''),
+      gmail:          user?.gmail          ?? '',
       senha: '',
     });
+    
+    // Se o objeto 'user' tiver o campo da data salva no banco, ele preenche aqui
+    setBirthDate(user?.dataNascimento ?? ''); 
     setEditModalVisible(true);
+  };
+  const calculateAge = (dateString: string) => {
+    const parts = dateString.split('/');
+    if (parts.length !== 3) return null;
+    const day = Number(parts[0]);
+    const month = Number(parts[1]);
+    const year = Number(parts[2]);
+
+    if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
+    if (day < 1 || day > 31 || month < 1 || month > 12 || year < 1900) return null;
+
+    const birth = new Date(year, month - 1, day);
+    if (birth.getDate() !== day || birth.getMonth() !== month - 1 || birth.getFullYear() !== year) {
+      return null;
+    }
+
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
   };
 
   const handleSave = async () => {
     if (!userId) return;
     setSaving(true);
+
+    const idadeCalculada = birthDate ? calculateAge(birthDate) : Number(form.idade);
+
     const payload: any = {
-      nome_completo:  form.nome_completo,
+      nome_completo:   form.nome_completo,
       nome_de_usuario: form.nome_de_usuario,
-      idade:          calculateAge(birthDate),
-      gmail:         form.gmail,
+      idade:          idadeCalculada ?? user?.idade,
+      gmail:          form.gmail,
     };
+
     if (form.senha.trim()) payload.senha = form.senha;
-    const res = await usuariosAPI.update(userId, payload);
-    setSaving(false);
-    
-    if (res.data) {
-      //login(user?.gmail ?? '', user?.senha ?? ''); // ✅ Atualiza o estado com os dados novos
-      setEditModalVisible(false);
-    } else {
-      Alert.alert('Erro', res.error ?? 'Não foi possível salvar as alterações.');
+
+    try {
+      const res = await usuariosAPI.update(userId, payload);
+      if (res.data) {
+        updateUser({
+          ...user!,
+          ...(res.data as typeof user),
+        });
+        setEditModalVisible(false);
+      } else {
+        Alert.alert('Erro', res.error ?? 'Não foi possível salvar as alterações.');
+      }
+    } catch {
+      Alert.alert('Erro', 'Ocorreu um erro ao conectar com o servidor.');
+    } finally {
+      setSaving(false);
     }
-};
+  };
 
   const handleDelete = async () => {
     if (!userId) return;
@@ -207,7 +222,7 @@ export default function ProfileScreen() {
       router.replace('/(auth)/login');
     } else {
       setDeleteModalVisible(false);
-      console.error('Erro ao inativar:', res.error);
+      Alert.alert('Erro', res.error ?? 'Erro ao inativar conta.');
     }
   };
 
@@ -220,75 +235,13 @@ export default function ProfileScreen() {
         .filter(Boolean)
     : [];
 
-    
-  
-    const calculateAge = (dateString: string) => {
-      const parts = dateString.split('/');
-     
-      if (parts.length !== 3) return null;
-     
-      const day = Number(parts[0]);
-      const month = Number(parts[1]);
-      const year = Number(parts[2]);
-     
-      if (
-        isNaN(day) ||
-        isNaN(month) ||
-        isNaN(year)
-      ) {
-        return null;
-      }
-     
-      if (
-        day < 1 ||
-        day > 31 ||
-        month < 1 ||
-        month > 12 ||
-        year < 1900
-      ) {
-        return null;
-      }
-      const birth = new Date(year, month - 1, day);
- 
-  // Verifica se a data realmente existe
-  if (
-    birth.getDate() !== day ||
-    birth.getMonth() !== month - 1 ||
-    birth.getFullYear() !== year
-  ) {
-    return null;
-  }
- 
-  const today = new Date();
- 
-  let age =
-    today.getFullYear() -
-    birth.getFullYear();
- 
-  const monthDiff =
-    today.getMonth() -
-    birth.getMonth();
- 
-  if (
-    monthDiff < 0 ||
-    (monthDiff === 0 &&
-      today.getDate() < birth.getDate())
-  ) {
-    age--;
-  }
- 
-  return age;
-};
+  const avatarSource = user?.fotoPerfil
+    ? { uri: user.fotoPerfil }
+    : { uri: `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.nome_completo ?? 'U')}&background=C4703A&color=fff&size=200` };
 
-  // Fonte da imagem: base64 do banco ou asset local padrão
-const avatarSource = user?.fotoPerfil
-  ? { uri: user.fotoPerfil }
-  : { uri: `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.nome_completo ?? 'U')}&background=C4703A&color=fff&size=200` };
   return (
     <SafeAreaView style={s.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor={C.hero} />
-
-
 
       <ScrollView
         style={s.scroll}
@@ -303,7 +256,6 @@ const avatarSource = user?.fotoPerfil
 
           <Text style={s.pageLabel}>MEU PERFIL</Text>
 
-          {/* Avatar clicável */}
           <TouchableOpacity
             style={s.avatarWrap}
             onPress={handlePickPhoto}
@@ -311,15 +263,11 @@ const avatarSource = user?.fotoPerfil
             disabled={savingPhoto}
           >
             <Image source={avatarSource} style={s.avatarImg} />
-
-            {/* Overlay de troca de foto */}
             <View style={s.avatarOverlay}>
               {savingPhoto
                 ? <ActivityIndicator color={C.white} size="small" />
                 : <Ionicons name="camera" size={20} color={C.white} />}
             </View>
-
-            {/* Ponto de status online */}
             {!savingPhoto && <View style={s.statusDot} />}
           </TouchableOpacity>
 
@@ -327,7 +275,6 @@ const avatarSource = user?.fotoPerfil
           <Text style={s.heroHandle}>@{user?.nome_de_usuario ?? ''}</Text>
           <Text style={s.heroEmail}>{user?.gmail ?? ''}</Text>
 
-          {/* Stats */}
           <View style={s.statsRow}>
             <StatBox value={!loadingStats ? String(stats.favoritos) : '…'} label="Favoritos" />
             <View style={s.statsDivider} />
@@ -335,17 +282,6 @@ const avatarSource = user?.fotoPerfil
             <View style={s.statsDivider} />
             <StatBox value={!loadingStats ? String(stats.comentarios) : '…'} label="Comentários" />
           </View>
-        </View>
-
-        {/* ── CHIPS ── */}
-        <View style={s.chipsRow}>
-          {user?.idade ? (
-            <View style={s.chip}>
-              <View style={[s.chipDot, { backgroundColor: C.accent }]} />
-              <Text style={s.chipText}>{user.idade} anos</Text>
-            </View>
-          ) : null}
-          
         </View>
 
         {/* ── RESTRIÇÕES ── */}
@@ -385,11 +321,8 @@ const avatarSource = user?.fotoPerfil
         </View>
 
         <Text style={s.versionText}>v1.0.0</Text>
-
-        
       </ScrollView>
 
-     
       {/* ── EDIT MODAL ── */}
       <Modal
         visible={editModalVisible}
@@ -413,27 +346,54 @@ const avatarSource = user?.fotoPerfil
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false} style={{ marginBottom: 8 }}>
-              {([
-                { label: 'Nome completo',   key: 'nome_completo',  placeholder: 'Seu nome completo' },
-                { label: 'Nome de usuário', key: 'nome_de_usuario', placeholder: 'nome_de_usuario' },
-                { label: 'Idade',           key: 'idade',         placeholder: '0', keyboardType: 'birthDate' as const },
-                { label: 'Email',           key: 'gmail',         placeholder: 'voce@email.com', keyboardType: 'email-address' as const },
-                { label: 'Nova senha',      key: 'senha',         placeholder: 'Deixe em branco para manter', secureTextEntry: true },
-              ] as const).map(field => (
-                <View key={field.key} style={s.fieldGroup}>
-                  <Text style={s.fieldLabel}>{field.label}</Text>
-                  <TextInput
-                    style={s.fieldInput}
-                    value={(form as any)[field.key]}
-                    onChangeText={v => setForm(f => ({ ...f, [field.key]: v }))}
-                    placeholder={field.placeholder}
-                    placeholderTextColor={C.textMuted}
-                    keyboardType={(field as any).keyboardType}
-                    secureTextEntry={(field as any).secureTextEntry}
-                    autoCapitalize="none"
-                  />
-                </View>
-              ))}
+              <View style={s.fieldGroup}>
+                <Text style={s.fieldLabel}>Nome completo</Text>
+                <TextInput
+                  style={s.fieldInput}
+                  value={form.nome_completo}
+                  onChangeText={v => setForm(f => ({ ...f, nome_completo: v }))}
+                  placeholder="Seu nome completo"
+                  placeholderTextColor={C.textMuted}
+                />
+              </View>
+
+              <View style={s.fieldGroup}>
+                <Text style={s.fieldLabel}>Nome de usuário</Text>
+                <TextInput
+                  style={s.fieldInput}
+                  value={form.nome_de_usuario}
+                  onChangeText={v => setForm(f => ({ ...f, nome_de_usuario: v }))}
+                  placeholder="nome_de_usuario"
+                  placeholderTextColor={C.textMuted}
+                  autoCapitalize="none"
+                />
+              </View>
+
+              <View style={s.fieldGroup}>
+                <Text style={s.fieldLabel}>Email</Text>
+                <TextInput
+                  style={s.fieldInput}
+                  value={form.gmail}
+                  onChangeText={v => setForm(f => ({ ...f, gmail: v }))}
+                  placeholder="voce@email.com"
+                  placeholderTextColor={C.textMuted}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+              </View>
+
+              <View style={s.fieldGroup}>
+                <Text style={s.fieldLabel}>Nova senha</Text>
+                <TextInput
+                  style={s.fieldInput}
+                  value={form.senha}
+                  onChangeText={v => setForm(f => ({ ...f, senha: v }))}
+                  placeholder="Deixe em branco para manter"
+                  placeholderTextColor={C.textMuted}
+                  secureTextEntry
+                  autoCapitalize="none"
+                />
+              </View>
             </ScrollView>
 
             <TouchableOpacity
@@ -527,7 +487,6 @@ const s = StyleSheet.create({
   scroll:       { flex: 1, backgroundColor: C.bg },
   scrollContent:{ paddingBottom: 48 },
 
-  // Hero
   hero: {
     backgroundColor: C.hero,
     paddingTop: Platform.OS === 'android' ? 72 : 60,
@@ -555,7 +514,6 @@ const s = StyleSheet.create({
     letterSpacing: 3, marginBottom: 18,
   },
 
-  // Avatar
   avatarWrap: {
     width: 90, height: 90, borderRadius: 45,
     borderWidth: 3, borderColor: 'rgba(255,255,255,0.5)',
@@ -567,7 +525,6 @@ const s = StyleSheet.create({
   avatarImg: {
     width: '100%', height: '100%', borderRadius: 45,
   },
-  // Overlay escuro com ícone de câmera que aparece sobre a foto
   avatarOverlay: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
     height: 32, borderBottomLeftRadius: 45, borderBottomRightRadius: 45,
@@ -584,7 +541,6 @@ const s = StyleSheet.create({
   heroHandle: { color: C.textOnHeroSub,   fontSize: 14, fontWeight: '600', marginBottom: 2 },
   heroEmail:  { color: C.textOnHeroFaint, fontSize: 12, marginBottom: 20 },
 
-  // Stats
   statsRow: {
     flexDirection: 'row', alignSelf: 'stretch',
     backgroundColor: 'rgba(0,0,0,0.15)',
@@ -595,22 +551,6 @@ const s = StyleSheet.create({
   statLbl:      { color: 'rgba(255,230,200,0.75)', fontSize: 10, fontWeight: '600', letterSpacing: 0.5, marginTop: 2, textTransform: 'uppercase' },
   statsDivider: { width: 0.5, backgroundColor: 'rgba(255,255,255,0.2)', marginVertical: 12 },
 
-  // Chips
-  chipsRow: {
-    flexDirection: 'row', justifyContent: 'center',
-    gap: 8, marginTop: 20, marginBottom: 4,
-    paddingHorizontal: 20, flexWrap: 'wrap',
-  },
-  chip: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: C.white, borderRadius: 20,
-    paddingHorizontal: 14, paddingVertical: 7,
-    borderWidth: 0.5, borderColor: C.accentBorder,
-  },
-  chipDot:  { width: 7, height: 7, borderRadius: 4 },
-  chipText: { color: C.textPrimary, fontSize: 12, fontWeight: '600' },
-
-  // Restrições
   restricoesWrap: {
     flexDirection: 'row', flexWrap: 'wrap',
     gap: 8, paddingHorizontal: 16, marginBottom: 4,
@@ -623,13 +563,11 @@ const s = StyleSheet.create({
   },
   restricaoText: { color: C.accent, fontSize: 12, fontWeight: '600' },
 
-  // Section label
   sectionLabel: {
     color: C.textSub, fontSize: 10, fontWeight: '700',
     letterSpacing: 2.5, marginLeft: 20, marginBottom: 10, marginTop: 20,
   },
 
-  // Card de ações
   card: {
     backgroundColor: C.surface,
     marginHorizontal: 16, borderRadius: 20,
@@ -652,7 +590,6 @@ const s = StyleSheet.create({
 
   versionText: { color: C.textMuted, textAlign: 'center', fontSize: 12, marginTop: 32, letterSpacing: 0.5 },
 
-  // Modal
   modalOverlay: {
     flex: 1, backgroundColor: 'rgba(61,32,16,0.5)',
     justifyContent: 'flex-end',
@@ -673,7 +610,6 @@ const s = StyleSheet.create({
   modalTitle: { color: C.textPrimary, fontSize: 20, fontWeight: '800' },
   closeBtn:   { backgroundColor: C.surfaceHi, borderRadius: 10, padding: 6 },
 
-  // Fields
   fieldGroup: { marginBottom: 18 },
   fieldLabel: { color: C.textSub, fontSize: 12, fontWeight: '600', letterSpacing: 0.5, marginBottom: 8 },
   fieldInput: {
@@ -683,7 +619,6 @@ const s = StyleSheet.create({
     borderWidth: 1, borderColor: C.accentBorder,
   },
 
-  // Buttons
   primaryBtn: {
     backgroundColor: C.accent,
     paddingVertical: 16, borderRadius: 16,
@@ -696,7 +631,6 @@ const s = StyleSheet.create({
   ghostBtn:       { alignItems: 'center', paddingVertical: 14, marginTop: 4 },
   ghostBtnText:   { color: C.textSub, fontSize: 15, fontWeight: '600' },
 
-  // Alert modal
   alertSheet: { alignItems: 'center', paddingBottom: 32 },
   alertIcon: {
     backgroundColor: C.dangerSoft, width: 64, height: 64,

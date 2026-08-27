@@ -33,11 +33,32 @@ const C = {
   textOnHeroSub: 'rgba(255,230,200,0.85)',
 };
 
+interface RegisterFormData {
+  nomeCompleto: string;
+  email: string;
+  senha: string;
+  confirmarSenha?: string;
+  funcao: string;
+}
+
 export default function RegisterScreen() {
   const router = useRouter();
   const { register } = useAuth();
 
-  const formatBirthDate = (text: string) => {
+  const [birthDate, setBirthDate] = useState<string>('');
+
+  const [formData, setFormData] = useState<RegisterFormData>({
+    nomeCompleto: '',
+    email: '',
+    senha: '',
+    confirmarSenha: '',
+    funcao: 'Usuario',
+  });
+
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const formatBirthDate = (text: string): string => {
     const numbers = text.replace(/\D/g, '');
 
     if (numbers.length <= 2) return numbers;
@@ -49,7 +70,7 @@ export default function RegisterScreen() {
     return `${numbers.slice(0, 2)}/${numbers.slice(2, 4)}/${numbers.slice(4, 8)}`;
   };
 
-  const calculateAge = (dateString: string) => {
+  const calculateAge = (dateString: string): number | null => {
     const parts = dateString.split('/');
 
     if (parts.length !== 3) return null;
@@ -96,230 +117,223 @@ export default function RegisterScreen() {
 
     return age;
   };
+const convertToDateObject = (dateString: string): Date | null => {
+  const parts = dateString.split('/');
+  if (parts.length !== 3) return null;
 
-  const [birthDate, setBirthDate] = useState('');
+  const day = Number(parts[0]);
+  const month = Number(parts[1]);
+  const year = Number(parts[2]);
 
-  const [formData, setFormData] = useState({
-    nomeCompleto: '',
-    nomeUsuario: '',
-    idade: '',
-    email: '',
-    senha: '',
-    confirmarSenha: '',
-    funcao: 'Usuario',
-  });
+  // O mês no objeto Date do JS é base 0 (0 = Janeiro, 6 = Julho, 11 = Dezembro)
+  return new Date(year, month - 1, day);
+};
 
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+const handleRegister = async () => {
+  if (
+    !formData.nomeCompleto ||
+    !birthDate.trim() ||
+    !formData.email ||
+    !formData.senha ||
+    !formData.funcao
+  ) {
+    setError('Preencha todos os campos.');
+    return;
+  }
 
-  const handleRegister = async () => {
-    if (
-      !formData.nomeCompleto ||
-      !formData.nomeUsuario ||
-      !birthDate.trim() ||
-      !formData.email ||
-      !formData.senha ||
-      !formData.funcao
-    ) {
-      setError('Preencha todos os campos.');
+  const idadeCalculada = calculateAge(birthDate);
+
+  if (idadeCalculada === null) {
+    setError('Data de nascimento inválida.');
+    return;
+  }
+
+  if (idadeCalculada < 14 || idadeCalculada > 100) {
+    setError('Você deve ter entre 14 e 100 anos.');
+    return;
+  }
+
+  // Criando o objeto Date esperado pela função register
+  const dataObjeto = convertToDateObject(birthDate);
+
+  if (!dataObjeto) {
+    setError('Erro ao processar a data.');
+    return;
+  }
+
+  setLoading(true);
+  setError(null);
+
+  try {
+    const response = await register(
+      formData.nomeCompleto.trim(),
+      dataObjeto, // Passa o objeto Date aqui
+      formData.email.trim(),
+      formData.senha
+    );
+
+    if (!response.ok) {
+      setError(response.error || 'Erro ao criar conta.');
       return;
     }
 
-    const idade = calculateAge(birthDate);
+    router.replace('/home');
+  } catch (err) {
+    console.error(err);
+    setError('Erro ao conectar com o servidor.');
+  } finally {
+    setLoading(false);
+  }
+};
 
-    if (idade === null) {
-      setError('Data de nascimento inválida.');
-      return;
-    }
-
-    if (idade < 14 || idade > 100) {
-      setError('Você deve ter entre 14 e 100 anos.');
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response = await register(
-        formData.nomeCompleto.trim(),
-        formData.nomeUsuario.trim(),
-        idade,
-        formData.email.trim(),
-        formData.senha
-      );
-
-      if (!response.ok) {
-        setError(response.error || 'Erro ao criar conta.');
-        return;
-      }
-
-      router.replace('/home');
-    } catch (err) {
-      console.error(err);
-      setError('Erro ao conectar com o servidor.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleChange = (name: string, value: string) => {
+  const handleChange = (name: keyof RegisterFormData, value: string) => {
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
+
   return (
-  <SafeAreaView style={{ flex: 1, backgroundColor: C.hero }}>
-    <StatusBar barStyle="light-content" />
+    <SafeAreaView style={{ flex: 1, backgroundColor: C.hero }}>
+      <StatusBar barStyle="light-content" />
 
-    <ScrollView
-      style={{ flex: 1, backgroundColor: C.bg }}
-      contentContainerStyle={{ paddingBottom: 40 }}
-      showsVerticalScrollIndicator={false}
-    >
-      {/* HERO */}
-      <LinearGradient
-        colors={['#C4703A', '#A95C2C', '#7A3B1E']}
-        style={styles.hero}
+      <ScrollView
+        style={{ flex: 1, backgroundColor: C.bg }}
+        contentContainerStyle={{ paddingBottom: 40 }}
+        showsVerticalScrollIndicator={false}
       >
-        <View style={styles.blob1} />
-        <View style={styles.blob2} />
-        <View style={styles.blob3} />
-
-        <Image
-          source={require('../../assets/images/T.png')}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-
-        <Text style={styles.heroTitle}>Criar Conta</Text>
-
-        <Text style={styles.heroSubtitle}>
-          Cadastre-se e descubra milhares de receitas.
-        </Text>
-      </LinearGradient>
-
-      {/* CARD */}
-      <View style={styles.card}>
-
-        {error && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
-          </View>
-        )}
-
-        <Text style={styles.label}>Nome Completo</Text>
-
-        <TextInput
-          style={styles.input}
-          placeholder="Digite seu nome completo"
-          placeholderTextColor={C.textMuted}
-          value={formData.nomeCompleto}
-          onChangeText={(v) => handleChange('nomeCompleto', v)}
-        />
-
-        <Text style={styles.label}>Nome de Usuário</Text>
-
-        <TextInput
-          style={styles.input}
-          placeholder="Digite seu nome de usuario"
-          placeholderTextColor={C.textMuted}
-          autoCapitalize="none"
-          value={formData.nomeUsuario}
-          onChangeText={(v) => handleChange('nomeUsuario', v)}
-        />
-
-        <Text style={styles.label}>Data de Nascimento</Text>
-
-        <TextInput
-          style={styles.input}
-          placeholder="DD/MM/AAAA"
-          placeholderTextColor={C.textMuted}
-          keyboardType="number-pad"
-          maxLength={10}
-          value={birthDate}
-          onChangeText={(text) =>
-            setBirthDate(formatBirthDate(text))
-          }
-        />
-
-        <Text style={styles.label}>Email</Text>
-
-        <TextInput
-          style={styles.input}
-          placeholder="exemplo@exemplo.com"
-          keyboardType="email-address"
-          autoCapitalize="none"
-          placeholderTextColor={C.textMuted}
-          value={formData.email}
-          onChangeText={(v) => handleChange('email', v)}
-        />
-
-        <Text style={styles.label}>Senha</Text>
-
-        <TextInput
-          style={styles.input}
-          placeholder="Digite sua senha"
-          secureTextEntry
-          placeholderTextColor={C.textMuted}
-          value={formData.senha}
-          onChangeText={(v) => handleChange('senha', v)}
-        />
-
-        <TouchableOpacity
-          style={[
-            styles.primaryButton,
-            loading && { opacity: 0.6 },
-          ]}
-          onPress={handleRegister}
-          disabled={loading}
+        {/* HERO */}
+        <LinearGradient
+          colors={['#C4703A', '#A95C2C', '#7A3B1E']}
+          style={styles.hero}
         >
-          {loading ? (
-            <ActivityIndicator color="#FFF" />
-          ) : (
-            <Text style={styles.primaryButtonText}>
-              Criar Conta
-            </Text>
-          )}
-        </TouchableOpacity>
+          <View style={styles.blob1} />
+          <View style={styles.blob2} />
+          <View style={styles.blob3} />
 
-        <View style={styles.dividerContainer}>
-          <View style={styles.line} />
-          <Text style={styles.dividerText}>
-            ou continue com
-          </Text>
-          <View style={styles.line} />
-        </View>
-
-        <TouchableOpacity style={styles.googleButton}>
           <Image
-            source={require('../../assets/images/google.png')}
-            style={styles.googleIcon}
+            source={require('../../assets/images/T.png')}
+            style={styles.logo}
+            resizeMode="contain"
           />
 
-          <Text style={styles.googleText}>
-            Google
-          </Text>
-        </TouchableOpacity>
+          <Text style={styles.heroTitle}>Criar Conta</Text>
 
-        <TouchableOpacity
-          onPress={() => router.push('/login')}
-          style={styles.loginLinkContainer}
-        >
-          <Text style={styles.link}>
-            Já possui uma conta?{' '}
-            <Text style={styles.linkBold}>
-              Entrar
+          <Text style={styles.heroSubtitle}>
+            Cadastre-se e descubra milhares de receitas.
+          </Text>
+        </LinearGradient>
+
+        {/* CARD */}
+        <View style={styles.card}>
+          {error && (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          )}
+
+          <Text style={styles.label}>Nome Completo</Text>
+
+          <TextInput
+            style={styles.input}
+            placeholder="Digite seu nome completo"
+            placeholderTextColor={C.textMuted}
+            value={formData.nomeCompleto}
+            onChangeText={(v) => handleChange('nomeCompleto', v)}
+          />
+
+
+          <Text style={styles.label}>Data de Nascimento</Text>
+
+          <TextInput
+            style={styles.input}
+            placeholder="DD/MM/AAAA"
+            placeholderTextColor={C.textMuted}
+            keyboardType="number-pad"
+            maxLength={10}
+            value={birthDate}
+            onChangeText={(text) =>
+              setBirthDate(formatBirthDate(text))
+            }
+          />
+
+          <Text style={styles.label}>Email</Text>
+
+          <TextInput
+            style={styles.input}
+            placeholder="exemplo@exemplo.com"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            placeholderTextColor={C.textMuted}
+            value={formData.email}
+            onChangeText={(v) => handleChange('email', v)}
+          />
+
+          <Text style={styles.label}>Senha</Text>
+
+          <TextInput
+            style={styles.input}
+            placeholder="Digite sua senha"
+            secureTextEntry
+            placeholderTextColor={C.textMuted}
+            value={formData.senha}
+            onChangeText={(v) => handleChange('senha', v)}
+          />
+
+          <TouchableOpacity
+            style={[
+              styles.primaryButton,
+              loading && { opacity: 0.6 },
+            ]}
+            onPress={handleRegister}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#FFF" />
+            ) : (
+              <Text style={styles.primaryButtonText}>
+                Criar Conta
+              </Text>
+            )}
+          </TouchableOpacity>
+
+          <View style={styles.dividerContainer}>
+            <View style={styles.line} />
+            <Text style={styles.dividerText}>
+              ou continue com
             </Text>
-          </Text>
-        </TouchableOpacity>
+            <View style={styles.line} />
+          </View>
 
-      </View>
-    </ScrollView>
-  </SafeAreaView>
-);
+          <TouchableOpacity style={styles.googleButton}>
+            <Image
+              source={require('../../assets/images/google.png')}
+              style={styles.googleIcon}
+            />
+
+            <Text style={styles.googleText}>
+              Google
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => router.push('/login')}
+            style={styles.loginLinkContainer}
+          >
+            <Text style={styles.link}>
+              Já possui uma conta?{' '}
+              <Text style={styles.linkBold}>
+                Entrar
+              </Text>
+            </Text>
+          </TouchableOpacity>
+
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
 }
+
 const styles = StyleSheet.create({
   hero: {
     height: 280,

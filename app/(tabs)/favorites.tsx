@@ -78,7 +78,7 @@ const STORAGE_KEY = 'Livros';
 
 // ─── Helpers de favorito ──────────────────────────────────────────────────────
 const getFavName     = (f: any): string => f.receita?.nomeReceita ?? '';
-const getFavChef     = (f: any): string => f.receita?.chefe?.nomeCompleto ?? '';
+const getFavChef     = (f: any): string => f.receita?.usuario?.nome_completo ?? '';
 const getFavImage    = (f: any): string => f.receita?.fotoReceita ?? '';
 const getFavRecipeId = (f: any): string => String(f.receita?.codReceitas ?? '');
 const getFavId       = (f: any): string => String(f.codFavoritos ?? '');

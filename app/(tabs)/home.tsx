@@ -51,21 +51,41 @@ const CATEGORIES = [
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 const getRecipeName   = (r: any) => r.nomeReceita ?? r.name ?? '';
-const getRecipeChef   = (r: any) => r.nome_completo
- ?? r.chefe?.nomeCompleto ?? r.chef ?? '';
+const getRecipeChef   = (r: any) => r.usuario?.nome_completo ?? r.chefe?.nomeCompleto ?? r.chef ?? 'Anônimo';
 const getRecipeImage  = (r: any) => r.fotoReceita || 'https://worldfoodtour.co.uk/wp-content/uploads/2013/06/neptune-placeholder-48.jpg';
-const getRecipeTime   = (r: any) => r.prepareTime ?? r.tempoPreparo ?? '';
-const getRecipeId     = (r: any) => String(r.codReceitas ?? r.id ?? '');
-const getRecipeRating = (r: any) => parseFloat(r.avaliacao ?? r.rating ?? '0').toFixed(1);
+const getRecipeTime   = (r: any) => r.tempoPreparo ?? r.prepareTime ?? '15 min';
+const getRecipeId     = (r: any) => Number(r.codReceitas ?? r.id ?? 0);
 
 // ─── Grid card (2 colunas) ───────────────────────────────────────────────────
 function GridCard({ item, onPress }: { item: any; onPress: () => void }) {
+  const { getMediaReceita } = useAuth();
+  const [rating, setRating] = useState<string>('...');
+
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchRating() {
+      const id = getRecipeId(item);
+      if (id > 0) {
+        const data = await getMediaReceita(id);
+        if (isMounted) {
+          const media = data?.mediaNota ?? 0;
+          if (media === 0) {
+            console.log(`⚠️ AVISO: A receita "${getRecipeName(item)}" (ID: ${id}) tem média igual a ZERO.`);
+          }
+          setRating(media > 0 ? media.toFixed(1) : '0.0');
+        }
+      }
+    }
+    fetchRating();
+    return () => { isMounted = false; };
+  }, [item]);
+
   return (
     <TouchableOpacity style={g.card} onPress={onPress} activeOpacity={0.85}>
       <Image source={{ uri: getRecipeImage(item) }} style={g.img} resizeMode="cover" />
       <View style={g.ratingPill}>
         <Ionicons name="star" size={10} color="#FFD700" />
-        <Text style={g.ratingText}>{getRecipeRating(item)}</Text>
+        <Text style={g.ratingText}>{rating}</Text>
       </View>
       <View style={g.info}>
         <Text style={g.name} numberOfLines={2}>{getRecipeName(item)}</Text>
@@ -81,6 +101,28 @@ function GridCard({ item, onPress }: { item: any; onPress: () => void }) {
 
 // ─── Wide card (1 coluna, horizontal) ────────────────────────────────────────
 function WideCard({ item, onPress }: { item: any; onPress: () => void }) {
+  const { getMediaReceita } = useAuth();
+  const [rating, setRating] = useState<string>('...');
+
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchRating() {
+      const id = getRecipeId(item);
+      if (id > 0) {
+        const data = await getMediaReceita(id);
+        if (isMounted) {
+          const media = data?.mediaNota ?? 0;
+          if (media === 0) {
+            console.log(`⚠️ AVISO: A receita rápida "${getRecipeName(item)}" (ID: ${id}) tem média igual a ZERO.`);
+          }
+          setRating(media > 0 ? media.toFixed(1) : '0.0');
+        }
+      }
+    }
+    fetchRating();
+    return () => { isMounted = false; };
+  }, [item]);
+
   return (
     <TouchableOpacity style={w.card} onPress={onPress} activeOpacity={0.85}>
       <Image source={{ uri: getRecipeImage(item) }} style={w.img} resizeMode="cover" />
@@ -94,7 +136,7 @@ function WideCard({ item, onPress }: { item: any; onPress: () => void }) {
           </View>
           <View style={[w.pill, { backgroundColor: '#FFF8E8' }]}>
             <Ionicons name="star" size={11} color="#FFD700" />
-            <Text style={w.pillText}>{getRecipeRating(item)}</Text>
+            <Text style={w.pillText}>{rating}</Text>
           </View>
         </View>
       </View>
@@ -107,25 +149,49 @@ function WideCard({ item, onPress }: { item: any; onPress: () => void }) {
 
 // ─── Main Screen ─────────────────────────────────────────────────────────────
 export default function HomeScreen() {
-  const { userName, userId, recipes, loading } = useAuth();
+  const { userName, userId, recipes, loading, getMediaReceita } = useAuth();
   const router = useRouter();
 
   const [activeIndex, setActiveIndex]       = useState(0);
   const [activeCategory, setActiveCategory] = useState('todos');
+  const [carouselRating, setCarouselRating] = useState<string>('...');
 
   useEffect(() => {
     if (!userId && !loading) router.push('/login');
   }, [loading]);
 
-  // Top 5 mais bem avaliadas para o carousel
-  const featuredRecipes = [...recipes]
-    .sort((a, b) => parseFloat(b.avaliacao ?? b.rating ?? '0') - parseFloat(a.avaliacao ?? a.rating ?? '0'))
-    .slice(0, 5);
+  // Lista simples de destaques
+  const featuredRecipes = recipes.slice(0, 5);
 
-  // Rápidas (≤ 30 min)
+  // Busca a nota dinâmica da receita ativa no Destaque (Carrossel)
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchCarouselRating() {
+      if (featuredRecipes.length > 0) {
+        const item = featuredRecipes[activeIndex];
+        const id = getRecipeId(item);
+        if (id > 0) {
+          const data = await getMediaReceita(id);
+          if (isMounted) {
+            const media = data?.mediaNota ?? 0;
+            if (media === 0) {
+              console.log(`⚠️ AVISO: A receita em destaque "${getRecipeName(item)}" (ID: ${id}) tem média igual a ZERO.`);
+            }
+            setCarouselRating(media > 0 ? media.toFixed(1) : '0.0');
+          }
+        }
+      }
+    }
+    fetchCarouselRating();
+    return () => { isMounted = false; };
+  }, [activeIndex, recipes]);
+
+  // Rápidas (≤ 30 min) ou com tempo "Rápido"
   const quickRecipes = recipes.filter(r => {
-    const min = parseInt((r.prepareTime ?? r.tempoPreparo ?? '0').toString().replace(/\D/g, ''), 10);
-    return min <= 30;
+    const timeStr = (r.tempoPreparo ?? r.prepareTime ?? '').toString().toLowerCase();
+    if (timeStr.includes('rápido') || timeStr.includes('rapido')) return true;
+    const min = parseInt(timeStr.replace(/\D/g, ''), 10);
+    return !isNaN(min) && min <= 30;
   });
 
   // Filtradas por categoria para o grid
@@ -192,7 +258,7 @@ export default function HomeScreen() {
               <View style={s.carouselGradient} />
               <View style={s.ratingBadge}>
                 <Ionicons name="star" size={12} color="#FFD700" />
-                <Text style={s.ratingBadgeText}>{getRecipeRating(featuredRecipes[activeIndex])}</Text>
+                <Text style={s.ratingBadgeText}>{carouselRating}</Text>
               </View>
               <View style={s.carouselInfo}>
                 <Text style={s.carouselTitle} numberOfLines={2}>
@@ -227,7 +293,6 @@ export default function HomeScreen() {
                 <Ionicons name="chevron-forward" size={18} color={C.hero} />
               </TouchableOpacity>
             </View>
-          
           </View>
         )}
 
@@ -269,7 +334,6 @@ export default function HomeScreen() {
                     onPress={() => handlePressDish(getRecipeId(item))}
                   />
                 ))}
-                {/* Preenche espaço vazio se número ímpar */}
                 {pair.length === 1 && <View style={{ width: CARD_WIDTH }} />}
               </View>
             ))}
@@ -281,7 +345,7 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* ── RÁPIDAS DE FAZER (só na aba "Todos") ── */}
+        {/* ── RÁPIDAS DE FAZER ── */}
         {activeCategory === 'todos' && quickRecipes.length > 0 && (
           <>
             <View style={s.sectionHeaderRow2}>
@@ -347,7 +411,6 @@ const g = StyleSheet.create({
 
 // ─── Wide card styles ─────────────────────────────────────────────────────────
 const w = StyleSheet.create({
-
   perfil:{
     opacity: 100,
     backgroundColor: 'transparent',
@@ -366,7 +429,7 @@ const w = StyleSheet.create({
     elevation: 3,
     alignItems: 'center',
   },
-  img:   { width: 90, height: 90, backgroundColor: C.surfaceHi, borderRadius: 10,marginLeft:5 },
+  img:   { width: 90, height: 90, backgroundColor: C.surfaceHi, borderRadius: 10, marginLeft: 5 },
   info:  { flex: 1, padding: 14, gap: 4 },
   name:  { fontSize: 15, fontWeight: '700', color: C.textPrimary, lineHeight: 20 },
   chef:  { fontSize: 12, color: C.textSub },
@@ -384,7 +447,6 @@ const w = StyleSheet.create({
 const s = StyleSheet.create({
   safeArea:      { flex: 1, backgroundColor: C.bg },
   scrollContent: { paddingBottom: 100 },
-
 
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
@@ -461,13 +523,6 @@ const s = StyleSheet.create({
   dotsRow:  { flexDirection: 'row', gap: 6, alignItems: 'center' },
   dot:      { width: 7, height: 7, borderRadius: 4, backgroundColor: C.accentBorder },
   dotActive:{ width: 22, height: 7, borderRadius: 4, backgroundColor: C.hero },
-
-  thumb: {
-    width: 58, height: 58, borderRadius: 14, overflow: 'hidden',
-    borderWidth: 2, borderColor: 'transparent', opacity: 0.65,
-  },
-  thumbActive: { borderColor: C.hero, opacity: 1 },
-  thumbImg:    { width: '100%', height: '100%' },
 
   // Chips
   chip: {

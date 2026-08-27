@@ -6,12 +6,16 @@ interface AuthUser {
   [x: string]: any;
   codUser: number;
   nome_completo: string;
-  nome_de_usuario: string;
   gmail: string;
-  idade: number;
+  idade: Date;
   restricoesAlimentares?: string;
   Status_Usuario?: string;
   bloqueado:number;
+}
+interface MediaResponse {
+  codReceita: number;
+  mediaNota: number;
+  totalAvaliacoes: number;
 }
 
 export interface Livro {
@@ -42,7 +46,7 @@ interface AuthContextType {
   getBookbyId: (id: number)  => Promise<{ok:boolean; error?:string; book?:Livro}>;
   getBookbyUserId: (id:number) => Promise<{ok:boolean; error?:string; livros?:Livro[]}>;
   updateBook:(data: Livro, id: number) => Promise<{ok:boolean; error?:string}>
-  register: (nomeCompleto: string, nomeDeUsuario: string, idade: number, gmail: string, senha: string) => Promise<{ ok: boolean; error?: string }>;
+  register: (nomeCompleto: string, idade: Date, gmail: string, senha: string) => Promise<{ ok: boolean; error?: string }>;
   updateUserData: (user: AuthUser) => void;
   getComentarios: (receitaId: string) => Promise<any[]>;
   enviarComentario: (receitaId: number, nota: number, texto: string) => Promise<void>;
@@ -51,6 +55,7 @@ interface AuthContextType {
   alterarStatus: (usuarioId:number) =>Promise<void>;
   reativar:(email: string, senha:string) =>Promise<{ ok: boolean }>;
   logout: () => void;
+  getMediaReceita: (receitaId: number) => Promise<{ mediaNota: number; totalAvaliacoes: number }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -163,14 +168,14 @@ async function getComentarios(receitaId: string) {
   try {
     // 1. Chama a API padronizada
     const resposta = await comentariosAPI.getByReceitaId(receitaId);
-    
     // 2. Verifica se a resposta deu certo (status 200) e se os dados existem
     if (resposta.status === 200 && resposta.data){
       const comentarios = resposta.data as any[];
       const comentariosAtivos = comentarios.filter((comentario: any) => {
-        if (comentario.status_comentarios === 'ATIVO') {
+        if (comentario.statusComentarios === 'ATIVO') {
           return true; // Mantém na lista
         } else {
+          console.log(comentarios)
           console.log(`O comentario está inativa.`);
           return false; // Remove da lista
         }
@@ -185,8 +190,8 @@ async function getComentarios(receitaId: string) {
   }
 }
 
-async function enviarComentario(receitaId: number, nota: number, texto: string) {
-  await comentariosAPI.create({ usuario: { codUser: Number(user?.codUser) }, receita: { codReceitas: receitaId }, texto, nota,status_comentarios: 'ATIVO' })
+async function enviarComentario(receitaId: number, nota: number) {
+  await comentariosAPI.create({ usuario: { codUser: Number(user?.codUser) }, receita: { codReceitas: receitaId }, nota,status_comentarios: 'ATIVO' })
 }
 
 async function alterarStatus(usuarioId: number) {
@@ -197,6 +202,7 @@ async function alterarStatus(usuarioId: number) {
 const updateUser = (novoUsuario: AuthUser) => {
   setUser(novoUsuario);
 };
+
 async function reativar (email: string, senha:string) {
   const res = await usuariosAPI.reativar(email, senha);
   if (res.data) {
@@ -206,10 +212,9 @@ async function reativar (email: string, senha:string) {
   }
   return { ok: false }
 }
-async function register(nome_completo: string, nome_de_usuario: string, idade: number, gmail: string, senha: string) {
+async function register(nome_completo: string, idade: Date, gmail: string, senha: string) {
   const res = await usuariosAPI.create({
     nome_completo,
-    nome_de_usuario,
     idade,
     gmail,
     senha,
@@ -274,6 +279,25 @@ async function updateBook(data: Livro, id: number){
   return {ok:false,error:result.error}
 }
 
+async function getMediaReceita(receitaId: number): Promise<MediaResponse> {
+  try {
+    const resposta = await comentariosAPI.getMedia(receitaId);
+
+    console.log("Resposta bruta da API:", resposta);
+    // Cast na propriedade .data onde o JSON retornado realmente reside
+    const data = resposta.data as MediaResponse;
+
+    if (data && typeof data.mediaNota !== 'undefined') {
+      return data;
+    }
+
+    return { codReceita: receitaId, mediaNota: 0, totalAvaliacoes: 0 };
+  } catch (error) {
+    console.error(`Erro ao buscar média da receita ${receitaId}:`, error);
+    return { codReceita: receitaId, mediaNota: 0, totalAvaliacoes: 0 };
+  }
+}
+
 async function addRecipeToBook(
   codLivro:number,
   codReceita:number
@@ -311,6 +335,9 @@ async function removeRecipeFromBook(
     ok:false,
     error: result.error
   };
+
+  
+
 }
 
   return (
@@ -339,6 +366,7 @@ async function removeRecipeFromBook(
       enviarComentario,
       updateUserData,
       updateUser,
+      getMediaReceita,
     }}>
       {children}
     </AuthContext.Provider>

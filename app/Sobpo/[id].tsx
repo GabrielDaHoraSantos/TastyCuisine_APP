@@ -132,7 +132,7 @@ export default function DishDetailScreen() {
   }
 
   const nomeReceita = str(recipe.nomeReceita ?? recipe.name);
-  const nomeChefe = str(recipe.chefe?.nomeCompleto);
+  const nomeChefe = str(recipe.usuario?.nome_completo);
   const descricao = str(recipe.descricao);
   const fotoReceita = str(recipe.fotoReceita ?? recipe.image);
   const ingredientes = parseIngredientes(recipe.ingredientes);
