@@ -60,17 +60,16 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<AuthUser | null>(null);
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true)
   const [favoritos, setFavoritos] = useState<any[]>([])
   const [recipes, setRecipes] = useState<any[]>([])
 
   useEffect(() => {
     async function carregarUsuario() {
-      const id = await AsyncStorage.getItem('userId');
+      const id = await Number(AsyncStorage.getItem('userId'));
       if (id) {
-        await loadFavoritos(id);
+        await loadFavoritos(id);0
         await loadRecipes() 
         const res = await usuariosAPI.getById(id);
         if (res.data) setUser(res.data as AuthUser);
@@ -100,7 +99,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       setUser(userData)
       await AsyncStorage.setItem('userId', String(userData.codUser))
-      await loadFavoritos(String(userData.codUser))
+      await loadFavoritos(userData.codUser)
       await loadRecipes()
       return { ok: true }
     }
@@ -121,8 +120,8 @@ const updateUserData = (updatedUser: AuthUser) => {
     console.log('removido!')
   };
 
-  async function loadFavoritos(userId: string) {
-    const res = await favoritosAPI.getAll()
+  async function loadFavoritos(userId: number) {
+    const res = await favoritosAPI.getAll(userId)
     if (res.data) {
       setFavoritos((res.data as any[]).filter(f => String(f.usuario?.codUser) === String(userId)))
     }
@@ -136,7 +135,7 @@ const updateUserData = (updatedUser: AuthUser) => {
     setFavoritos(prev => prev.filter(f => f.codFavoritos !== jaExiste.codFavoritos))
   } else {
     await favoritosAPI.create({ usuario: { codUser: Number(user.codUser) }, receita: { codReceitas } })
-    await loadFavoritos(String(user.codUser)) // recarrega tudo do banco!
+    await loadFavoritos(user.codUser) // recarrega tudo do banco!
   }
 }
 async function loadRecipes() {

@@ -28,7 +28,6 @@ export const API_ENDPOINTS = {
   LIVRO_BY_USER_ID: (id: string | number) => `${API_BASE_URL}/livro/usuario/${id}`,
   
   // Favoritos
-  FAVORITOS_ALL: `${API_BASE_URL}/favorito/findAll`,
   FAVORITOS: `${API_BASE_URL}/favorito`,
   FAVORITO_BY_ID: (id: string | number) => `${API_BASE_URL}/favorito/${id}`,
   
@@ -164,7 +163,7 @@ export const usuariosAPI = {
 }
 // Favoritos API
 export const favoritosAPI = {
-  getAll: () => apiCall(API_ENDPOINTS.FAVORITOS_ALL),
+  getAll: (id: number) => apiCall(API_ENDPOINTS.FAVORITO_BY_ID(id), {method: 'GET'}),
   create: (data: any) => apiCall(API_ENDPOINTS.FAVORITOS, { method: 'POST', body: JSON.stringify(data) }),
   delete: (id: string | number) => apiCall(API_ENDPOINTS.FAVORITO_BY_ID(id), { method: 'DELETE' }),
 }
