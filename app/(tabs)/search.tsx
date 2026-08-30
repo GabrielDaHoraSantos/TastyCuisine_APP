@@ -16,22 +16,10 @@ import {
 import BolinhaqGira from '../../components/BolinhaqGira';
 import BottomNavigation from '../../components/BottomNavigation';
 import { useAuth } from '../authContext';
+import { C } from '../constants/colors';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = (SCREEN_WIDTH - 20 * 2 - 12) / 2;
-
-// ─── Design Tokens ───────────────────────────────────────────────────────────
-const C = {
-  bg: '#F5EDE3',
-  surface: '#FFFFFF',
-  surfaceHi: '#F0E6DA',
-  hero: '#C4703A',
-  accentSoft: '#FFF0E8',
-  textPrimary: '#3D2010',
-  textSub: '#B8906A',
-  textMuted: '#D4B89A',
-  white: '#FFFFFF',
-};
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 const getRecipeName = (r: any) => r.nomeReceita ?? r.name ?? '';
@@ -42,7 +30,7 @@ const getRecipeId = (r: any) => String(r.codReceitas ?? r.id ?? '');
 const getRecipeRating = (r: any) => parseFloat(r.avaliacao ?? r.rating ?? '0').toFixed(1);
 
 export default function SearchScreen() {
-  const { recipes, loading, userId } = useAuth();
+  const { recipes, loading, userId, favoritos, toggleFavorito } = useAuth();
   const router = useRouter();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -56,20 +44,18 @@ export default function SearchScreen() {
 
     if (!recipes) return;
 
-    // 1. Filtro global: remove receitas inativadas
     const activeRecipes = recipes.filter(
       r => (r.status_Receita ?? r.status ?? '').toUpperCase() !== 'INATIVADO'
     );
 
-    // 2. Filtro de pesquisa: aplica o termo buscado
     if (searchQuery.trim() === '') {
       setFilteredRecipes(activeRecipes);
     } else {
       const query = searchQuery.toLowerCase().trim();
       const results = activeRecipes.filter(r => {
-      const title = getRecipeName(r).toLowerCase();
-      const chef = getRecipeChef(r).toLowerCase();
-      const category = String(r.categoria ?? r.category ?? '').toLowerCase();
+        const title = getRecipeName(r).toLowerCase();
+        const chef = getRecipeChef(r).toLowerCase();
+        const category = String(r.categoria ?? r.category ?? '').toLowerCase();
         
         return title.includes(query) || chef.includes(query) || category.includes(query);
       });
@@ -83,7 +69,6 @@ export default function SearchScreen() {
 
   if (loading) return <BolinhaqGira />;
 
-  // Divide o resultado em pares para renderização em 2 colunas
   const gridPairs: any[][] = [];
   for (let i = 0; i < filteredRecipes.length; i += 2) {
     gridPairs.push(filteredRecipes.slice(i, i + 2));
@@ -93,7 +78,6 @@ export default function SearchScreen() {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
 
-      {/* ── CAMPO DE BUSCA ── */}
       <View style={styles.header}>
         <Text style={styles.title}>Pesquisar</Text>
         <View style={styles.searchContainer}>
@@ -114,7 +98,6 @@ export default function SearchScreen() {
         </View>
       </View>
 
-      {/* ── LISTA DE RESULTADOS ── */}
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         <Text style={styles.resultsCount}>
           {filteredRecipes.length} {filteredRecipes.length === 1 ? 'receita encontrada' : 'receitas encontradas'}
@@ -124,28 +107,42 @@ export default function SearchScreen() {
           <View style={styles.gridContainer}>
             {gridPairs.map((pair, i) => (
               <View key={i} style={styles.row}>
-                {pair.map(item => (
-                  <TouchableOpacity
-                    key={getRecipeId(item)}
-                    style={styles.card}
-                    onPress={() => handlePressDish(getRecipeId(item))}
-                    activeOpacity={0.85}
-                  >
-                    <Image source={{ uri: getRecipeImage(item) }} style={styles.cardImg} resizeMode="cover" />
-                    <View style={styles.ratingPill}>
-                      <Ionicons name="star" size={10} color="#FFD700" />
-                      <Text style={styles.ratingText}>{getRecipeRating(item)}</Text>
-                    </View>
-                    <View style={styles.cardInfo}>
-                      <Text style={styles.cardName} numberOfLines={2}>{getRecipeName(item)}</Text>
-                      <Text style={styles.cardChef} numberOfLines={1}>por {getRecipeChef(item)}</Text>
-                      <View style={styles.timePill}>
-                        <Ionicons name="time-outline" size={11} color={C.textSub} />
-                        <Text style={styles.timeText}>{getRecipeTime(item)}</Text>
+                {pair.map(item => {
+                  const rId = getRecipeId(item);
+                  const isFav = favoritos.some((f: any) => String(f.receita?.codReceitas ?? f.codReceitas) === String(rId));
+
+                  return (
+                    <TouchableOpacity
+                      key={rId}
+                      style={styles.card}
+                      onPress={() => handlePressDish(rId)}
+                      activeOpacity={0.85}
+                    >
+                      <Image source={{ uri: getRecipeImage(item) }} style={styles.cardImg} resizeMode="cover" />
+                      <View style={styles.ratingPill}>
+                        <Ionicons name="star" size={10} color="#FFD700" />
+                        <Text style={styles.ratingText}>{getRecipeRating(item)}</Text>
                       </View>
-                    </View>
-                  </TouchableOpacity>
-                ))}
+
+                      <TouchableOpacity
+                        style={styles.heartPill}
+                        onPress={() => toggleFavorito(rId, Number(rId))}
+                        activeOpacity={0.7}
+                      >
+                        <Ionicons name={isFav ? 'heart' : 'heart-outline'} size={16} color={C.heartActive} />
+                      </TouchableOpacity>
+
+                      <View style={styles.cardInfo}>
+                        <Text style={styles.cardName} numberOfLines={2}>{getRecipeName(item)}</Text>
+                        <Text style={styles.cardChef} numberOfLines={1}>por {getRecipeChef(item)}</Text>
+                        <View style={styles.timePill}>
+                          <Ionicons name="time-outline" size={11} color={C.textSub} />
+                          <Text style={styles.timeText}>{getRecipeTime(item)}</Text>
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
                 {pair.length === 1 && <View style={{ width: CARD_WIDTH }} />}
               </View>
             ))}
@@ -164,7 +161,6 @@ export default function SearchScreen() {
   );
 }
 
-// ─── ESTILOS ─────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: C.bg },
   scrollContent: { paddingHorizontal: 20, paddingBottom: 100 },
@@ -207,6 +203,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
+  },
+  heartPill: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    backgroundColor: 'rgba(255,255,255,0.85)',
+    padding: 5,
+    borderRadius: 20,
   },
   ratingText: { color: C.white, fontSize: 11, fontWeight: '700' },
   cardInfo: { padding: 12, gap: 3 },

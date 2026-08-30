@@ -272,15 +272,12 @@ export default function ProfileScreen() {
           </TouchableOpacity>
 
           <Text style={s.heroName}>{user?.nome_completo ?? 'Usuário'}</Text>
-          <Text style={s.heroHandle}>@{user?.nome_de_usuario ?? ''}</Text>
           <Text style={s.heroEmail}>{user?.gmail ?? ''}</Text>
 
           <View style={s.statsRow}>
             <StatBox value={!loadingStats ? String(stats.favoritos) : '…'} label="Favoritos" />
             <View style={s.statsDivider} />
             <StatBox value={!loadingStats ? String(stats.avaliacoes) : '…'} label="Avaliações" />
-            <View style={s.statsDivider} />
-            <StatBox value={!loadingStats ? String(stats.comentarios) : '…'} label="Comentários" />
           </View>
         </View>
 
@@ -300,6 +297,7 @@ export default function ProfileScreen() {
         )}
 
         {/* ── AÇÕES ── */}
+        <Text style={s.actionRow}></Text>
         <Text style={s.sectionLabel}>CONFIGURAÇÕES</Text>
 
         <View style={s.card}>
@@ -320,7 +318,7 @@ export default function ProfileScreen() {
           />
         </View>
 
-        <Text style={s.versionText}>v1.0.0</Text>
+        <Text style={s.versionText}>v3.4.7</Text>
       </ScrollView>
 
       {/* ── EDIT MODAL ── */}

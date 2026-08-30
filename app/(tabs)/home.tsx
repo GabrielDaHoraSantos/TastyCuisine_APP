@@ -16,25 +16,10 @@ import {
 import BolinhaqGira from '../../components/BolinhaqGira';
 import BottomNavigation from '../../components/BottomNavigation';
 import { useAuth } from '../authContext';
+import { C } from '../constants/colors';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = (SCREEN_WIDTH - 20 * 2 - 12) / 2;
-
-// ─── Design tokens ────────────────────────────────────────────────────────────
-const C = {
-  bg:           '#F5EDE3',
-  surface:      '#FFFFFF',
-  surfaceHi:    '#F0E6DA',
-  hero:         '#C4703A',
-  accent:       '#C4703A',
-  accentSoft:   '#FFF0E8',
-  accentBorder: '#F0C8A0',
-  textPrimary:  '#3D2010',
-  textSub:      '#B8906A',
-  textMuted:    '#D4B89A',
-  textOnHero:   '#FFFFFF',
-  white:        '#FFFFFF',
-};
 
 const CATEGORIES = [
   { key: 'todos',     label: 'Todos',         icon: 'restaurant-outline' },
@@ -58,20 +43,19 @@ const getRecipeId     = (r: any) => Number(r.codReceitas ?? r.id ?? 0);
 
 // ─── Grid card (2 colunas) ───────────────────────────────────────────────────
 function GridCard({ item, onPress }: { item: any; onPress: () => void }) {
-  const { getMediaReceita } = useAuth();
+  const { getMediaReceita, favoritos, toggleFavorito } = useAuth();
   const [rating, setRating] = useState<string>('...');
+
+  const recipeId = getRecipeId(item);
+  const isFav = favoritos.some((f: any) => String(f.receita?.codReceitas ?? f.codReceitas) === String(recipeId));
 
   useEffect(() => {
     let isMounted = true;
     async function fetchRating() {
-      const id = getRecipeId(item);
-      if (id > 0) {
-        const data = await getMediaReceita(id);
+      if (recipeId > 0) {
+        const data = await getMediaReceita(recipeId);
         if (isMounted) {
           const media = data?.mediaNota ?? 0;
-          if (media === 0) {
-            console.log(`⚠️ AVISO: A receita "${getRecipeName(item)}" (ID: ${id}) tem média igual a ZERO.`);
-          }
           setRating(media > 0 ? media.toFixed(1) : '0.0');
         }
       }
@@ -80,6 +64,10 @@ function GridCard({ item, onPress }: { item: any; onPress: () => void }) {
     return () => { isMounted = false; };
   }, [item]);
 
+  const handleLike = async () => {
+    await toggleFavorito(String(recipeId), recipeId);
+  };
+
   return (
     <TouchableOpacity style={g.card} onPress={onPress} activeOpacity={0.85}>
       <Image source={{ uri: getRecipeImage(item) }} style={g.img} resizeMode="cover" />
@@ -87,6 +75,9 @@ function GridCard({ item, onPress }: { item: any; onPress: () => void }) {
         <Ionicons name="star" size={10} color="#FFD700" />
         <Text style={g.ratingText}>{rating}</Text>
       </View>
+      <TouchableOpacity style={g.heartPill} onPress={handleLike} activeOpacity={0.7}>
+        <Ionicons name={isFav ? 'heart' : 'heart-outline'} size={16} color={C.heartActive} />
+      </TouchableOpacity>
       <View style={g.info}>
         <Text style={g.name} numberOfLines={2}>{getRecipeName(item)}</Text>
         <Text style={g.chef} numberOfLines={1}>por {getRecipeChef(item)}</Text>
@@ -101,20 +92,19 @@ function GridCard({ item, onPress }: { item: any; onPress: () => void }) {
 
 // ─── Wide card (1 coluna, horizontal) ────────────────────────────────────────
 function WideCard({ item, onPress }: { item: any; onPress: () => void }) {
-  const { getMediaReceita } = useAuth();
+  const { getMediaReceita, favoritos, toggleFavorito } = useAuth();
   const [rating, setRating] = useState<string>('...');
+
+  const recipeId = getRecipeId(item);
+  const isFav = favoritos.some((f: any) => String(f.receita?.codReceitas ?? f.codReceitas) === String(recipeId));
 
   useEffect(() => {
     let isMounted = true;
     async function fetchRating() {
-      const id = getRecipeId(item);
-      if (id > 0) {
-        const data = await getMediaReceita(id);
+      if (recipeId > 0) {
+        const data = await getMediaReceita(recipeId);
         if (isMounted) {
           const media = data?.mediaNota ?? 0;
-          if (media === 0) {
-            console.log(`⚠️ AVISO: A receita rápida "${getRecipeName(item)}" (ID: ${id}) tem média igual a ZERO.`);
-          }
           setRating(media > 0 ? media.toFixed(1) : '0.0');
         }
       }
@@ -122,6 +112,10 @@ function WideCard({ item, onPress }: { item: any; onPress: () => void }) {
     fetchRating();
     return () => { isMounted = false; };
   }, [item]);
+
+  const handleLike = async () => {
+    await toggleFavorito(String(recipeId), recipeId);
+  };
 
   return (
     <TouchableOpacity style={w.card} onPress={onPress} activeOpacity={0.85}>
@@ -140,16 +134,16 @@ function WideCard({ item, onPress }: { item: any; onPress: () => void }) {
           </View>
         </View>
       </View>
-      <View style={w.arrow}>
-        <Ionicons name="chevron-forward" size={18} color={C.accent} />
-      </View>
+      <TouchableOpacity style={w.heartBtn} onPress={handleLike} activeOpacity={0.7}>
+        <Ionicons name={isFav ? 'heart' : 'heart-outline'} size={20} color={C.heartActive} />
+      </TouchableOpacity>
     </TouchableOpacity>
   );
 }
 
 // ─── Main Screen ─────────────────────────────────────────────────────────────
 export default function HomeScreen() {
-  const { userName, userId, recipes, loading, getMediaReceita } = useAuth();
+  const { userName, userId, recipes, loading, getMediaReceita, favoritos, toggleFavorito } = useAuth();
   const router = useRouter();
 
   const [activeIndex, setActiveIndex]       = useState(0);
@@ -160,10 +154,8 @@ export default function HomeScreen() {
     if (!userId && !loading) router.push('/login');
   }, [loading]);
 
-  // Lista simples de destaques
   const featuredRecipes = recipes.slice(0, 5);
 
-  // Busca a nota dinâmica da receita ativa no Destaque (Carrossel)
   useEffect(() => {
     let isMounted = true;
     async function fetchCarouselRating() {
@@ -174,9 +166,6 @@ export default function HomeScreen() {
           const data = await getMediaReceita(id);
           if (isMounted) {
             const media = data?.mediaNota ?? 0;
-            if (media === 0) {
-              console.log(`⚠️ AVISO: A receita em destaque "${getRecipeName(item)}" (ID: ${id}) tem média igual a ZERO.`);
-            }
             setCarouselRating(media > 0 ? media.toFixed(1) : '0.0');
           }
         }
@@ -186,7 +175,6 @@ export default function HomeScreen() {
     return () => { isMounted = false; };
   }, [activeIndex, recipes]);
 
-  // Rápidas (≤ 30 min) ou com tempo "Rápido"
   const quickRecipes = recipes.filter(r => {
     const timeStr = (r.tempoPreparo ?? r.prepareTime ?? '').toString().toLowerCase();
     if (timeStr.includes('rápido') || timeStr.includes('rapido')) return true;
@@ -194,7 +182,6 @@ export default function HomeScreen() {
     return !isNaN(min) && min <= 30;
   });
 
-  // Filtradas por categoria para o grid
   const filteredRecipes = activeCategory === 'todos'
     ? recipes
     : recipes.filter(r => {
@@ -208,17 +195,19 @@ export default function HomeScreen() {
 
   if (loading) return <BolinhaqGira />;
 
-  // Divide filteredRecipes em pares para o grid 2 colunas
   const gridPairs: any[][] = [];
   for (let i = 0; i < filteredRecipes.length; i += 2) {
     gridPairs.push(filteredRecipes.slice(i, i + 2));
   }
 
+  const activeFeatured = featuredRecipes[activeIndex];
+  const activeFeaturedId = activeFeatured ? getRecipeId(activeFeatured) : 0;
+  const isFeaturedFav = favoritos.some((f: any) => String(f.receita?.codReceitas ?? f.codReceitas) === String(activeFeaturedId));
+
   return (
     <SafeAreaView style={s.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor={C.bg} />
 
-      {/* ── HEADER ── */}
       <View style={s.header}>
         <View>
           <Text style={s.greeting}>Olá, {(userName || 'Gourmet').split(' ')[0]} </Text>
@@ -233,7 +222,6 @@ export default function HomeScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scrollContent}>
 
-        {/* ── DESTAQUES DA SEMANA ── */}
         <View style={s.sectionHeaderRow}>
           <Text style={s.eyebrow}>DESTAQUES DA SEMANA</Text>
           <View style={s.badge}>
@@ -244,7 +232,6 @@ export default function HomeScreen() {
 
         {featuredRecipes.length > 0 && (
           <View style={{ paddingHorizontal: 20 }}>
-            {/* Card principal */}
             <TouchableOpacity
               style={s.carouselCard}
               onPress={() => handlePressDish(getRecipeId(featuredRecipes[activeIndex]))}
@@ -260,6 +247,13 @@ export default function HomeScreen() {
                 <Ionicons name="star" size={12} color="#FFD700" />
                 <Text style={s.ratingBadgeText}>{carouselRating}</Text>
               </View>
+              <TouchableOpacity
+                style={s.carouselHeartBadge}
+                onPress={() => toggleFavorito(String(activeFeaturedId), activeFeaturedId)}
+                activeOpacity={0.7}
+              >
+                <Ionicons name={isFeaturedFav ? 'heart' : 'heart-outline'} size={18} color={C.heartActive} />
+              </TouchableOpacity>
               <View style={s.carouselInfo}>
                 <Text style={s.carouselTitle} numberOfLines={2}>
                   {getRecipeName(featuredRecipes[activeIndex])}
@@ -277,7 +271,6 @@ export default function HomeScreen() {
               </View>
             </TouchableOpacity>
 
-            {/* Controles */}
             <View style={s.carouselControls}>
               <TouchableOpacity style={s.navBtn} onPress={() => setActiveIndex(Math.max(0, activeIndex - 1))} activeOpacity={0.7}>
                 <Ionicons name="chevron-back" size={18} color={C.hero} />
@@ -296,7 +289,6 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* ── CATEGORIAS ── */}
         <Text style={[s.eyebrow, { paddingHorizontal: 20, marginTop: 28, marginBottom: 12 }]}>CATEGORIAS</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 8 }}>
           {CATEGORIES.map(cat => {
@@ -315,7 +307,6 @@ export default function HomeScreen() {
           })}
         </ScrollView>
 
-        {/* ── GRID 2 COLUNAS ── */}
         <View style={s.sectionHeaderRow2}>
           <Text style={s.sectionTitle}>
             {activeCategory === 'todos' ? 'Para você' : CATEGORIES.find(c => c.key === activeCategory)?.label}
@@ -345,7 +336,6 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* ── RÁPIDAS DE FAZER ── */}
         {activeCategory === 'todos' && quickRecipes.length > 0 && (
           <>
             <View style={s.sectionHeaderRow2}>
@@ -374,7 +364,6 @@ export default function HomeScreen() {
   );
 }
 
-// ─── Grid card styles ─────────────────────────────────────────────────────────
 const g = StyleSheet.create({
   card: {
     width: CARD_WIDTH,
@@ -396,6 +385,11 @@ const g = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.45)',
     paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12,
   },
+  heartPill: {
+    position: 'absolute', top: 10, left: 10,
+    backgroundColor: 'rgba(255,255,255,0.85)',
+    padding: 5, borderRadius: 20,
+  },
   ratingText: { color: C.white, fontSize: 11, fontWeight: '700' },
   info:       { padding: 12, gap: 3 },
   name:       { fontSize: 14, fontWeight: '700', color: C.textPrimary, lineHeight: 19 },
@@ -409,7 +403,6 @@ const g = StyleSheet.create({
   timeText: { fontSize: 11, color: C.textSub, fontWeight: '600' },
 });
 
-// ─── Wide card styles ─────────────────────────────────────────────────────────
 const w = StyleSheet.create({
   perfil:{
     opacity: 100,
@@ -440,10 +433,9 @@ const w = StyleSheet.create({
     paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10,
   },
   pillText: { fontSize: 11, color: C.textSub, fontWeight: '600' },
-  arrow: { paddingRight: 14 },
+  heartBtn: { paddingRight: 14, paddingLeft: 4 },
 });
 
-// ─── Main styles ──────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
   safeArea:      { flex: 1, backgroundColor: C.bg },
   scrollContent: { paddingBottom: 100 },
@@ -486,7 +478,6 @@ const s = StyleSheet.create({
   },
   badgeText: { fontSize: 11, fontWeight: '700', color: C.hero },
 
-  // Carousel
   carouselCard: {
     width: '100%', height: 240, borderRadius: 22, overflow: 'hidden',
     backgroundColor: C.surfaceHi,
@@ -503,6 +494,11 @@ const s = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: 4,
     backgroundColor: 'rgba(0,0,0,0.45)',
     paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20,
+  },
+  carouselHeartBadge: {
+    position: 'absolute', top: 14, left: 14,
+    backgroundColor: 'rgba(255,255,255,0.85)',
+    padding: 6, borderRadius: 20,
   },
   ratingBadgeText: { color: C.white, fontSize: 12, fontWeight: '700' },
   carouselInfo: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 18 },
@@ -524,7 +520,6 @@ const s = StyleSheet.create({
   dot:      { width: 7, height: 7, borderRadius: 4, backgroundColor: C.accentBorder },
   dotActive:{ width: 22, height: 7, borderRadius: 4, backgroundColor: C.hero },
 
-  // Chips
   chip: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
     backgroundColor: C.accentSoft, paddingHorizontal: 14, paddingVertical: 9,

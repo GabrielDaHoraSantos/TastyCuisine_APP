@@ -10,8 +10,9 @@ interface AuthUser {
   idade: Date;
   restricoesAlimentares?: string;
   Status_Usuario?: string;
-  bloqueado:number;
+  bloqueado: number;
 }
+
 interface MediaResponse {
   codReceita: number;
   mediaNota: number;
@@ -25,6 +26,7 @@ export interface Livro {
   fotoLivro: string | null;
   usuario: AuthUser;
 }
+
 interface ReceitaLivro {
   codReceitas: number;
   nomeReceita: string;
@@ -39,305 +41,295 @@ interface AuthContextType {
   favoritos: any[];      
   recipes: any[];
   updateUser: (novoUsuario: AuthUser) => void;
-  addRecipeToBook: (codLivro:number,codReceita:number)=> Promise<{ok:boolean; error?:string}>;
-  removeRecipeFromBook:(codLivro:number,codReceita:number)=> Promise<{ok:boolean; error?:string}>;
-  createBook: (data: any) => Promise<{ ok: boolean; error?: string }>;
-  deleteBook:(id: number) => Promise<{ok:boolean; error?:string}>;
-  getBookbyId: (id: number)  => Promise<{ok:boolean; error?:string; book?:Livro}>;
-  getBookbyUserId: (id:number) => Promise<{ok:boolean; error?:string; livros?:Livro[]}>;
-  updateBook:(data: Livro, id: number) => Promise<{ok:boolean; error?:string}>
-  register: (nomeCompleto: string, idade: Date, gmail: string, senha: string) => Promise<{ ok: boolean; error?: string }>;
+  addRecipeToBook: (codLivro: number, codReceita: number) => Promise<{ ok: boolean; error?: string }>;
+  removeRecipeFromBook: (codLivro: number, codReceita: number) => Promise<{ ok: boolean; error?: string }>;
+  createBook: (nome: string) => Promise<{ ok: boolean; error?: string }>;
+  deleteBook: (id: number) => Promise<{ ok: boolean; error?: string }>;
+  getBookbyId: (id: number) => Promise<{ ok: boolean; error?: string; book?: Livro }>;
+  getBookbyUserId: (id: number) => Promise<{ ok: boolean; error?: string; livros?: Livro[] }>;
+  updateBook: (data: Livro, id: number) => Promise<{ ok: boolean; error?: string }>;
+  register: (nome_completo: string, idade: Date, gmail: string, senha: string) => Promise<{ ok: boolean; error?: string }>;
   updateUserData: (user: AuthUser) => void;
   getComentarios: (receitaId: string) => Promise<any[]>;
   enviarComentario: (receitaId: number, nota: number, texto: string) => Promise<void>;
   toggleFavorito: (receitaId: string, codReceitas: number) => Promise<void>;
   login: (email: string, senha: string) => Promise<{ ok: boolean; error?: string }>;
-  alterarStatus: (usuarioId:number) =>Promise<void>;
-  reativar:(email: string, senha:string) =>Promise<{ ok: boolean }>;
+  alterarStatus: (usuarioId: number) => Promise<void>;
+  reativar: (email: string, senha: string) => Promise<{ ok: boolean }>;
   logout: () => void;
-  getMediaReceita: (receitaId: number) => Promise<{ mediaNota: number; totalAvaliacoes: number }>;
+  getMediaReceita: (receitaId: number) => Promise<MediaResponse>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {  const [user, setUser] = useState<AuthUser | null>(null);
-  const [loading, setLoading] = useState(true)
-  const [favoritos, setFavoritos] = useState<any[]>([])
-  const [recipes, setRecipes] = useState<any[]>([])
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [favoritos, setFavoritos] = useState<any[]>([]);
+  const [recipes, setRecipes] = useState<any[]>([]);
 
   useEffect(() => {
     async function carregarUsuario() {
-      const id = await Number(AsyncStorage.getItem('userId'));
-      if (id) {
-        await loadFavoritos(id);0
-        await loadRecipes() 
-        const res = await usuariosAPI.getById(id);
-        if (res.data) setUser(res.data as AuthUser);
-        console.log(recipes)
+      try {
+        const idStr = await AsyncStorage.getItem('userId');
+        if (idStr) {
+          const id = Number(idStr);
+          await loadFavoritos(id);
+          await loadRecipes();
+          const res = await usuariosAPI.getById(id);
+          if (res.data) setUser(res.data as AuthUser);
+        }
+      } catch (error) {
+        console.error("Erro ao carregar dados iniciais:", error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false)
     }
     carregarUsuario();
   }, []);
 
   const login = async (email: string, senha: string) => {
-  try {
-    const res = await usuariosAPI.login(email, senha)
+    try {
+      const res = await usuariosAPI.login(email, senha);
 
-    if (res.data) {
-      const userData = res.data as AuthUser
-      
-      if (userData.funcao !== 'Usuario') {
-        return { ok: false, error: 'ACESSO_NEGADO' }
+      if (res.data) {
+        const userData = res.data as AuthUser;
+        
+        if (userData.funcao !== 'Usuario') {
+          return { ok: false, error: 'ACESSO_NEGADO' };
+        }
+        
+        if (userData.bloqueado) {
+          console.error("Bloqueado pelo Admin");
+          return { ok: false, error: 'CONTA_BLOQUEADA' };
+        }
+        
+        setUser(userData);
+        await AsyncStorage.setItem('userId', String(userData.codUser));
+        await loadFavoritos(userData.codUser);
+        await loadRecipes();
+        return { ok: true };
       }
       
-      // 💡 CORRIGIDO: Agora retorna a string de identificação correta!
-      if (userData.bloqueado) {
-        console.error("Bloqueado pelo Admin")
-        return { ok: false, error: 'CONTA_BLOQUEADA' } 
-      }
-      
-      setUser(userData)
-      await AsyncStorage.setItem('userId', String(userData.codUser))
-      await loadFavoritos(userData.codUser)
-      await loadRecipes()
-      return { ok: true }
+      if (res.status === 403) return { ok: false, error: 'CONTA_INATIVA' };
+      if(res.status === 401 ) return { ok: false, error: 'Credenciais incorretas' };
+      return {ok: false, error: 'uiuiui'};
+    } catch {
+      return { ok: false, error: 'Senha Incorreta' };
     }
-    
-    if (res.status === 403) return { ok: false, error: 'CONTA_INATIVA' }
-    return { ok: false, error: 'EMAIL_OU_SENHA_INCORRETOS' }
-  } catch {
-    return { ok: false, error: 'ERRO_CONEXAO' }
-  }
-}
-const updateUserData = (updatedUser: AuthUser) => {
-  setUser(updatedUser);
-}
+  };
+
+  const updateUserData = (updatedUser: AuthUser) => {
+    setUser(updatedUser);
+  };
 
   const logout = async () => {
     setUser(null);
+    setFavoritos([]);
     await AsyncStorage.removeItem('userId');
-    console.log('removido!')
+    console.log('Removido com sucesso!');
   };
 
   async function loadFavoritos(userId: number) {
-    const res = await favoritosAPI.getAll(userId)
-    if (res.data) {
-      setFavoritos((res.data as any[]).filter(f => String(f.usuario?.codUser) === String(userId)))
-    }
+  try {
+    // Chamada para GET http://localhost:8080/favorito/usuario/{id}
+    const res = await favoritosAPI.getByUserId(userId); 
+    const lista = Array.isArray(res?.data) ? res.data : [];
+    setFavoritos(lista);
+  } catch (error) {
+    console.error("Erro ao carregar favoritos do usuário:", error);
+    setFavoritos([]);
   }
+}
 
   async function toggleFavorito(receitaId: string, codReceitas: number) {
-  if (!user) return
-  const jaExiste = favoritos.find(f => String(f.receita?.codReceitas) === String(receitaId))
-  if (jaExiste) {
-    await favoritosAPI.delete(String(jaExiste.codFavoritos))
-    setFavoritos(prev => prev.filter(f => f.codFavoritos !== jaExiste.codFavoritos))
-  } else {
-    await favoritosAPI.create({ usuario: { codUser: Number(user.codUser) }, receita: { codReceitas } })
-    await loadFavoritos(user.codUser) // recarrega tudo do banco!
-  }
-}
-async function loadRecipes() {
+  if (!user) return;
+
   try {
-    const receitas = await receitasAPI.getAll(); 
-    
-    if (receitas.status === 200 && Array.isArray(receitas.data)){
-      const listaCompleta = receitas.data as any[];
-      
-      // 1. Filtra a lista para manter APENAS as que estão 'ATIVO'
-      const receitasAtivas = listaCompleta.filter((receita: any) => {
-        if (receita.status_receita === 'ATIVO') {
-          return true; // Mantém na lista
-        } else {
-          console.log(`A receita ${receita.nomeReceita} está inativa.`);
-          return false; // Remove da lista
-        }
-      });
+    // Busca a lista atualizada de favoritos diretamente para o usuário logado
+    const res = await favoritosAPI.getByUserId(user.codUser);
+    const listaFavoritos: any[] = Array.isArray(res?.data) ? res.data : [];
 
-      // 2. Salva no estado apenas as receitas filtradas (ativas)
-      setRecipes(receitasAtivas);
-    };
-  } catch (error) {
-    console.error("Erro ao buscar receitas:", error);
-  }
-}
-
-async function getComentarios(receitaId: string) {
-  try {
-    // 1. Chama a API padronizada
-    const resposta = await comentariosAPI.getByReceitaId(receitaId);
-    // 2. Verifica se a resposta deu certo (status 200) e se os dados existem
-    if (resposta.status === 200 && resposta.data){
-      const comentarios = resposta.data as any[];
-      const comentariosAtivos = comentarios.filter((comentario: any) => {
-        if (comentario.statusComentarios === 'ATIVO') {
-          return true; // Mantém na lista
-        } else {
-          console.log(comentarios)
-          console.log(`O comentario está inativa.`);
-          return false; // Remove da lista
-        }
-      });
-      return comentariosAtivos as any[]; 
-    }
-    
-    return [];
-  } catch (error) {
-    console.error("Erro ao buscar comentários:", error);
-    return []; 
-  }
-}
-
-async function enviarComentario(receitaId: number, nota: number) {
-  await comentariosAPI.create({ usuario: { codUser: Number(user?.codUser) }, receita: { codReceitas: receitaId }, nota,status_comentarios: 'ATIVO' })
-}
-
-async function alterarStatus(usuarioId: number) {
-  await usuariosAPI.inativar(String(usuarioId))
-  logout()
-}
-
-const updateUser = (novoUsuario: AuthUser) => {
-  setUser(novoUsuario);
-};
-
-async function reativar (email: string, senha:string) {
-  const res = await usuariosAPI.reativar(email, senha);
-  if (res.data) {
-    setUser(res.data as AuthUser)
-    await AsyncStorage.setItem('userId', String((res.data as AuthUser).codUser))
-    return { ok: true }
-  }
-  return { ok: false }
-}
-async function register(nome_completo: string, idade: Date, gmail: string, senha: string) {
-  const res = await usuariosAPI.create({
-    nome_completo,
-    idade,
-    gmail,
-    senha,
-    funcao: 'Usuario',
-    status_Usuario: 'ATIVO'
-  })
-  if (res.data) {
-    setUser(res.data as AuthUser)
-    await AsyncStorage.setItem('userId', String((res.data as AuthUser).codUser))
-    return { ok: true }
-  }
-  return { ok: false, error: res.error }
-}
-
-async function createBook(nome: string) {
-  const result = await livrosAPI.create({
-    nomeLivro: nome,
-    usuario:{codUser: Number(user?.codUser)}})
-  if(result.data){
-    return {ok:true}
-  }
-  return {ok: false, error:result.error}
-}
-
-async function deleteBook(id: number){
-  const result = await livrosAPI.delete(id);
-  if(result.data){
-    return {ok:true}
-  }
-  return {ok:false,error:result.error}
-}
-
-const getBookbyId = async (id: number) => {
-  try {
-    const response = await livrosAPI.getByiD(id);
-
-    return {
-      ok: true,
-      book: response.data as Livro,
-    };
-  } catch (error: any) {
-    return {
-      ok: false,
-      error: error.message,
-    };
-  }
-};
-
-async function getBookbyUserId(id:number){
-  const result = await livrosAPI.getByUserId(id);
-  if(result.data){
-    return {livros: result.data as Livro[], ok: true}
-  }
-  return {ok:false,error:result.error}
-}
-
-async function updateBook(data: Livro, id: number){
-  const result = await livrosAPI.save(data,id);
-  if(result.data){
-    return {ok:true}
-  }
-  return {ok:false,error:result.error}
-}
-
-async function getMediaReceita(receitaId: number): Promise<MediaResponse> {
-  try {
-    const resposta = await comentariosAPI.getMedia(receitaId);
-
-    console.log("Resposta bruta da API:", resposta);
-    // Cast na propriedade .data onde o JSON retornado realmente reside
-    const data = resposta.data as MediaResponse;
-
-    if (data && typeof data.mediaNota !== 'undefined') {
-      return data;
-    }
-
-    return { codReceita: receitaId, mediaNota: 0, totalAvaliacoes: 0 };
-  } catch (error) {
-    console.error(`Erro ao buscar média da receita ${receitaId}:`, error);
-    return { codReceita: receitaId, mediaNota: 0, totalAvaliacoes: 0 };
-  }
-}
-
-async function addRecipeToBook(
-  codLivro:number,
-  codReceita:number
-){
-  const result = await livrosAPI.addRecipeToBook(
-    codLivro,
-    codReceita
-  );
-
-  if(result.data){
-    return { ok:true };
-  }
-
-  return {
-    ok:false,
-    error: result.error
-  };
-}
-
-async function removeRecipeFromBook(
-  codLivro:number,
-  codReceita:number
-){
-  const result =
-    await livrosAPI.removeRecipeFromBook(
-      codLivro,
-      codReceita
+    // Compara item por item para verificar se o id da receita já está presente
+    const favoritoExistente = listaFavoritos.find(
+      (item) => String(item.receita?.codReceitas ?? item.codReceitas) === String(codReceitas)
     );
 
-  if(result.data){
-    return { ok:true };
+    if (favoritoExistente) {
+      // Se JÁ EXISTIR: Pega o ID do registro de favorito e dispara a requisição para DELETAR
+      const idParaDeletar = favoritoExistente.codFavoritos ?? favoritoExistente.id;
+      await favoritosAPI.delete(String(idParaDeletar));
+    } else {
+      // Se NÃO EXISTIR: Dispara a requisição para ADICIONAR
+      await favoritosAPI.create({
+        usuario: { codUser: Number(user.codUser) },
+        receita: { codReceitas: Number(codReceitas) }
+      });
+    }
+
+    // Atualiza o estado local recarregando a lista do usuário
+    await loadFavoritos(user.codUser);
+
+  } catch (error) {
+    console.error("Erro ao alternar favorito:", error);
+  }
+}
+
+  async function loadRecipes() {
+    try {
+      const receitas = await receitasAPI.getAll(); 
+      if (receitas.status === 200 && Array.isArray(receitas.data)) {
+        const listaCompleta = receitas.data as any[];
+        const receitasAtivas = listaCompleta.filter((receita: any) => receita.status_receita === 'ATIVO');
+        setRecipes(receitasAtivas);
+      }
+    } catch (error) {
+      console.error("Erro ao buscar receitas:", error);
+    }
   }
 
-  return {
-    ok:false,
-    error: result.error
+  async function getComentarios(receitaId: string) {
+    try {
+      const resposta = await comentariosAPI.getByReceitaId(receitaId);
+      if (resposta.status === 200 && Array.isArray(resposta.data)) {
+        const comentarios = resposta.data as any[];
+        return comentarios.filter((comentario: any) => comentario.statusComentarios === 'ATIVO');
+      }
+      return [];
+    } catch (error) {
+      console.error("Erro ao buscar comentários:", error);
+      return []; 
+    }
+  }
+
+  async function enviarComentario(receitaId: number, nota: number, texto: string) {
+    if (!user) return;
+    await comentariosAPI.create({
+      usuario: { codUser: Number(user.codUser) },
+      receita: { codReceitas: receitaId },
+      nota,
+      texto,
+      status_comentarios: 'ATIVO'
+    });
+  }
+
+  async function alterarStatus(usuarioId: number) {
+    await usuariosAPI.inativar(String(usuarioId));
+    logout();
+  }
+
+  const updateUser = (novoUsuario: AuthUser) => {
+    setUser(novoUsuario);
   };
 
-  
+  async function reativar(email: string, senha: string) {
+    const res = await usuariosAPI.reativar(email, senha);
+    if (res.data) {
+      setUser(res.data as AuthUser);
+      await AsyncStorage.setItem('userId', String((res.data as AuthUser).codUser));
+      return { ok: true };
+    }
+    return { ok: false };
+  }
 
-}
+  async function register(nome_completo: string, idade: Date, gmail: string, senha: string) {
+    const res = await usuariosAPI.create({
+      nome_completo,
+      idade,
+      gmail,
+      senha,
+      funcao: 'Usuario',
+      status_Usuario: 'ATIVO'
+    });
+    if (res.data) {
+      setUser(res.data as AuthUser);
+      await AsyncStorage.setItem('userId', String((res.data as AuthUser).codUser));
+      return { ok: true };
+    }
+    return { ok: false, error: res.error };
+  }
+
+  async function createBook(nome: string) {
+    const result = await livrosAPI.create({
+      nomeLivro: nome,
+      usuario: { codUser: Number(user?.codUser) }
+    });
+    if (result.data) {
+      return { ok: true };
+    }
+    return { ok: false, error: result.error };
+  }
+
+  async function deleteBook(id: number) {
+    const result = await livrosAPI.delete(id);
+    if (result.data) {
+      return { ok: true };
+    }
+    return { ok: false, error: result.error };
+  }
+
+  const getBookbyId = async (id: number) => {
+    try {
+      const response = await livrosAPI.getByiD(id);
+      return {
+        ok: true,
+        book: response.data as Livro,
+      };
+    } catch (error: any) {
+      return {
+        ok: false,
+        error: error.message,
+      };
+    }
+  };
+
+  async function getBookbyUserId(id: number) {
+    const result = await livrosAPI.getByUserId(id);
+    if (result.data) {
+      return { livros: result.data as Livro[], ok: true };
+    }
+    return { ok: false, error: result.error };
+  }
+
+  async function updateBook(data: Livro, id: number) {
+    const result = await livrosAPI.save(data, id);
+    if (result.data) {
+      return { ok: true };
+    }
+    return { ok: false, error: result.error };
+  }
+
+  async function getMediaReceita(receitaId: number): Promise<MediaResponse> {
+    try {
+      const resposta = await comentariosAPI.getMedia(receitaId);
+      const data = resposta.data as MediaResponse;
+
+      if (data && typeof data.mediaNota !== 'undefined') {
+        return data;
+      }
+
+      return { codReceita: receitaId, mediaNota: 0, totalAvaliacoes: 0 };
+    } catch (error) {
+      console.error(`Erro ao buscar média da receita ${receitaId}:`, error);
+      return { codReceita: receitaId, mediaNota: 0, totalAvaliacoes: 0 };
+    }
+  }
+
+  async function addRecipeToBook(codLivro: number, codReceita: number) {
+    const result = await livrosAPI.addRecipeToBook(codLivro, codReceita);
+    if (result.data) {
+      return { ok: true };
+    }
+    return { ok: false, error: result.error };
+  }
+
+  async function removeRecipeFromBook(codLivro: number, codReceita: number) {
+    const result = await livrosAPI.removeRecipeFromBook(codLivro, codReceita);
+    if (result.data) {
+      return { ok: true };
+    }
+    return { ok: false, error: result.error };
+  }
 
   return (
     <AuthContext.Provider value={{
@@ -371,8 +363,9 @@ async function removeRecipeFromBook(
     </AuthContext.Provider>
   );
 };
+
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) throw new Error('useAuth must be used within an AuthProvider');
+  if (!context) throw new Error('useAuth deve ser utilizado dentro de um AuthProvider');
   return context;
 };
