@@ -36,10 +36,10 @@ public class UsuarioService {
                 .orElseThrow(() -> new RuntimeException("Usuario não encontrado com o código " + codUser));
     }
 
-    public Usuario atualizarFoto(Long codUser, String base64) {
+    public Usuario atualizarFoto(Long codUser, String link) {
         Usuario usuario = usuarioRepository.findById(codUser)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado: " + codUser));
-        usuario.setFoto_perfil(base64);
+        usuario.setFotoPerfil(link);
         return usuarioRepository.save(usuario);
     }
 
@@ -66,6 +66,11 @@ public class UsuarioService {
         if (usuario.getRestricoesAlimentares() != null) {
             usuarioExistente.setRestricoesAlimentares(usuario.getRestricoesAlimentares());
         }
+
+        if(usuario.getFotoPerfil() != null){
+            usuarioExistente.setFotoPerfil(usuario.getFotoPerfil());
+        }
+        System.out.println("do negocio la: "+usuario.getFotoPerfil());
         return usuarioRepository.save(usuarioExistente);
     }
 
@@ -95,25 +100,25 @@ public class UsuarioService {
     // login de usuario
     public Usuario login(String gmail, String senha) {
         Usuario usuario = usuarioRepository.findByGmail(gmail)
-                .orElseThrow(() -> new RuntimeException("EMAIL_OU_SENHA_INCORRETOS"));
+                .orElseThrow(() -> new RuntimeException("Email Incorreto"));
 
         if (!passwordEncoder.matches(senha, usuario.getSenha())) {
-            throw new RuntimeException("EMAIL_OU_SENHA_INCORRETOS");
+            throw new RuntimeException("Senha Incorreta");
         }
 
         if ("INATIVO".equals(usuario.getStatus_Usuario())) {
             throw new RuntimeException("CONTA_INATIVA");
         }
-        return usuario;
+        return usuario; 
     }
 
     // reativar conta com senha
     public Usuario reativar(String gmail, String senha) {
         Usuario usuario = usuarioRepository.findByGmail(gmail)
-                .orElseThrow(() -> new RuntimeException("EMAIL_OU_SENHA_INCORRETOS"));
+                .orElseThrow(() -> new RuntimeException("Email Incorreto"));
 
         if (!passwordEncoder.matches(senha, usuario.getSenha())) {
-            throw new RuntimeException("EMAIL_OU_SENHA_INCORRETOS");
+            throw new RuntimeException("Senha Incorreta");
         }
 
         usuario.setStatus_Usuario("ATIVO"); // faltava isso!
