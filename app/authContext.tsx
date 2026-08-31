@@ -58,6 +58,7 @@ interface AuthContextType {
   reativar: (email: string, senha: string) => Promise<{ ok: boolean }>;
   logout: () => void;
   getMediaReceita: (receitaId: number) => Promise<MediaResponse>;
+  EditPhoto: (id: number,link:string) => Promise<any>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -122,6 +123,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const updateUserData = (updatedUser: AuthUser) => {
     setUser(updatedUser);
   };
+
+  async function EditPhoto(id:number, link:string) {
+    try{
+      const res = await usuariosAPI.trocarFoto(id,link)
+      if(res.data){
+        console.log("foi pae")
+      }
+    }
+    catch{
+        return {ok: false, error: "sei la"};
+      }
+  }
 
   const logout = async () => {
     setUser(null);
@@ -358,6 +371,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       updateUserData,
       updateUser,
       getMediaReceita,
+      EditPhoto,
     }}>
       {children}
     </AuthContext.Provider>

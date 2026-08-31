@@ -18,6 +18,7 @@ import {
   View,
 } from 'react-native';
 import { usuariosAPI } from '../(auth)/api';
+import { uploadImageToSupabase } from '../(services)/subapase';
 import BolinhaqGira from '../../components/BolinhaqGira';
 import BottomNavigation from '../../components/BottomNavigation';
 import { useAuth } from '../authContext';
@@ -54,7 +55,7 @@ const API_BASE = 'http://192.168.1.100:8080';
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { user, userId, logout, loading, favoritos, getComentarios, updateUser } = useAuth();
+  const { user, userId, logout, loading, favoritos, getComentarios, updateUser, EditPhoto } = useAuth();
 
   const [editModalVisible,   setEditModalVisible]   = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
@@ -98,7 +99,7 @@ export default function ProfileScreen() {
   }, [userId, favoritos]);
 
   // ── Seleciona foto da galeria e envia ao backend ──────────────────────────
-  const handlePickPhoto = async () => {
+ const handlePickPhoto = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert(
@@ -113,27 +114,38 @@ export default function ProfileScreen() {
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.6,
-      base64: true,
+      // Não precisamos mais do base64: true aqui, pois a nossa função de upload lê o arquivo pela URI
     });
 
-    if (result.canceled || !result.assets?.[0]?.base64) return;
+    if (result.canceled || !result.assets?.[0]?.uri) return;
 
     const asset = result.assets[0];
-    const mimeType = asset.mimeType ?? 'image/jpeg';
-    const base64String = `data:${mimeType};base64,${asset.base64}`;
+    const imageUri = asset.uri;
 
     setSavingPhoto(true);
     try {
+      // 1. Faz o upload da imagem para o Supabase Storage e pega a URL pública
+      const publicUrl = await uploadImageToSupabase(imageUri);
+
+      if (!publicUrl) {
+        throw new Error('Falha no upload para o Supabase');
+      }
+
+      // 2. Envia a URL gerada para a sua API
       const res = await fetch(`${API_BASE}/usuario/${userId}/foto`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fotoPerfil: base64String }),
+        body: JSON.stringify({ fotoPerfil: publicUrl }), // Enviando a URL em vez do base64 pesado
       });
 
-      if (!res.ok) throw new Error('Falha ao salvar foto');
+      if (!res.ok) throw new Error('Falha ao salvar foto na API');
+      
       const usuarioAtualizado = await res.json();
       updateUser(usuarioAtualizado);
-    } catch {
+      
+      Alert.alert('Sucesso', 'Foto de perfil atualizada com sucesso!');
+    } catch (error) {
+      console.log(error);
       Alert.alert('Erro', 'Não foi possível salvar a foto. Tente novamente.');
     } finally {
       setSavingPhoto(false);
