@@ -18,7 +18,7 @@ import {
   View,
 } from 'react-native';
 import { usuariosAPI } from '../(auth)/api';
-import { uploadImageToSupabase } from '../(services)/subapase';
+import { uploadImageToSupabase } from '../(services)/uploadImageToSupabase';
 import BolinhaqGira from '../../components/BolinhaqGira';
 import BottomNavigation from '../../components/BottomNavigation';
 import { useAuth } from '../authContext';
@@ -51,7 +51,7 @@ interface UserStats {
 }
 
 // ─── URL base da API ──────────────────────────────────────────────────────────
-const API_BASE = 'http://192.168.1.100:8080';
+const API_BASE = 'http://localhost:8080';
 
 export default function ProfileScreen() {
   const router = useRouter();
