@@ -10,6 +10,7 @@ export const API_ENDPOINTS = {
   LOGIN: `${API_BASE_URL}/usuario/login`,
   REGISTER: `${API_BASE_URL}/usuario`,
   USUARIO_LOGIN: `${API_BASE_URL}/usuario/login`,
+  USUARIO_SET_IMAGE: (id: string | number ) => `${API_BASE_URL}/usuario/${id}/foto`,
 
   // Receitas
   RECEITAS_ALL: `${API_BASE_URL}/receita/findAll`,
@@ -161,6 +162,11 @@ export const usuariosAPI = {
       method: 'POST',
       body: JSON.stringify({ email, senha }),
     }),
+    trocarFoto: (id: number, data: any) =>
+      apiCall(API_ENDPOINTS.USUARIO_SET_IMAGE(id), {
+        method: 'PATCH',
+        body: JSON.stringify(data)
+      })
 }
 // Favoritos API
 export const favoritosAPI = {
