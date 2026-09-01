@@ -125,7 +125,7 @@ export default function ProfileScreen() {
     setSavingPhoto(true);
     try {
       // 1. Faz o upload da imagem para o Supabase Storage e pega a URL pública
-      const publicUrl = await uploadImageToSupabase(imageUri);
+      const publicUrl = await uploadImageToSupabase(imageUri, userId);
 
       if (!publicUrl) {
         throw new Error('Falha no upload para o Supabase');

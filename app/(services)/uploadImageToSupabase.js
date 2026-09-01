@@ -1,45 +1,46 @@
 import { supabase } from './supabase'; // Ajuste o caminho se necessário
 
-export async function uploadImageToSupabase(imageUri) {
+const Bucket = "Uploads Tasty Cuisine"
+
+export async function uploadImageToSupabase(imageUri, userId) {
   try {
-    // Valida se a URI realmente existe
-    if (!imageUri) {
-      console.error('Erro no upload: Nenhuma URI de imagem foi fornecida.');
+    if (!imageUri || !userId) {
+      console.error('Erro: A imagem e o ID do usuário são obrigatórios.');
       return null;
     }
 
-    // Extrai extensão ou define fallback para png
     const fileExt = imageUri.split('.').pop()?.toLowerCase() || 'png';
-    const fileName = `${Date.now()}.${fileExt}`;
-    const filePath = `pasta_opcional/${fileName}`;
+    
+    // Nome do arquivo fixo usando o ID do usuário (ex: avatars/user_3.png)
+    const filePath = `avatars/user_${userId}.${fileExt}`;
     const contentType = `image/${fileExt === 'jpg' ? 'jpeg' : fileExt}`;
 
-    // O fetch + blob funciona perfeitamente na Web e no React Native (iOS/Android)
+    // Converte a URI para Blob (funciona na Web)
     const response = await fetch(imageUri);
     const blob = await response.blob();
 
-    // Envia para o Supabase Storage
+    // Envia com upsert: true para sobrescrever se já existir
     const { data, error } = await supabase.storage
-      .from('Uploads Tasty Cuisine')
+      .from(Bucket)
       .upload(filePath, blob, {
         contentType,
-        upsert: false,
+        upsert: true, // 👈 Se já existir um arquivo nesse caminho, ele será substituído
       });
 
-    if (error) {
-      console.error('Erro retornado pelo Supabase Storage:', error);
-      throw error;
-    }
+    if (error) throw error;
 
     // Pega a URL pública
     const { data: publicUrlData } = supabase.storage
-      .from('Uploads Tasty Cuisine')
+      .from(Bucket)
       .getPublicUrl(filePath);
 
-    console.log('Upload realizado com sucesso! URL:', publicUrlData.publicUrl);
-    return publicUrlData.publicUrl;
+    // Dica para a Web: Adicionamos um timestamp no final apenas para evitar
+    // que o navegador mostre a imagem antiga do cache local
+    const urlComCacheBuster = `${publicUrlData.publicUrl}?t=${Date.now()}`;
+
+    return urlComCacheBuster;
   } catch (error) {
-    console.error('Detalhes do erro no upload:', error);
+    console.error('Erro no upload:', error.message);
     return null;
   }
 }
